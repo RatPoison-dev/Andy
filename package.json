@@ -1,0 +1,19 @@
+{
+  "name": "andy",
+  "version": "1.0.0",
+  "description": "Discord bot for RatPoison server",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/retart1337/Andy.git"
+  },
+  "author": "SPRAVEDLIVO",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/retart1337/Andy/issues"
+  },
+  "homepage": "https://github.com/retart1337/Andy#readme"
+}
