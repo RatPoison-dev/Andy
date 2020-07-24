@@ -1,6 +1,6 @@
 let database = require("./database")
 let config = require("./config.json")
-let steamApi = require("./steamApi")
+let steamApi = require("./steamAPI")
 let utils = require("./utils")
 let api = new steamApi.WebApi(config.steamWebApiKey)
 
@@ -17,7 +17,7 @@ module.exports = class BanChecker {
                 let info = await database.getGuildInfo(account.guild_id)
                 if (info.bannedChannel !== null) {
                     let embed = await utils.constructBannedEmbed(account, checkresult, this.client)
-                    this.client.channels.cache.get(info.bannedChannel).send(embed=embed)
+                    this.client.channels.cache.get(info.bannedChannel).send(this.client.users.cache.get(account.requester).toString(), {"embed": embed})
                     database.deleteBancheckerAccount(account.steamID)
                 }
             }
