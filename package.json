@@ -4,7 +4,8 @@
   "description": "Discord bot for RatPoison server",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "run": "node index.js",
+    "pm2": "pm2 start ecosystem.config.js"
   },
   "repository": {
     "type": "git",
@@ -15,5 +16,10 @@
   "bugs": {
     "url": "https://github.com/retart1337/Andy/issues"
   },
-  "homepage": "https://github.com/retart1337/Andy#readme"
+  "homepage": "https://github.com/retart1337/Andy#readme",
+  "dependencies": {
+    "discord.js": "^12.2.0",
+    "sqlite3": "^5.0.0",
+    "steamid": "^1.1.3"
+  }
 }

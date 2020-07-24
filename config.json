@@ -1,0 +1,9 @@
+{
+    "discord_token": "",
+    "steamWebApiKey": "",
+    "VACBannedList": ["Now is the CEO of otc", "Downloaded some paste from UC", "Forgot to clamp his angles", "RCSed Z"],
+    "OWBannedList": ["Haha semirage goes brrrr", "Thought playing legit with OTC was a good idea", "RQ without q", "Roaded to Global Cooldown", "Fuckers stole my account"],
+    "VACBannedMessage": "Was banned by VAC",
+    "OWBannedMessage": "Was banned by OW",
+    "banCheckerInterval": 1800000
+}
