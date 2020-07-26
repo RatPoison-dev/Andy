@@ -1,8 +1,8 @@
-let utils = require("../utils")
-let steamApi = require("../steamAPI")
-let config = require("../config.json")
-let db = require("../database")
-let api = new steamApi.WebApi(config.steamWebApiKey)
+const utils = require("../utils")
+const steamApi = require("../steamAPI")
+const config = require("../config.json")
+const db = require("../database")
+const api = new steamApi.WebApi(config.steamWebApiKey)
 
 let commands = {
     monitor : (message, args) => {

@@ -17,7 +17,7 @@ client.on("guildCreate", (guild) => {
 })
 
 client.on("message", async (message) => {
-    message
+    if (message.author.bot) return
     let messageContent = message.content
     let info = await database.getGuildInfo(message.guild.id)
     let prefix = info.prefix
@@ -25,10 +25,24 @@ client.on("message", async (message) => {
         messageContent = messageContent.substr(prefix.length, messageContent.length)
         let sub = messageContent.split(" ")
         let command = sub.shift()
-        engine.runCommand(message.author.id, command, message, sub, client)
+        engine.runCommand(command, message, sub, client)
     }
-    else if (engine.checkAfters(message.author.id)) {
-        engine.runCommand(message.author.id, "", message, "", client)
+    else if (message.mentions.members.has(client.user.id)) {
+        let args = messageContent.split(" ").slice(1)
+        args.slice()
+        if (args.length === 0) {
+            message.channel.send(`My prefix here: ${prefix}`)
+        }
+        else {
+            engine.runCommand("monitor", message, args, client)
+        }
+    }
+    else if (messageContent.startsWith("&")) {
+        let tag = messageContent.substr("&".length, messageContent.length)
+        let tagInfo = await database.getTag(message.author.id, tag)
+        if (tagInfo !== undefined && tagInfo.value !== undefined) {
+            message.channel.send(tagInfo.value)
+        }
     }
 })
 

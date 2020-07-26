@@ -1,4 +1,4 @@
-let database = require("../database")
+const database = require("../database")
 
 let commands = {
     help: async (message) => {
