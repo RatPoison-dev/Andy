@@ -30,9 +30,17 @@ let commands = {
                     message.channel.send("You need to specify tag/value")
                 }
                 break
-            case "list": 
-                let tags = await database.getTags(user)
-                message.channel.send(`Your tags: ${tags.join(", ")}`)
+            case "list":
+                if (message.mentions.users.array().length == 0) {
+                    let tags = await database.getTags(user)
+                    message.channel.send(`Your tags: ${tags.join(", ")}`)
+                }
+                else {
+                    let user = message.mentions.users.first()
+                    let tags = await database.getTags(user.id)
+                    message.channel.send(`${user.tag} tags: ${tags.join(", ")}`)
+                    break
+                }
                 break
         }
     }
