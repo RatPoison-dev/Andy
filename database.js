@@ -3,8 +3,7 @@ let db = new sqlite.Database("db/database.sqlite3")
 
 db.run("create table if not exists guilds (guild_id TEXT NOT NULL UNIQUE, bannedChannel TEXT, prefix TEXT DEFAULT \"rat!\", PRIMARY KEY(guild_id))")
 db.run("create table if not exists banChecker (steamID TEXT NOT NULL UNIQUE, requester TEXT NOT NULL, timestamp integer not null, displayName TEXT NOT NULL, playerAvatar TEXT NOT NULL, guild_id TEXT, PRIMARY KEY(steamID))")
-db.run("create table if not exists tags (user_id TEXT, tag TEXT, value TEXT)")
-
+db.run("create table if not exists users (user_id TEXT NOT NULL UNIQUE, cheese DOUBLE, money INT, dailyTimestamp INT, repTimestamp INT)")
 
 let getGuildInfo = (guild_id) => new Promise((resolve, reject) => {
     initGuild(guild_id)
@@ -13,29 +12,25 @@ let getGuildInfo = (guild_id) => new Promise((resolve, reject) => {
     })
 })
 
-let createTag = async (user_id, tag, value) => {
-    let tags = await getTags(user_id)
-    if (tags.length < 5) {
-        db.run("insert into tags (user_id, tag, value) values (?, ?, ?)", [user_id, tag, value])
-        return true
+let initProfile = (user_id) => {
+    db.run("insert or ignore into users (user_id, cheese, money, dailyTimestamp, repTimestamp) values (?, 0, 0, 0, 0)", [user_id])
+}
+
+let updateUser = (user_id, columns, values) => {
+    initProfile(user_id)
+    if (typeof columns == "object") {
+        columns.forEach((column, index) => {
+            db.run(`update users set ${column} = ? where user_id = ?`, [values[index], user_id])
+        })
+    }
+    else {
+        db.run(`update users set ${columns} = ? where user_id = ?`, [values, user_id])
     }
 }
 
-let deleteTag = (user_id, tag) => {
-    db.run("delete from tags where user_id = ? and tag = ?", [user_id, tag])
-}
-
-let getTags = (user_id) => new Promise((resolve, reject) => {
-    db.all("select tag from tags where user_id = ?", [user_id], (err, rows) => {
-        rows = rows.map(elem => {
-            return elem.tag
-        })
-        resolve(rows)
-    })
-})
-
-let getTag = (user_id, tag) => new Promise((resolve, reject) => {
-    db.all("select * from tags where user_id = ? and tag = ?", [user_id, tag], (err, rows) => {
+let getUser = (user_id) => new Promise((resolve, reject) => {
+    initProfile(user_id)
+    db.all("select * from users where user_id = ?", [user_id], (err, rows) => {
         resolve(rows[0])
     })
 })
@@ -68,4 +63,4 @@ let deleteBancheckerAccount = (sid) => {
 }
 
 
-module.exports = {getGuildInfo, initGuild, addBancheckerAccount, getBancheckerAccounts, deleteBancheckerAccount, updateBannedChannel, updatePrefix, createTag, deleteTag, getTags, getTag}
+module.exports = {getGuildInfo, initGuild, addBancheckerAccount, getBancheckerAccounts, deleteBancheckerAccount, updateBannedChannel, updatePrefix, updateUser, getUser}
