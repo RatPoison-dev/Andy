@@ -28,6 +28,51 @@ let constructUserProfile = async (user) => {
     embed.addField("[:cheese:] Cheese", profile.cheese.toFixed(3))
     embed.addField("[:moneybag:] Money", profile.money)
     embed.setColor(0x6b32a8)
+    embed.setTimestamp(Date.now())
+    return embed
+}
+
+let constructRepEmbed = async (author, user) => {
+    let embed = new discord.MessageEmbed()
+    let authorProfile = await database.getUser(author.id)
+    let userProfile = await database.getUser(user.id)
+    if (Date.now() - authorProfile.repTimestamp < 79200000) {
+        embed.setAuthor(author.tag, author.avatarURL())
+        embed.setTitle(":x: Error")
+        embed.setDescription(`You need to wait **${convertMS(79200000-(Date.now()-authorProfile.repTimestamp))}** before using this command again.`)
+        embed.setColor(0xb02020)
+    }
+    else {
+        let cheese = Math.floor(Math.random() * 0.08 * 1000) / 1000
+        let money =  Math.floor(Math.random() * 200)
+        embed.setTitle("+rep")
+        embed.setDescription(`You gave <@${user.id}> ${cheese} :cheese: and ${money} :moneybag:`)
+        database.updateUser(user.id, ["cheese", "money"], [userProfile.cheese+cheese, userProfile.money+money, Date.now()])
+        database.updateUser(author.id, ["repTimestamp"], [Date.now()])
+        embed.setColor(0x20b038)
+    }
+    embed.setTimestamp(Date.now())
+    return embed
+}
+
+let constructMinusRepEmbed = async (author, user) => {
+    let embed = new discord.MessageEmbed()
+    let authorProfile = await database.getUser(author.id)
+    let userProfile = await database.getUser(user.id)
+    if (Date.now() - authorProfile.repTimestamp < 79200000) {
+        embed.setAuthor(author.tag, author.avatarURL())
+        embed.setTitle(":x: Error")
+        embed.setDescription(`You need to wait **${convertMS(79200000-(Date.now()-authorProfile.repTimestamp))}** before using this command again.`)
+        embed.setColor(0xb02020)
+    }
+    else {
+        let cheese = Math.floor(Math.random() * 0.08 * 1000) / 1000
+        embed.setTitle("-rep")
+        embed.setDescription(`You took from <@${user.id}> ${cheese} :cheese:`)
+        database.updateUser(user.id, ["cheese"], [userProfile.cheese-cheese, Date.now()])
+        database.updateUser(author.id, ["repTimestamp"], [Date.now()])
+        embed.setColor(0x20b038)
+    }
     return embed
 }
 
@@ -37,20 +82,39 @@ let constructDailyembed = async (user) => {
     let profile = await database.getUser(user.id)
     if (Date.now() - profile.dailyTimestamp < 79200000) {
         embed.setAuthor(user.tag, user.avatarURL())
-        embed.addField(":x: Error", `You need to wait **${convertMS(79200000-(Date.now()-profile.dailyTimestamp))}** before using this command again.`)
+        embed.setTitle(":x: Error")
+        embed.setDescription(`You need to wait **${convertMS(79200000-(Date.now()-profile.dailyTimestamp))}** before using this command again.`)
         embed.setColor(0xb02020)
     }
     else {
         embed.setAuthor(user.tag, user.avatarURL())
         let cheese = Math.floor(Math.random() * 0.08 * 1000) / 1000
         let money =  Math.floor(Math.random() * 200)
-        embed.addField("Daily", `You recieved your daily ${cheese} :cheese: and ${money} :moneybag:`)
+        embed.setTitle("Daily")
+        embed.setDescription(`You recieved your daily ${cheese} :cheese: and ${money} :moneybag:`)
         database.updateUser(user.id, ["cheese", "money", "dailyTimestamp"], [profile.cheese+cheese, profile.money+money, Date.now()])
         embed.setColor(0x20b038)
     }
     embed.setTimestamp(Date.now())
     return embed
 }
+
+
+let constructTop = async (user, type, page) => {
+    let top = await database.getTopByPage(type, page)
+    let embed = new discord.MessageEmbed()
+    embed.setAuthor(user.tag, user.avatarURL())
+    embed.setTitle(`Leaderboard by ${type}`)
+    let desc = ""
+    top.forEach ((elem, index) => {
+        desc += `${index+1}. <@${elem.user_id}> • ${elem[type].toFixed(3)}\n`
+    })
+    embed.setDescription(desc)
+    embed.setColor(0x6b32a8)
+    embed.setTimestamp(Date.now())
+    return embed
+}
+
 
 function convertMS(ms) {
     let h, m, s;
@@ -66,14 +130,6 @@ function convertMS(ms) {
     let result = pad(h) + ' hours, ' + pad(m) + ' minutes';
     return result;
   };
-
-let formatDateTime = (input) => {
-    var epoch = new Date(0);
-    epoch.setSeconds(parseInt(input));
-    var date = epoch.toISOString();
-    date = date.replace('T', ' ');
-    return epoch.toLocaleTimeString().split(' ')[0];
-};
 
 let constructBannedEmbed = async (player, type, client) => {
     let bannedMessage
@@ -117,4 +173,4 @@ let parseSteamID = (input) => {
     })
 }
 
-module.exports = {parseSteamID, constructBannedEmbed, searchUser, constructUserProfile, constructDailyembed}
+module.exports = {parseSteamID, constructBannedEmbed, searchUser, constructUserProfile, constructDailyembed, constructTop, constructRepEmbed, constructMinusRepEmbed}

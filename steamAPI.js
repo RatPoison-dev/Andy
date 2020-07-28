@@ -18,12 +18,7 @@ class WebApi {
         let fetched = await fetch(`http://api.steampowered.com/ISteamUser/GetPlayerBans/v1/?key=${this.apiKey}&steamids=${user}`)
         let bans = await fetched.json()
         let player = bans.players[0]
-        if (player.NumberOfVACBans) {
-            return "VAC"
-        }
-        if (player.NumberOfGameBans) {
-            return "OW"
-        }
+        return [player.NumberOfVACBans ? player.NumberOfVACBans !== undefined : 0, player.NumberOfGameBans ? player.NumberOfGameBans !== undefined : 0]
     }
 }
 

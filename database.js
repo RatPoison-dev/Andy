@@ -1,8 +1,9 @@
 let sqlite = require("sqlite3")
+const { Type } = require("steamid")
 let db = new sqlite.Database("db/database.sqlite3")
 
 db.run("create table if not exists guilds (guild_id TEXT NOT NULL UNIQUE, bannedChannel TEXT, prefix TEXT DEFAULT \"rat!\", PRIMARY KEY(guild_id))")
-db.run("create table if not exists banChecker (steamID TEXT NOT NULL UNIQUE, requester TEXT NOT NULL, timestamp integer not null, displayName TEXT NOT NULL, playerAvatar TEXT NOT NULL, guild_id TEXT, PRIMARY KEY(steamID))")
+db.run("create table if not exists banChecker (steamID TEXT NOT NULL UNIQUE, requester TEXT NOT NULL, timestamp integer not null, displayName TEXT NOT NULL, playerAvatar TEXT NOT NULL, guild_id TEXT, initVAC INT, initOW INT,  PRIMARY KEY(steamID))")
 db.run("create table if not exists users (user_id TEXT NOT NULL UNIQUE, cheese DOUBLE, money INT, dailyTimestamp INT, repTimestamp INT)")
 
 let getGuildInfo = (guild_id) => new Promise((resolve, reject) => {
@@ -15,6 +16,12 @@ let getGuildInfo = (guild_id) => new Promise((resolve, reject) => {
 let initProfile = (user_id) => {
     db.run("insert or ignore into users (user_id, cheese, money, dailyTimestamp, repTimestamp) values (?, 0, 0, 0, 0)", [user_id])
 }
+
+let getTopByPage = (type, page) => new Promise((resolve, reject) => {
+    db.all(`select user_id, ${type} from users order by ${type} desc limit ?, 10`, [(page-1)*10], (err, rows) => {
+        resolve(rows)
+    })
+})
 
 let updateUser = (user_id, columns, values) => {
     initProfile(user_id)
@@ -47,8 +54,8 @@ let updateBannedChannel = (guild_id, channel) => {
     db.run("update guilds set bannedChannel = ? where guild_id = ?", [channel, guild_id])
 }
 
-let addBancheckerAccount = (steamID, requester, displayName, playerAvatar, guild_id) => {
-    db.run('insert or ignore into banChecker (steamID, requester, timestamp, displayName, playerAvatar, guild_id) values (?, ?, ?, ?, ?, ?)', [steamID, requester, Date.now(), displayName, playerAvatar, guild_id])
+let addBancheckerAccount = (steamID, requester, displayName, playerAvatar, guild_id, initVAC, initOW) => {
+    db.run('insert or ignore into banChecker (steamID, requester, timestamp, displayName, playerAvatar, guild_id, initVAC, initOW) values (?, ?, ?, ?, ?, ?, ?, ?)', [steamID, requester, Date.now(), displayName, playerAvatar, guild_id, initVAC, initOW])
 }
 
 let getBancheckerAccounts = () => new Promise((resolve, reject) => {
@@ -63,4 +70,4 @@ let deleteBancheckerAccount = (sid) => {
 }
 
 
-module.exports = {getGuildInfo, initGuild, addBancheckerAccount, getBancheckerAccounts, deleteBancheckerAccount, updateBannedChannel, updatePrefix, updateUser, getUser}
+module.exports = {getGuildInfo, initGuild, addBancheckerAccount, getBancheckerAccounts, deleteBancheckerAccount, updateBannedChannel, updatePrefix, updateUser, getUser, getTopByPage}

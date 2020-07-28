@@ -42,13 +42,6 @@ client.on("message", async (message) => {
             engine.runCommand("monitor", message, args, client)
         }
     }
-    else if (messageContent.startsWith("&")) {
-        let tag = messageContent.substr("&".length, messageContent.length)
-        let tagInfo = await database.getTag(message.author.id, tag)
-        if (tagInfo !== undefined && tagInfo.value !== undefined) {
-            message.channel.send(tagInfo.value)
-        }
-    }
 })
 
 client.login(config.discord_token)
