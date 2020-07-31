@@ -4,7 +4,7 @@ let commands = {
     help: async (message) => {
         let info = await database.getGuildInfo(message.guild.id)
         let prefix = info.prefix
-        message.channel.send(`Current prefix: ${prefix}\nCommands:\nmonitor [link] - add account to bans monitor\nsetChannel [channel] - channel for bans monitor\nsetPrefix [newPrefix] - set a prefix for bot\nprofile [?user] - get a profile\ndaily - get daily cheese and money\ntop [type] [?page]\n+rep [user] - give user some money and cheese\n-rep [user] - take some cheese from user\npay [user] [amount] - pay user\njdk - get a link to oracle openJDK\nbeta - get a link to download beta branch\ntesting - get a link to download new-testing branch\ncoin - Toss a coin`)
+        message.channel.send(`Current prefix: ${prefix}\nCommands:\nmonitor [link] - add account to bans monitor\nsetChannel [channel] - channel for bans monitor\nsetPrefix [newPrefix] - set a prefix for bot\nprofile [?user] - get a profile\ndaily - get daily cheese and money\ntop [type] [?page]\n+rep [user] - give user some money and cheese\n-rep [user] - take some cheese from user\npay [user] [amount] - pay user\njdk - get a link to oracle openJDK\nbeta - get a link to download beta branch\ntesting - get a link to download new-testing branch\ncoin - Toss a coin\nduels [bet] [user]`)
     },
     coin: async (message, args) => {
         let rand = Math.floor(Math.random() * 2)

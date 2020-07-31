@@ -3,7 +3,7 @@ let db = new sqlite.Database("db/database.sqlite3")
 
 db.run("create table if not exists guilds (guild_id TEXT NOT NULL UNIQUE, bannedChannel TEXT, prefix TEXT DEFAULT \"rat!\", PRIMARY KEY(guild_id))")
 db.run("create table if not exists banChecker (steamID TEXT NOT NULL UNIQUE, requester TEXT NOT NULL, timestamp integer not null, displayName TEXT NOT NULL, playerAvatar TEXT NOT NULL, guild_id TEXT, initVAC INT, initOW INT,  PRIMARY KEY(steamID))")
-db.run("create table if not exists users (user_id TEXT NOT NULL UNIQUE, cheese DOUBLE, money INT, rep INT, dailyTimestamp INT, repTimestamp INT)")
+db.run("create table if not exists users (user_id TEXT NOT NULL UNIQUE, cheese DOUBLE DEFAULT 0, money INT DEFAULT 0, rep INT DEFAULT 0, dailyTimestamp INT DEFAULT 0, repTimestamp INT DEFAULT 0, repToday INT DEFAULT 0)")
 
 let getGuildInfo = (guild_id) => new Promise((resolve, reject) => {
     initGuild(guild_id)
@@ -13,7 +13,7 @@ let getGuildInfo = (guild_id) => new Promise((resolve, reject) => {
 })
 
 let initProfile = (user_id) => {
-    db.run("insert or ignore into users (user_id, cheese, money, dailyTimestamp, repTimestamp, rep) values (?, 0, 0, 0, 0, 0)", [user_id])
+    db.run("insert or ignore into users (user_id) values (?)", [user_id])
 }
 
 let getTopByPage = (type, page) => new Promise((resolve, reject) => {
@@ -32,6 +32,11 @@ let updateUser = (user_id, columns, values) => {
     else {
         db.run(`update users set ${columns} = ? where user_id = ?`, [values, user_id])
     }
+}
+
+let getUserMaxReps = async (user_id) => {
+    let user = await getUser(user_id)
+    return Math.floor(user.cheese) + 5
 }
 
 let getUser = (user_id) => new Promise((resolve, reject) => {
@@ -69,4 +74,4 @@ let deleteBancheckerAccount = (sid) => {
 }
 
 
-module.exports = {getGuildInfo, initGuild, addBancheckerAccount, getBancheckerAccounts, deleteBancheckerAccount, updateBannedChannel, updatePrefix, updateUser, getUser, getTopByPage}
+module.exports = {getGuildInfo, initGuild, addBancheckerAccount, getBancheckerAccounts, deleteBancheckerAccount, updateBannedChannel, updatePrefix, updateUser, getUser, getTopByPage, getUserMaxReps}

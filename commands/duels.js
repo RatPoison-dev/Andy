@@ -73,10 +73,10 @@ let commands = {
                         message.channel.send("Specified user have not enough money.")
                     }
                 }
-                else {
-                    message.channel.send(`${message.author.tag} Search some opponents for duel. Click to join`)
-
-                }
+                // Eventually (tm)
+                //else {
+                //    message.channel.send(`${message.author.tag} Search some opponents for duel. Click to join`)
+                //}
             }
             else {
                 message.channel.send("You don't have enough money.")

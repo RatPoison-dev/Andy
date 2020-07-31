@@ -29,6 +29,8 @@ let constructUserProfile = async (user) => {
     embed.setTitle("Profile")
     embed.addField("[:cheese:] Cheese", profile.cheese.toFixed(3))
     embed.addField("[:moneybag:] Money", profile.money)
+    let maxReps = await database.getUserMaxReps(user.id)
+    embed.addField("[:white_check_mark:] Reps", `${profile.repToday}/${maxReps}`)
     embed.setColor(0x6b32a8)
     embed.setTimestamp(Date.now())
     return embed
@@ -37,15 +39,17 @@ let constructUserProfile = async (user) => {
 let constructCanRepEmbed = async (author) => {
     let embed = new discord.MessageEmbed()
     let authorProfile = await database.getUser(author.id)
-    if (Date.now() - authorProfile.repTimestamp < 79200000) {
+    let maxReps = await database.getUserMaxReps(author.id)
+    if (Date.now() - authorProfile.repTimestamp < 79200000 && authorProfile.repToday == maxReps) {
         embed.setAuthor(author.tag, author.avatarURL())
         embed.setTitle(":x: Error")
         embed.setDescription(`You need to wait **${convertMS(79200000-(Date.now()-authorProfile.repTimestamp))}** before using this command again.`)
         embed.setColor(0xb02020)
     }
     else {
+        let maxReps = await database.getUserMaxReps(author.id)
         embed.setTitle("+rep")
-        embed.setDescription("You can +rep/-rep people.")
+        embed.setDescription(`You can +rep/-rep people ${maxReps-authorProfile.repToday} more times.`)
         embed.setColor(0x20b038)
     }
     embed.setTimestamp(Date.now())
@@ -56,19 +60,21 @@ let constructRepEmbed = async (author, user) => {
     let embed = new discord.MessageEmbed()
     let authorProfile = await database.getUser(author.id)
     let userProfile = await database.getUser(user.id)
-    if (Date.now() - authorProfile.repTimestamp < 79200000) {
+    let maxReps = await database.getUserMaxReps(author.id)
+    if (Date.now() - authorProfile.repTimestamp < 79200000 && authorProfile.repToday == maxReps) {
         embed.setAuthor(author.tag, author.avatarURL())
         embed.setTitle(":x: Error")
         embed.setDescription(`You need to wait **${convertMS(79200000-(Date.now()-authorProfile.repTimestamp))}** before using this command again.`)
         embed.setColor(0xb02020)
     }
     else {
+        if (authorProfile.repToday == maxReps) database.updateUser(author.id, "repToday", 0)
         let cheese = Math.floor(Math.random() * 0.08 * 1000) / 1000
         let money =  Math.floor(Math.random() * 200)
         embed.setTitle("+rep")
         embed.setDescription(`You gave <@${user.id}> ${cheese} :cheese: and ${money} :moneybag:`)
         database.updateUser(user.id, ["cheese", "money", "rep"], [userProfile.cheese+cheese, userProfile.money+money, userProfile.rep+1])
-        database.updateUser(author.id, ["repTimestamp"], [Date.now()])
+        database.updateUser(author.id, ["repToday", "repTimestamp"], [authorProfile.repToday+1, Date.now()])
         embed.setColor(0x20b038)
     }
     embed.setTimestamp(Date.now())
@@ -78,19 +84,19 @@ let constructRepEmbed = async (author, user) => {
 let constructMinusRepEmbed = async (author, user) => {
     let embed = new discord.MessageEmbed()
     let authorProfile = await database.getUser(author.id)
-    let userProfile = await database.getUser(user.id)
-    if (Date.now() - authorProfile.repTimestamp < 79200000) {
+    let maxReps = await database.getUserMaxReps(author.id)
+    if (Date.now() - authorProfile.repTimestamp < 79200000 && authorProfile.repToday == maxReps) {
         embed.setAuthor(author.tag, author.avatarURL())
         embed.setTitle(":x: Error")
         embed.setDescription(`You need to wait **${convertMS(79200000-(Date.now()-authorProfile.repTimestamp))}** before using this command again.`)
         embed.setColor(0xb02020)
     }
     else {
+        if (authorProfile.repToday == maxReps) database.updateUser(author.id, "repToday", 0)
         let cheese = Math.floor(Math.random() * 0.08 * 1000) / 1000
         embed.setTitle("-rep")
         embed.setDescription(`You took from <@${user.id}> ${cheese} :cheese:`)
-        database.updateUser(user.id, ["cheese", "rep"], [userProfile.cheese-cheese, userProfile.rep-1])
-        database.updateUser(author.id, ["repTimestamp"], [Date.now()])
+        database.updateUser(author.id, ["repToday", "repTimestamp"], [authorProfile.repToday+1, Date.now()])
         embed.setColor(0x20b038)
     }
     return embed
