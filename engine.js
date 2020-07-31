@@ -5,7 +5,7 @@
 
 const fs = require("fs")
 let commands = {}
-let afters = {}
+
 let importCommands = () => {
     let commandsDir = fs.readdirSync("commands")
     commandsDir.forEach(file => {

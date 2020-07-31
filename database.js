@@ -1,5 +1,4 @@
 let sqlite = require("sqlite3")
-const { Type } = require("steamid")
 let db = new sqlite.Database("db/database.sqlite3")
 
 db.run("create table if not exists guilds (guild_id TEXT NOT NULL UNIQUE, bannedChannel TEXT, prefix TEXT DEFAULT \"rat!\", PRIMARY KEY(guild_id))")

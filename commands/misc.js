@@ -7,7 +7,7 @@ let commands = {
         message.channel.send(`Current prefix: ${prefix}\nCommands:\nmonitor [link] - add account to bans monitor\nsetChannel [channel] - channel for bans monitor\nsetPrefix [newPrefix] - set a prefix for bot\nprofile [?user] - get a profile\ndaily - get daily cheese and money\ntop [type] [?page]\n+rep [user] - give user some money and cheese\n-rep [user] - take some cheese from user\npay [user] [amount] - pay user\njdk - get a link to oracle openJDK\nbeta - get a link to download beta branch\ntesting - get a link to download new-testing branch\ncoin - Toss a coin`)
     },
     coin: async (message, args) => {
-        let rand = Math.floor(Math.random() * 1)
+        let rand = Math.floor(Math.random() * 2)
         if (rand == 0) {
             message.channel.send(":compass: Heads!")
         }
@@ -33,6 +33,9 @@ let commands = {
     },
     testing: (message) => {
         message.channel.send("https://github.com/TheFuckingRat/RatPoison/archive/new-testing.zip")
+    },
+    what: (message) => {
+        message.channel.send("https://cdn.discordapp.com/attachments/549942934464757770/722632593668964443/video0.mp4")
     }
 }
 

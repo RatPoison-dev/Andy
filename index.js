@@ -1,11 +1,11 @@
-let discord = require("discord.js")
-let config = require("./config.json")
-let engine = require("./engine")
-let database = require("./database")
+const discord = require("discord.js")
+const config = require("./config.json")
+const engine = require("./engine")
+const database = require("./database")
 engine.importCommands()
 let client = new discord.Client()
 
-let checker = require("./banChecker")
+const checker = require("./banChecker")
 let banChecker = new checker(client)
 
 setInterval(() => banChecker.checkBans(), config.banCheckerInterval)
