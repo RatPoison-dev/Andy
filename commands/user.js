@@ -15,8 +15,8 @@ let commands = {
     },
     top: async (message, args) => {
         let topType = args[0]
-        if (topType === undefined || !['cheese', 'money'].includes(topType)) {
-            message.channel.send("Please set type of top: 'cheese' or 'money'")
+        if (topType === undefined || !['cheese', 'money', "rep"].includes(topType)) {
+            message.channel.send("Please set type of top: 'cheese', 'money' or 'rep'")
         }
         else {
             let page = (args[1] !== undefined && /^\d+$/.test(args[1])) ? args[1] : 1
@@ -25,8 +25,8 @@ let commands = {
         }
     },
     pay: async (message, args, client) => {
-        if (args[0] !== undefined) {
-            let foundUser = utils.searchUser(client, message, args[0])
+        let foundUser = utils.searchUser(client, message, args[0])
+        if (foundUser !== undefined) {
             if (foundUser.id !== message.author.id) {
                 let authorProfile = await database.getUser(message.author.id)
                 let userProfile = await database.getUser(foundUser.id)
@@ -52,12 +52,12 @@ let commands = {
             }
         }
         else {
-            message.channel.send("You need to specify user.")
+            message.channel.send(":x: User was not found.")
         }
     },
     "+rep": async (message, args, client) => {
-        if (args[0] !== undefined) {
-            let foundUser = utils.searchUser(client, message, args[0])
+        let foundUser = utils.searchUser(client, message, args[0])
+        if (foundUser !== undefined) {
             if (foundUser.id !== message.author.id) {
                 let embed = await utils.constructRepEmbed(message.author, foundUser)
                 message.channel.send(embed)
@@ -67,12 +67,13 @@ let commands = {
             }
         }
         else {
-            message.channel.send("You need to specify user.")
+            let embed = await utils.constructCanRepEmbed(message.author)
+            message.channel.send(embed)
         }
     },
     "-rep": async (message, args, client) => {
-        if (args[0] !== undefined) {
-            let foundUser = utils.searchUser(client, message, args[0])
+        let foundUser = utils.searchUser(client, message, args[0])
+        if (foundUser !== undefined) {
             if (foundUser.id !== message.author.id) {
                 let embed = await utils.constructMinusRepEmbed(message.author, foundUser)
                 message.channel.send(embed)
@@ -82,7 +83,8 @@ let commands = {
             }
         }
         else {
-            message.channel.send("You need to specify user.")
+            let embed = await utils.constructCanRepEmbed(message.author)
+            message.channel.send(embed)
         }
     }
 

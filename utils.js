@@ -15,7 +15,9 @@ let searchUser = (client, message, specifiedUser) => {
         return mentionsArray[0]
     }
     else {
-        return specifiedUser == undefined ? undefined : client.users.cache.find(user => specifiedUser.toLowerCase().includes(user.username.toLowerCase()))
+        let foundUser = specifiedUser == undefined ? undefined : client.users.cache.find(user => specifiedUser.toLowerCase().includes(user.username.toLowerCase()))
+        foundUser = (foundUser !== undefined && foundUser.bot) ? undefined : foundUser
+        return foundUser
     }
 }
 
@@ -28,6 +30,24 @@ let constructUserProfile = async (user) => {
     embed.addField("[:cheese:] Cheese", profile.cheese.toFixed(3))
     embed.addField("[:moneybag:] Money", profile.money)
     embed.setColor(0x6b32a8)
+    embed.setTimestamp(Date.now())
+    return embed
+}
+
+let constructCanRepEmbed = async (author) => {
+    let embed = new discord.MessageEmbed()
+    let authorProfile = await database.getUser(author.id)
+    if (Date.now() - authorProfile.repTimestamp < 79200000) {
+        embed.setAuthor(author.tag, author.avatarURL())
+        embed.setTitle(":x: Error")
+        embed.setDescription(`You need to wait **${convertMS(79200000-(Date.now()-authorProfile.repTimestamp))}** before using this command again.`)
+        embed.setColor(0xb02020)
+    }
+    else {
+        embed.setTitle("+rep")
+        embed.setDescription("You can +rep/-rep people.")
+        embed.setColor(0x20b038)
+    }
     embed.setTimestamp(Date.now())
     return embed
 }
@@ -47,7 +67,7 @@ let constructRepEmbed = async (author, user) => {
         let money =  Math.floor(Math.random() * 200)
         embed.setTitle("+rep")
         embed.setDescription(`You gave <@${user.id}> ${cheese} :cheese: and ${money} :moneybag:`)
-        database.updateUser(user.id, ["cheese", "money"], [userProfile.cheese+cheese, userProfile.money+money, Date.now()])
+        database.updateUser(user.id, ["cheese", "money", "rep"], [userProfile.cheese+cheese, userProfile.money+money, userProfile.rep+1])
         database.updateUser(author.id, ["repTimestamp"], [Date.now()])
         embed.setColor(0x20b038)
     }
@@ -69,7 +89,7 @@ let constructMinusRepEmbed = async (author, user) => {
         let cheese = Math.floor(Math.random() * 0.08 * 1000) / 1000
         embed.setTitle("-rep")
         embed.setDescription(`You took from <@${user.id}> ${cheese} :cheese:`)
-        database.updateUser(user.id, ["cheese"], [userProfile.cheese-cheese, Date.now()])
+        database.updateUser(user.id, ["cheese", "rep"], [userProfile.cheese-cheese, userProfile.rep-1])
         database.updateUser(author.id, ["repTimestamp"], [Date.now()])
         embed.setColor(0x20b038)
     }
@@ -173,4 +193,4 @@ let parseSteamID = (input) => {
     })
 }
 
-module.exports = {parseSteamID, constructBannedEmbed, searchUser, constructUserProfile, constructDailyembed, constructTop, constructRepEmbed, constructMinusRepEmbed}
+module.exports = {parseSteamID, constructBannedEmbed, searchUser, constructUserProfile, constructDailyembed, constructTop, constructCanRepEmbed, constructRepEmbed, constructMinusRepEmbed}
