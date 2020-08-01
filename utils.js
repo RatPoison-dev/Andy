@@ -84,6 +84,7 @@ let constructRepEmbed = async (author, user) => {
 let constructMinusRepEmbed = async (author, user) => {
     let embed = new discord.MessageEmbed()
     let authorProfile = await database.getUser(author.id)
+    let userProfile = await database.getUser(user.id)
     let maxReps = await database.getUserMaxReps(author.id)
     if (Date.now() - authorProfile.repTimestamp < 79200000 && authorProfile.repToday == maxReps) {
         embed.setAuthor(author.tag, author.avatarURL())
@@ -97,6 +98,7 @@ let constructMinusRepEmbed = async (author, user) => {
         embed.setTitle("-rep")
         embed.setDescription(`You took from <@${user.id}> ${cheese} :cheese:`)
         database.updateUser(author.id, ["repToday", "repTimestamp"], [authorProfile.repToday+1, Date.now()])
+        database.updateUser(user.id, ["rep", "cheese"], [userProfile.rep - 1, userProfile.cheese - cheese])
         embed.setColor(0x20b038)
     }
     return embed
