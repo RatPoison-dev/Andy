@@ -6,12 +6,16 @@ let commands = {
         let embed
         let foundUser = utils.searchUser(client, message, args[0])
         foundUser == undefined ? embed = await utils.constructUserProfile(message.author) : embed = await utils.constructUserProfile(foundUser)
-        message.channel.send(embed)
+        if (embed !== undefined) {
+            message.channel.send(embed)
+        }
     },
     daily: async (message, args, client) => {
         let foundUser = utils.searchUser(client, message, args[0])
         foundUser == undefined ? embed = await utils.constructDailyembed(message.author) : embed = await utils.constructDailyembed(foundUser)
-        message.channel.send(embed)
+        if (embed !== undefined) {
+            message.channel.send(embed)
+        }
     },
     top: async (message, args) => {
         let topType = args[0]
@@ -60,7 +64,9 @@ let commands = {
         if (foundUser !== undefined) {
             if (foundUser.id !== message.author.id) {
                 let embed = await utils.constructRepEmbed(message.author, foundUser)
-                message.channel.send(embed)
+                if (embed !== undefined) {
+                    message.channel.send(embed)
+                }
             }
             else {
                 message.channel.send("No.")
@@ -76,7 +82,9 @@ let commands = {
         if (foundUser !== undefined) {
             if (foundUser.id !== message.author.id) {
                 let embed = await utils.constructMinusRepEmbed(message.author, foundUser)
-                message.channel.send(embed)
+                if (embed !== undefined) {
+                    message.channel.send(embed)
+                }
             }
             else {
                 message.channel.send("No.")
@@ -84,7 +92,9 @@ let commands = {
         }
         else {
             let embed = await utils.constructCanRepEmbed(message.author)
-            message.channel.send(embed)
+            if (embed !== undefined) {
+                message.channel.send(embed)
+            }
         }
     }
 

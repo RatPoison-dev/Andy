@@ -23,22 +23,26 @@ let searchUser = (client, message, specifiedUser) => {
 
 let constructUserProfile = async (user) => {
     let profile = await database.getUser(user.id)
-    let embed = new discord.MessageEmbed()
-    embed.setAuthor(user.tag, user.avatarURL())
-    embed.setThumbnail(user.avatarURL())
-    embed.setTitle("Profile")
-    embed.addField("[:cheese:] Cheese", profile.cheese.toFixed(3))
-    embed.addField("[:moneybag:] Money", profile.money)
-    let maxReps = await database.getUserMaxReps(user.id)
-    embed.addField("[:white_check_mark:] Reps", `${profile.repToday}/${maxReps}`)
-    embed.setColor(0x6b32a8)
-    embed.setTimestamp(Date.now())
-    return embed
+    if (profile.madness < 3) {
+        let embed = new discord.MessageEmbed()
+        embed.setAuthor(user.tag, user.avatarURL())
+        embed.setThumbnail(user.avatarURL())
+        embed.setTitle("Profile")
+        embed.addField("[:cheese:] Cheese", profile.cheese.toFixed(3))
+        embed.addField("[:moneybag:] Money", profile.money)
+        let maxReps = await database.getUserMaxReps(user.id)
+        embed.addField("[:white_check_mark:] Reps", `${profile.repToday}/${maxReps}`)
+        embed.addField("[:angry:] Madness", `${profile.madness}/3`)
+        embed.setColor(0x6b32a8)
+        embed.setTimestamp(Date.now())
+        return embed
+    }
 }
 
 let constructCanRepEmbed = async (author) => {
     let embed = new discord.MessageEmbed()
     let authorProfile = await database.getUser(author.id)
+    if (authorProfile.madness > 1) return
     let maxReps = await database.getUserMaxReps(author.id)
     if (Date.now() - authorProfile.repTimestamp < 79200000 && authorProfile.repToday == maxReps) {
         embed.setAuthor(author.tag, author.avatarURL())
@@ -59,6 +63,7 @@ let constructCanRepEmbed = async (author) => {
 let constructRepEmbed = async (author, user) => {
     let embed = new discord.MessageEmbed()
     let authorProfile = await database.getUser(author.id)
+    if (authorProfile.madness > 1) return
     let userProfile = await database.getUser(user.id)
     let maxReps = await database.getUserMaxReps(author.id)
     if (Date.now() - authorProfile.repTimestamp < 79200000 && authorProfile.repToday == maxReps) {
@@ -84,6 +89,7 @@ let constructRepEmbed = async (author, user) => {
 let constructMinusRepEmbed = async (author, user) => {
     let embed = new discord.MessageEmbed()
     let authorProfile = await database.getUser(author.id)
+    if (authorProfile.madness > 1) return
     let userProfile = await database.getUser(user.id)
     let maxReps = await database.getUserMaxReps(author.id)
     if (Date.now() - authorProfile.repTimestamp < 79200000 && authorProfile.repToday == maxReps) {
@@ -105,9 +111,9 @@ let constructMinusRepEmbed = async (author, user) => {
 }
 
 let constructDailyembed = async (user) => {
-    
     let embed = new discord.MessageEmbed()
     let profile = await database.getUser(user.id)
+    if (profile.madness > 1) return
     if (Date.now() - profile.dailyTimestamp < 79200000) {
         embed.setAuthor(user.tag, user.avatarURL())
         embed.setTitle(":x: Error")
