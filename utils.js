@@ -44,7 +44,7 @@ let constructCanRepEmbed = async (author) => {
     let authorProfile = await database.getUser(author.id)
     if (authorProfile.madness > 1) return
     let maxReps = await database.getUserMaxReps(author.id)
-    if (Date.now() - authorProfile.repTimestamp < 79200000 && authorProfile.repToday == maxReps) {
+    if (Date.now() - authorProfile.repTimestamp < 79200000 && authorProfile.repToday >= maxReps) {
         embed.setAuthor(author.tag, author.avatarURL())
         embed.setTitle(":x: Error")
         embed.setDescription(`You need to wait **${convertMS(79200000-(Date.now()-authorProfile.repTimestamp))}** before using this command again.`)
@@ -66,14 +66,14 @@ let constructRepEmbed = async (author, user) => {
     if (authorProfile.madness > 1) return
     let userProfile = await database.getUser(user.id)
     let maxReps = await database.getUserMaxReps(author.id)
-    if (Date.now() - authorProfile.repTimestamp < 79200000 && authorProfile.repToday == maxReps) {
+    if (Date.now() - authorProfile.repTimestamp < 79200000 && authorProfile.repToday >= maxReps) {
         embed.setAuthor(author.tag, author.avatarURL())
         embed.setTitle(":x: Error")
         embed.setDescription(`You need to wait **${convertMS(79200000-(Date.now()-authorProfile.repTimestamp))}** before using this command again.`)
         embed.setColor(0xb02020)
     }
     else {
-        if (authorProfile.repToday == maxReps) database.updateUser(author.id, "repToday", 0)
+        if (authorProfile.repToday >= maxReps) database.updateUser(author.id, "repToday", 0)
         let cheese = Math.floor(Math.random() * 0.08 * 1000) / 1000
         let money =  Math.floor(Math.random() * 200)
         embed.setTitle("+rep")
@@ -92,14 +92,14 @@ let constructMinusRepEmbed = async (author, user) => {
     if (authorProfile.madness > 1) return
     let userProfile = await database.getUser(user.id)
     let maxReps = await database.getUserMaxReps(author.id)
-    if (Date.now() - authorProfile.repTimestamp < 79200000 && authorProfile.repToday == maxReps) {
+    if (Date.now() - authorProfile.repTimestamp < 79200000 && authorProfile.repToday >= maxReps) {
         embed.setAuthor(author.tag, author.avatarURL())
         embed.setTitle(":x: Error")
         embed.setDescription(`You need to wait **${convertMS(79200000-(Date.now()-authorProfile.repTimestamp))}** before using this command again.`)
         embed.setColor(0xb02020)
     }
     else {
-        if (authorProfile.repToday == maxReps) database.updateUser(author.id, "repToday", 0)
+        if (authorProfile.repToday >= maxReps) database.updateUser(author.id, "repToday", 0)
         let cheese = Math.floor(Math.random() * 0.08 * 1000) / 1000
         embed.setTitle("-rep")
         embed.setDescription(`You took from <@${user.id}> ${cheese} :cheese:`)

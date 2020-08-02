@@ -3,147 +3,58 @@ const database = require("../database")
 const utils = require("../utils")
 
 let commands = {
-    duels: async (message, args, client) => new Promise(async (resolve, reject) => {
+    duels: (message, args, client) => new Promise(async (resolve, reject) => {
+        let authorProfile = database.getUser(message.author.id)
+        if (authorProfile.madness > 0) return
+        let foundUser = utils.searchUser(client, message, args[1])
+        if (foundUser == undefined || foundUser.bot || foundUser.id == message.author.id) return
+        let foundUserProfile = await database.getUser(foundUser.id)
+        if (foundUserProfile.madness > 0) return
         let bet = args[0]
-        if (bet !== undefined && /^\d+$/.test(bet)) {
-            let authorProfile = await database.getUser(message.author.id)
-            bet = parseInt(bet)
-            if (authorProfile.madness > 0) resolve()
-            if (authorProfile.money - bet >= 0) {
-                let foundUser = utils.searchUser(client, message, args[1])
-                if (foundUser !== undefined && foundUser.id !== message.author.id) {
-                    let userProfile = await database.getUser(foundUser.id)
-                    if (userProfile.money - bet >= 0 && userProfile.madness == 0) {
-                        let msg = await message.channel.send(`${foundUser.tag}, do you accept a duel?`)
-                        let rc = new discord.ReactionCollector(msg, (r, u) => foundUser.id == u.id, { time: 60000 });
-                        msg.react("✅")
-                        msg.react("❌")
-                        rc.on("collect", async (r) => {
-                            if (r.emoji.name == "✅") {
-                                msg.edit("✅ Accepted.")
-                                message.channel.send(`1. Click on emoji only when it'll say \"SHOOT\".\n2. Clicking too early will be counted as loss.\n3. When it'll say \"SHOOT\" click quicker than your opponent to win.\n4. Loser gives ${bet} :moneybag: to the winner.`)
-                                let ms = await message.channel.send("READY")
-                                let timestamp = Date.now()
-                                ms.react("🔫")
-                                let newRc = new discord.ReactionCollector(ms, (reaction, user) => (user.id == message.author.id || user.id == foundUser.id), { time: 60000 })
-                                setTimeout(() => ms.edit("SHOOT"), 10000)
-                                newRc.on("collect", async (reaction, user) => {
-                                    if (reaction.emoji.name == "🔫") {
-                                        if (Date.now() - timestamp < 10000) {
-                                            let loserProfile = await database.getUser(user.id)
-                                            database.updateUser(user.id, "money", loserProfile.money - bet)
-                                            if (user.id == message.author.id) {
-                                                let winnerProfile = await database.getUser(foundUser.id)
-                                                database.updateUser(foundUser.id, "money", winnerProfile.money + bet)
-                                                message.channel.send(`${foundUser.toString()} WINS ${bet} :moneybag:`)
-                                            }
-                                            else {
-                                                let winnerProfile = await database.getUser(message.author)
-                                                database.updateUser(message.author, "money", winnerProfile.money + bet)
-                                                message.channel.send(`${message.author.toString()} WINS ${bet} :moneybag:`)
-                                            }
-                                            newRc.stop()
-                                            resolve()
-                                        }
-                                        else {
-                                            let winnerProfile = await database.getUser(user.id)
-                                            database.updateUser(user.id, "money", winnerProfile.money + bet)
-                                            if (user.id == message.author.id) {
-                                                let loserProfile = await database.getUser(foundUser.id)
-                                                database.updateUser(foundUser.id, "money", loserProfile.money - bet)
-                                            }
-                                            else {
-                                                let loserProfile = await database.getUser(message.author.id)
-                                                database.updateUser(message.author.id, "money", loserProfile.money - bet)
-                                            }
-                                            message.channel.send(`${user.toString()} WINS ${bet} :moneybag:`)
-                                            newRc.stop()
-                                            resolve()
-                                        }
-                                    }
-                                })
-                                rc.stop()
-                            }
-                            else {
-                                msg.edit("❌ Cancelled.")
-                                resolve()
-                                rc.stop()
-                            }
-                        })
-                        rc.on("end", () => {
-                            msg.edit("❌ Cancelled.")
-                            resolve()
-                            rc.stop()
-                        })
-                    }
-                    else {
-                        message.channel.send("Specified user have not enough money.")
-                    }
-                }
-                else {
-                    let msg = await message.channel.send(`${message.author.tag} Search some opponents for duel. Click to join`)
-                    msg.react("✅")
-                    let collected = false
-                    let rc = new discord.ReactionCollector(msg, (r, u) => u.id !== message.author.id && r.emoji.name == "✅" && !u.bot && !collected, { time: 60000 })
-                    rc.on("collect", async (reaction, user) => {
-                        let tempProfile = await database.getUser(user.id)
-                        if (tempProfile.money - bet >= 0 && tempProfile.madness == 0) {
-                            collected = true
-                            let foundUser = user
-                            message.channel.send(`1. Click on emoji only when it'll say \"SHOOT\".\n2. Clicking too early will be counted as loss.\n3. When it'll say \"SHOOT\" click quicker than your opponent to win.\n4. Loser gives ${bet} :moneybag: to the winner.`)
-                            let ms = await message.channel.send("READY")
-                            let timestamp = Date.now()
-                            ms.react("🔫")
-                            let newCollected = false
-                            let newRc = new discord.ReactionCollector(ms, (reaction, user) => (user.id == message.author.id || user.id == foundUser.id) && reaction.emoji.name == "🔫" && !newCollected, { time: 60000 })
-                            setTimeout(() => ms.edit("SHOOT"), 10000)
-                            newRc.on("collect", async (reaction, user) => {
-                                newCollected = true
-                                if (Date.now() - timestamp < 10000) {
-                                    let loserProfile = await database.getUser(user.id)
-                                    database.updateUser(user.id, "money", loserProfile.money - bet)
-                                    if (user.id == message.author.id) {
-                                        let winnerProfile = await database.getUser(foundUser.id)
-                                        database.updateUser(foundUser.id, "money", winnerProfile.money + bet)
-                                        message.channel.send(`${foundUser.toString()} WINS ${bet} :moneybag:`)
-                                    }
-                                    else {
-                                        let winnerProfile = await database.getUser(message.author)
-                                        database.updateUser(message.author, "money", winnerProfile.money + bet)
-                                        message.channel.send(`${message.author.toString()} WINS ${bet} :moneybag:`)
-                                    }
-                                    newRc.stop()
-                                    resolve()
-                                }
-                                else {
-                                    let winnerProfile = await database.getUser(user.id)
-                                    database.updateUser(user.id, "money", winnerProfile.money + bet)
-                                    if (user.id == message.author.id) {
-                                        let loserProfile = await database.getUser(foundUser.id)
-                                        database.updateUser(foundUser.id, "money", loserProfile.money - bet)
-                                    }
-                                    else {
-                                        let loserProfile = await database.getUser(message.author.id)
-                                        database.updateUser(message.author.id, "money", loserProfile.money - bet)
-                                    }
-                                    message.channel.send(`${user.toString()} WINS ${bet} :moneybag:`)
-                                    newRc.stop()
-                                    resolve()
-                                }
-                            })
+        if (!/^\d+$/.test(bet) || parseInt(bet) < 0) return
+        bet = parseInt(bet)
+        let msg = await message.channel.send(`${foundUser.tag}, do you accept a duel?`)
+        msg.react("✅")
+        msg.react("❌")
+        let rc = new discord.ReactionCollector(msg, (r, u) => foundUser.id == u.id)
+        rc.on("collect", async (r, u) => {
+            switch (r.emoji.name) {
+                case "✅": {
+                    rc.stop()
+                    msg.edit("✅ Accepted")
+                    message.channel.send(`1. Click on emoji only when it'll say \"SHOOT\".\n2. Clicking too early will be counted as loss.\n3. When it'll say \"SHOOT\" click quicker than your opponent to win.\n4. Loser gives ${bet} :moneybag: to the winner.`)
+                    let ms = await message.channel.send("READY")
+                    let init = Date.now()
+                    ms.react("🔫")
+                    setTimeout(() => ms.edit("SHOOT"), 10000)
+                    let newRC = new discord.ReactionCollector(ms, (r, u) => (u.id == foundUser.id || u.id == message.author.id) && r.emoji.name == "🔫")
+                    newRC.on("collect", async (_, user) => {
+                        newRC.stop()
+                        let loser, winner
+                        if (Date.now() - init < 10000) {
+                            loser = user
+                            winner = message.author.id != loser.id ? message.author : foundUser
                         }
-                        rc.stop()
+                        else {
+                            winner = user
+                            loser = message.author.id != winner.id ? message.author : foundUser
+                        }
+                        let winnerProfile = await database.getUser(winner.id)
+                        let loserProfile = await database.getUser(loser.id)
+                        database.updateUser(winner.id, ["money"], winnerProfile.money + bet)
+                        database.updateUser(loser.id, ["money"], loserProfile.money - bet)
+                        message.channel.send(`${winner.toString()} WINS ${bet} :moneybag:`)
+                        return
                     })
-                    
+                    break
+                }
+                case "❌": {
+                    rc.stop()
+                    msg.edit("❌ Cancelled")
+                    return
                 }
             }
-            else {
-                message.channel.send("You don't have enough money.")
-            }
-        }
-        else {
-            message.channel.send("You need to specify bet.")
-        }
+        })
     })
 }
 
