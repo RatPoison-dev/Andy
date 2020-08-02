@@ -11,7 +11,7 @@ let commands = {
         let foundUserProfile = await database.getUser(foundUser.id)
         if (foundUserProfile.madness > 0) return
         let bet = args[0]
-        if (!/^\d+$/.test(bet) || parseInt(bet) < 0) return
+        if (!/^\d+$/.test(bet) || parseInt(bet) <= 0) return
         bet = parseInt(bet)
         let msg = await message.channel.send(`${foundUser.tag}, do you accept a duel?`)
         msg.react("✅")
