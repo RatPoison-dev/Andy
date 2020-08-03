@@ -13,6 +13,7 @@ let commands = {
         let bet = args[0]
         if (!/^\d+$/.test(bet) || parseInt(bet) <= 0) return
         bet = parseInt(bet)
+        if (authorProfile.money - bet <= 0 || foundUserProfile.money - bet <= 0) return
         let msg = await message.channel.send(`${foundUser.tag}, do you accept a duel?`)
         msg.react("✅")
         msg.react("❌")
@@ -41,8 +42,8 @@ let commands = {
                         }
                         let winnerProfile = await database.getUser(winner.id)
                         let loserProfile = await database.getUser(loser.id)
-                        database.updateUser(winner.id, ["money"], winnerProfile.money + bet)
-                        database.updateUser(loser.id, ["money"], loserProfile.money - bet)
+                        database.updateUser(winner.id, "money", winnerProfile.money + bet)
+                        database.updateUser(loser.id, "money", loserProfile.money - bet)
                         message.channel.send(`${winner.toString()} WINS ${bet} :moneybag:`)
                         return
                     })
