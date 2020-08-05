@@ -54,7 +54,7 @@ let constructRepEmbed = async (author, user) => {
     if (Date.now() - authorProfile.repTimestamp < 79200000 && utils.str2list(authorProfile.repToday).length >= maxReps) {
         embed.setAuthor(author.tag, author.avatarURL())
         embed.setTitle(":x: Error")
-        embed.setDescription(`You need to wait **${convertMS(79200000-(Date.now()-authorProfile.repTimestamp))}** before using this command again.`)
+        embed.setDescription(`You need to wait **${utils.convertMS(79200000-(Date.now()-authorProfile.repTimestamp))}** before using this command again.`)
         embed.setColor(0xb02020)
     }
     else {
@@ -84,7 +84,7 @@ let constructMinusRepEmbed = async (author, user) => {
     if (Date.now() - authorProfile.repTimestamp < 79200000 && authorProfile.repToday >= maxReps) {
         embed.setAuthor(author.tag, author.avatarURL())
         embed.setTitle(":x: Error")
-        embed.setDescription(`You need to wait **${convertMS(79200000-(Date.now()-authorProfile.repTimestamp))}** before using this command again.`)
+        embed.setDescription(`You need to wait **${utils.convertMS(79200000-(Date.now()-authorProfile.repTimestamp))}** before using this command again.`)
         embed.setColor(0xb02020)
     }
     else {
@@ -109,7 +109,7 @@ let constructDailyembed = async (user) => {
     if (Date.now() - profile.dailyTimestamp < 79200000) {
         embed.setAuthor(user.tag, user.avatarURL())
         embed.setTitle(":x: Error")
-        embed.setDescription(`You need to wait **${convertMS(79200000-(Date.now()-profile.dailyTimestamp))}** before using this command again.`)
+        embed.setDescription(`You need to wait **${utils.convertMS(79200000-(Date.now()-profile.dailyTimestamp))}** before using this command again.`)
         embed.setColor(0xb02020)
     }
     else {
