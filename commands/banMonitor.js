@@ -21,6 +21,10 @@ let commands = {
                 }
             )
         }
+    },
+    countMonitor: async (message) => {
+        let accounts = await db.getBancheckerAccounts()
+        message.channel.send(`There are ${accounts.length} accounts in ban checker database.`)
     }
 }
 

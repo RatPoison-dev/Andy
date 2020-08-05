@@ -1,18 +1,19 @@
 const database = require("../database")
 const utils = require("../utils")
+const embeds = require("../embeds")
 
 let commands = {
     profile: async (message, args, client) => {
         let embed
         let foundUser = utils.searchUser(client, message, args[0])
-        foundUser == undefined ? embed = await utils.constructUserProfile(message.author) : embed = await utils.constructUserProfile(foundUser)
+        foundUser == undefined ? embed = await embeds.constructUserProfile(message.author) : embed = await embeds.constructUserProfile(foundUser)
         if (embed !== undefined) {
             message.channel.send(embed)
         }
     },
     daily: async (message, args, client) => {
         let foundUser = utils.searchUser(client, message, args[0])
-        foundUser == undefined ? embed = await utils.constructDailyembed(message.author) : embed = await utils.constructDailyembed(foundUser)
+        foundUser == undefined ? embed = await embeds.constructDailyembed(message.author) : embed = await embeds.constructDailyembed(foundUser)
         if (embed !== undefined) {
             message.channel.send(embed)
         }
@@ -24,7 +25,7 @@ let commands = {
         }
         else {
             let page = (args[1] !== undefined && /^\d+$/.test(args[1])) ? args[1] : 1
-            let embed = await utils.constructTop(message.author, topType, page)
+            let embed = await embeds.constructTop(message.author, topType, page)
             message.channel.send(embed)
         }
     },
@@ -63,7 +64,7 @@ let commands = {
         let foundUser = utils.searchUser(client, message, args[0])
         if (foundUser !== undefined) {
             if (foundUser.id !== message.author.id) {
-                let embed = await utils.constructRepEmbed(message.author, foundUser)
+                let embed = await embeds.constructRepEmbed(message.author, foundUser)
                 if (embed !== undefined) {
                     message.channel.send(embed)
                 }
@@ -73,7 +74,7 @@ let commands = {
             }
         }
         else {
-            let embed = await utils.constructCanRepEmbed(message.author)
+            let embed = await embeds.constructCanRepEmbed(message.author)
             message.channel.send(embed)
         }
     },
@@ -81,7 +82,7 @@ let commands = {
         let foundUser = utils.searchUser(client, message, args[0])
         if (foundUser !== undefined) {
             if (foundUser.id !== message.author.id) {
-                let embed = await utils.constructMinusRepEmbed(message.author, foundUser)
+                let embed = await embeds.constructMinusRepEmbed(message.author, foundUser)
                 if (embed !== undefined) {
                     message.channel.send(embed)
                 }
@@ -91,7 +92,7 @@ let commands = {
             }
         }
         else {
-            let embed = await utils.constructCanRepEmbed(message.author)
+            let embed = await embeds.constructCanRepEmbed(message.author)
             if (embed !== undefined) {
                 message.channel.send(embed)
             }

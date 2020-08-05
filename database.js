@@ -1,5 +1,6 @@
-let sqlite = require("sqlite3")
-let db = new sqlite.Database("db/database.sqlite3")
+const sqlite = require("sqlite3")
+const utils = require("./utils")
+const db = new sqlite.Database("db/database.sqlite3")
 
 db.run("create table if not exists guilds (guild_id TEXT NOT NULL UNIQUE, bannedChannel TEXT, prefix TEXT DEFAULT \"rat!\", PRIMARY KEY(guild_id))")
 db.run("create table if not exists banChecker (steamID TEXT NOT NULL UNIQUE, requester TEXT NOT NULL, timestamp integer not null, displayName TEXT NOT NULL, playerAvatar TEXT NOT NULL, guild_id TEXT, initVAC INT, initOW INT,  PRIMARY KEY(steamID))")
@@ -21,6 +22,14 @@ let getTopByPage = (type, page) => new Promise((resolve, reject) => {
         resolve(rows)
     })
 })
+
+let resetRep = async (user_id) => {
+    let maxReps = await getUserMaxReps(user_id)
+    let profile = await getUser(user_id)
+    if (utils.str2list(profile.repToday).length >= maxReps && (Date.now() - profile.repTimestamp > 79200000)) {
+        updateUser(user_id, "repToday", "")
+    }
+}
 
 let updateUser = (user_id, columns, values) => {
     initProfile(user_id)
@@ -74,4 +83,4 @@ let deleteBancheckerAccount = (sid) => {
 }
 
 
-module.exports = {getGuildInfo, initGuild, addBancheckerAccount, getBancheckerAccounts, deleteBancheckerAccount, updateBannedChannel, updatePrefix, updateUser, getUser, getTopByPage, getUserMaxReps}
+module.exports = {getGuildInfo, initGuild, addBancheckerAccount, getBancheckerAccounts, deleteBancheckerAccount, updateBannedChannel, updatePrefix, updateUser, getUser, getTopByPage, getUserMaxReps, resetRep}
