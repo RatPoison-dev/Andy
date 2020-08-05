@@ -23,11 +23,10 @@ let getTopByPage = (type, page) => new Promise((resolve, reject) => {
     })
 })
 
-let resetRep = async (user_id) => {
-    let maxReps = await getUserMaxReps(user_id)
-    let profile = await getUser(user_id)
-    if (utils.str2list(profile.repToday).length >= maxReps && (Date.now() - profile.repTimestamp > 79200000)) {
-        updateUser(user_id, "repToday", "")
+let resetRep = async (user) => {
+    let profile = await getUser(user.id)
+    if (Date.now() - profile.repTimestamp > 79200000) {
+        updateUser(user.id, "repToday", "")
     }
 }
 

@@ -3,7 +3,7 @@ const discord = require("discord.js")
 const utils = require("./utils")
 
 let constructUserProfile = async (user) => {
-    database.resetRep(user)
+    await database.resetRep(user)
     let profile = await database.getUser(user.id)
     if (profile.madness < 3) {
         let embed = new discord.MessageEmbed()
@@ -22,7 +22,7 @@ let constructUserProfile = async (user) => {
 }
 
 let constructCanRepEmbed = async (author) => {
-    database.resetRep(author)
+    await database.resetRep(author)
     let embed = new discord.MessageEmbed()
     let authorProfile = await database.getUser(author.id)
     if (authorProfile.madness > 1) return
@@ -45,7 +45,7 @@ let constructCanRepEmbed = async (author) => {
 }
 
 let constructRepEmbed = async (author, user) => {
-    database.resetRep(author)
+    await database.resetRep(author)
     let embed = new discord.MessageEmbed()
     let authorProfile = await database.getUser(author.id)
     if (authorProfile.madness > 1) return
@@ -75,7 +75,7 @@ let constructRepEmbed = async (author, user) => {
 }
 
 let constructMinusRepEmbed = async (author, user) => {
-    database.resetRep(author)
+    await database.resetRep(author)
     let embed = new discord.MessageEmbed()
     let authorProfile = await database.getUser(author.id)
     if (authorProfile.madness > 1) return
@@ -137,7 +137,7 @@ let constructTop = async (user, type, page) => {
             desc += `${index+1}. <@${elem.user_id}> • ${elem[type].toFixed(3)}\n`
         }
         else {
-            `${index+1}. <@${elem.user_id}> • ${Math.floor(elem[type])}\n`
+            desc += `${index+1}. <@${elem.user_id}> • ${Math.floor(elem[type])}\n`
         }
     })
     embed.setDescription(desc)

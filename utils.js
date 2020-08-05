@@ -12,7 +12,7 @@ let list2str = (list) => {
 }
 
 let str2list = (str) => {
-    if (str == undefined || str == undefined) return []
+    if (str == undefined || str == undefined || str == "") return []
     else return str.split(",")
 }
 
