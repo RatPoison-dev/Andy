@@ -25,7 +25,7 @@ let commands = {
         }
         else {
             let page = (args[1] !== undefined && /^\d+$/.test(args[1])) ? args[1] : 1
-            let embed = await embeds.constructTop(message.author, topType, page)
+            let embed = await embeds.constructTop(message, message.author, topType, page)
             message.channel.send(embed)
         }
     },

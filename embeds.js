@@ -1,6 +1,7 @@
 const database = require("./database")
 const discord = require("discord.js")
 const utils = require("./utils")
+const config = require("./config.json")
 
 let constructUserProfile = async (user) => {
     await database.resetRep(user)
@@ -13,7 +14,8 @@ let constructUserProfile = async (user) => {
         embed.addField("[:cheese:] Cheese", profile.cheese.toFixed(3))
         embed.addField("[:moneybag:] Money", profile.money)
         let maxReps = await database.getUserMaxReps(user.id)
-        embed.addField("[:white_check_mark:] Reps", `${utils.str2list(profile.repToday).length}/${maxReps}`)
+        embed.addField("[:white_check_mark:] Reps today", `${utils.str2list(profile.repToday).length}/${maxReps}`)
+        embed.addField("[:art:] Reputation", profile.rep)
         embed.addField("[:angry:] Madness", `${profile.madness}/3`)
         embed.setColor(0x6b32a8)
         embed.setTimestamp(Date.now())
@@ -126,7 +128,8 @@ let constructDailyembed = async (user) => {
 }
 
 
-let constructTop = async (user, type, page) => {
+let constructTop = async (message, user, type, page) => {
+    
     let top = await database.getTopByPage(type, page)
     let embed = new discord.MessageEmbed()
     embed.setAuthor(user.tag, user.avatarURL())
@@ -134,10 +137,20 @@ let constructTop = async (user, type, page) => {
     let desc = ""
     top.forEach ((elem, index) => {
         if (type === "cheese") {
-            desc += `${index+1}. <@${elem.user_id}> • ${elem[type].toFixed(3)}\n`
+            if (message.guild.members.cache.get(elem.user_id) !== undefined) {
+                desc += `${index+1}. <@${elem.user_id}> • ${elem[type].toFixed(3)}\n`
+            }
+            else {
+                desc += `${index+1}. ~~<@${elem.user_id}> • ${elem[type].toFixed(3)}~~\n`
+            }
         }
         else {
-            desc += `${index+1}. <@${elem.user_id}> • ${Math.floor(elem[type])}\n`
+            if (message.guild.members.cache.get(elem.user_id) !== undefined) {
+                desc += `${index+1}. <@${elem.user_id}> • ${Math.floor(elem[type])}\n`
+            }
+            else {
+                desc += `${index+1}. ~~<@${elem.user_id}> • ${Math.floor(elem[type])}~~\n`
+            }
         }
     })
     embed.setDescription(desc)
