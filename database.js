@@ -23,6 +23,12 @@ let getTopByPage = (type, page) => new Promise((resolve, reject) => {
     })
 })
 
+let getTopIndex = (type, user_id) => new Promise((resolve, reject) => {
+    db.all(`select user_id from users order by ${type} desc`, (err, rows) => {
+        resolve(rows.findIndex(elem => elem.user_id == user_id))
+    })
+})
+
 let resetRep = async (user) => {
     let profile = await getUser(user.id)
     if (Date.now() - profile.repTimestamp > 79200000) {
@@ -82,4 +88,4 @@ let deleteBancheckerAccount = (sid) => {
 }
 
 
-module.exports = {getGuildInfo, initGuild, addBancheckerAccount, getBancheckerAccounts, deleteBancheckerAccount, updateBannedChannel, updatePrefix, updateUser, getUser, getTopByPage, getUserMaxReps, resetRep}
+module.exports = {getGuildInfo, initGuild, addBancheckerAccount, getBancheckerAccounts, deleteBancheckerAccount, getTopIndex, updateBannedChannel, updatePrefix, updateUser, getUser, getTopByPage, getUserMaxReps, resetRep}

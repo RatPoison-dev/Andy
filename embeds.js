@@ -11,11 +11,14 @@ let constructUserProfile = async (user) => {
         embed.setAuthor(user.tag, user.avatarURL())
         embed.setThumbnail(user.avatarURL())
         embed.setTitle("Profile")
-        embed.addField("[:cheese:] Cheese", profile.cheese.toFixed(3))
-        embed.addField("[:moneybag:] Money", profile.money)
+        let cheesePlace = await database.getTopIndex("cheese", profile.user_id)
+        let moneyPlace = await database.getTopIndex("money", profile.user_id)
+        let repPlace = await database.getTopIndex("rep", profile.user_id)
+        embed.addField("[:cheese:] Cheese", `${profile.cheese.toFixed(3)} | ${cheesePlace} Place`)
+        embed.addField("[:moneybag:] Money", `${profile.money} | ${moneyPlace} Place`)
+        embed.addField("[:art:] Reputation", `${profile.rep} | ${repPlace} Place`)
         let maxReps = await database.getUserMaxReps(user.id)
         embed.addField("[:white_check_mark:] Reps today", `${utils.str2list(profile.repToday).length}/${maxReps}`)
-        embed.addField("[:art:] Reputation", profile.rep)
         embed.addField("[:angry:] Madness", `${profile.madness}/3`)
         embed.setColor(0x6b32a8)
         embed.setTimestamp(Date.now())
@@ -62,7 +65,7 @@ let constructRepEmbed = async (author, user) => {
     else {
         if (utils.str2list(authorProfile.repToday).includes(user.id)) return
         authorProfile = await database.getUser(author.id)
-        let cheese = Math.floor(Math.random() * 0.08 * 1000) / 1000
+        let cheese = Math.floor(Math.random() * 0.05 * 1000) / 1000
         let money = Math.floor(Math.random() * 200)
         embed.setTitle("+rep")
         embed.setDescription(`You gave <@${user.id}> ${cheese} :cheese: and ${money} :moneybag:`)
@@ -92,7 +95,7 @@ let constructMinusRepEmbed = async (author, user) => {
     else {
         if (utils.str2list(authorProfile.repToday).includes(user.id)) return
         authorProfile = await database.getUser(author.id)
-        let cheese = Math.floor(Math.random() * 0.08 * 1000) / 1000
+        let cheese = Math.floor(Math.random() * 0.05 * 1000) / 1000
         embed.setTitle("-rep")
         let prev = utils.str2list(authorProfile.repToday)
         prev.push(user.id)
@@ -116,7 +119,7 @@ let constructDailyembed = async (user) => {
     }
     else {
         embed.setAuthor(user.tag, user.avatarURL())
-        let cheese = Math.floor(Math.random() * 0.08 * 1000) / 1000
+        let cheese = Math.floor(Math.random() * 0.05 * 1000) / 1000
         let money =  Math.floor(Math.random() * 200)
         embed.setTitle("Daily")
         embed.setDescription(`You recieved your daily ${cheese} :cheese: and ${money} :moneybag:`)
