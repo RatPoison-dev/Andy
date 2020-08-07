@@ -20,13 +20,13 @@ let commands = {
         message.channel.send("Bot is definitely pasted from dimden.")
     },
     invite: (message) => {
-        message.channel.send("https://discord.gg/J2uHTJ2")
+        message.channel.send("https://discord.gg/xkTteTM")
     },
     jdk: (message) => {
         message.channel.send("https://www.oracle.com/java/technologies/javase-jdk14-downloads.html")
     },
     crash: (message) => {
-        message.channel.send('If you are crashing make sure you already have the newest version available on github. Then make sure your crash is not caused by settings files moved from the older version of the cheat. After checking all of that make sure to screenshot the cmd window with the error and attach the affected config in <#678938630613368843>')
+        message.channel.send('If you are crashing make sure you already have the newest version available on github. Then make sure your crash is not caused by settings files moved from the older version of the cheat. After checking all of that make sure to screenshot the cmd window with the error and attach the affected config in <#741018234274185216>')
     },
     beta: (message) => {
         message.channel.send("https://github.com/TheFuckingRat/RatPoison/archive/beta.zip")

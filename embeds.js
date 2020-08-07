@@ -49,7 +49,7 @@ let constructCanRepEmbed = async (author) => {
     return embed
 }
 
-let constructRepEmbed = async (author, user) => {
+let constructRepEmbed = async (message, author, user) => {
     await database.resetRep(author)
     let embed = new discord.MessageEmbed()
     let authorProfile = await database.getUser(author.id)
@@ -63,7 +63,7 @@ let constructRepEmbed = async (author, user) => {
         embed.setColor(0xb02020)
     }
     else {
-        if (utils.str2list(authorProfile.repToday).includes(user.id)) return
+        if (utils.str2list(authorProfile.repToday).includes(user.id)) { message.channel.send("You already repped this user today!"); return }
         authorProfile = await database.getUser(author.id)
         let cheese = Math.floor(Math.random() * 0.05 * 1000) / 1000
         let money = Math.floor(Math.random() * 200)
@@ -79,7 +79,7 @@ let constructRepEmbed = async (author, user) => {
     return embed
 }
 
-let constructMinusRepEmbed = async (author, user) => {
+let constructMinusRepEmbed = async (message, author, user) => {
     await database.resetRep(author)
     let embed = new discord.MessageEmbed()
     let authorProfile = await database.getUser(author.id)
@@ -93,7 +93,7 @@ let constructMinusRepEmbed = async (author, user) => {
         embed.setColor(0xb02020)
     }
     else {
-        if (utils.str2list(authorProfile.repToday).includes(user.id)) return
+        if (utils.str2list(authorProfile.repToday).includes(user.id)) { message.channel.send("You already repped this user today!"); return }
         authorProfile = await database.getUser(author.id)
         let cheese = Math.floor(Math.random() * 0.05 * 1000) / 1000
         embed.setTitle("-rep")

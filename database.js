@@ -1,5 +1,6 @@
 const sqlite = require("sqlite3")
 const utils = require("./utils")
+const user = require("./commands/user")
 const db = new sqlite.Database("db/database.sqlite3")
 
 db.run("create table if not exists guilds (guild_id TEXT NOT NULL UNIQUE, bannedChannel TEXT, prefix TEXT DEFAULT \"rat!\", PRIMARY KEY(guild_id))")
@@ -25,7 +26,7 @@ let getTopByPage = (type, page) => new Promise((resolve, reject) => {
 
 let getTopIndex = (type, user_id) => new Promise((resolve, reject) => {
     db.all(`select user_id from users order by ${type} desc`, (err, rows) => {
-        resolve(rows.findIndex(elem => elem.user_id == user_id))
+        resolve(rows.findIndex(elem => elem.user_id == user_id)+1)
     })
 })
 
@@ -83,9 +84,15 @@ let getBancheckerAccounts = () => new Promise((resolve, reject) => {
     })
 })
 
+let getBancheckerAccountsByUser = (user_id) => new Promise((resolve, reject) => {
+    db.all("select * from banChecker where requester = ?", [user_id], (err, rows) => {
+        resolve(rows)
+    })
+})
+
 let deleteBancheckerAccount = (sid) => {
     db.run("delete from banChecker where steamID = ?", [sid])
 }
 
 
-module.exports = {getGuildInfo, initGuild, addBancheckerAccount, getBancheckerAccounts, deleteBancheckerAccount, getTopIndex, updateBannedChannel, updatePrefix, updateUser, getUser, getTopByPage, getUserMaxReps, resetRep}
+module.exports = {getGuildInfo, initGuild, addBancheckerAccount, getBancheckerAccounts, getBancheckerAccountsByUser, deleteBancheckerAccount, getTopIndex, updateBannedChannel, updatePrefix, updateUser, getUser, getTopByPage, getUserMaxReps, resetRep}

@@ -64,7 +64,7 @@ let commands = {
         let foundUser = utils.searchUser(client, message, args[0])
         if (foundUser !== undefined) {
             if (foundUser.id !== message.author.id) {
-                let embed = await embeds.constructRepEmbed(message.author, foundUser)
+                let embed = await embeds.constructRepEmbed(message, message.author, foundUser)
                 if (embed !== undefined) {
                     message.channel.send(embed)
                 }
@@ -82,7 +82,7 @@ let commands = {
         let foundUser = utils.searchUser(client, message, args[0])
         if (foundUser !== undefined) {
             if (foundUser.id !== message.author.id) {
-                let embed = await embeds.constructMinusRepEmbed(message.author, foundUser)
+                let embed = await embeds.constructMinusRepEmbed(message, message.author, foundUser)
                 if (embed !== undefined) {
                     message.channel.send(embed)
                 }

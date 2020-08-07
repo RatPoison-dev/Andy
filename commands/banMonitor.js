@@ -22,9 +22,16 @@ let commands = {
             )
         }
     },
-    countMonitor: async (message) => {
-        let accounts = await db.getBancheckerAccounts()
-        message.channel.send(`There are ${accounts.length} accounts in ban checker database.`)
+    countMonitor: async (message, args, client) => {
+        let foundUser = utils.searchUser(client, message, args[0])
+        if (foundUser === undefined) {
+            let accounts = await db.getBancheckerAccounts()
+            message.channel.send(`There are ${accounts.length} accounts in ban checker database.`)
+        }
+        else {
+            let accounts = await db.getBancheckerAccountsByUser(foundUser.id)
+            message.channel.send(`There are ${accounts.length} accounts in ban checker database that was added by this user.`)
+        }
     }
 }
 
