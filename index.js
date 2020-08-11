@@ -2,6 +2,7 @@ const discord = require("discord.js")
 const config = require("./config.json")
 const engine = require("./engine")
 const database = require("./database")
+const utils = require("./utils")
 engine.importCommands()
 let client = new discord.Client()
 
@@ -40,6 +41,14 @@ client.on("message", async (message) => {
         }
         else {
             engine.runCommand("monitor", message, args, client)
+        }
+    }
+
+    if (message.channel.id == "741058397419470888") {
+        let attachments = message.attachments.array()
+        attachments = attachments.map((elem) => elem.url)
+        if (attachments.length > 0) {
+            database.makeSaved(message.author.id, utils.list2str(attachments), message.content)
         }
     }
 })

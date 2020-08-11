@@ -1,11 +1,11 @@
 const sqlite = require("sqlite3")
-const utils = require("./utils")
-const user = require("./commands/user")
 const db = new sqlite.Database("db/database.sqlite3")
 
 db.run("create table if not exists guilds (guild_id TEXT NOT NULL UNIQUE, bannedChannel TEXT, prefix TEXT DEFAULT \"rat!\", PRIMARY KEY(guild_id))")
 db.run("create table if not exists banChecker (steamID TEXT NOT NULL UNIQUE, requester TEXT NOT NULL, timestamp integer not null, displayName TEXT NOT NULL, playerAvatar TEXT NOT NULL, guild_id TEXT, initVAC INT, initOW INT,  PRIMARY KEY(steamID))")
 db.run("create table if not exists users (user_id TEXT NOT NULL UNIQUE, cheese DOUBLE DEFAULT 0, money INT DEFAULT 0, rep INT DEFAULT 0, dailyTimestamp INT DEFAULT 0, repTimestamp INT DEFAULT 0, repToday TEXT DEFAULT \"\", madness INT DEFAULT 0)")
+db.run("create table if not exists saved_messages (user_id TEXT, attachments TEXT, message_content TEXT)")
+
 
 let getGuildInfo = (guild_id) => new Promise((resolve, reject) => {
     initGuild(guild_id)
@@ -36,6 +36,16 @@ let resetRep = async (user) => {
         updateUser(user.id, "repToday", "")
     }
 }
+
+let makeSaved = (user_id, attachments, message_content) => {
+    db.run("insert into saved_messages (user_id, attachments, message_content) values (?, ?, ?)", [user_id, attachments, message_content])
+}
+
+let getSaved = () => new Promise((resolve, reject) => {
+    db.all("select * from saved_messages", (err, rows) => {
+        resolve(rows)
+    } )
+})
 
 let updateUser = (user_id, columns, values) => {
     initProfile(user_id)
@@ -95,4 +105,4 @@ let deleteBancheckerAccount = (sid) => {
 }
 
 
-module.exports = {getGuildInfo, initGuild, addBancheckerAccount, getBancheckerAccounts, getBancheckerAccountsByUser, deleteBancheckerAccount, getTopIndex, updateBannedChannel, updatePrefix, updateUser, getUser, getTopByPage, getUserMaxReps, resetRep}
+module.exports = {getGuildInfo, initGuild, addBancheckerAccount, getBancheckerAccounts, getBancheckerAccountsByUser, makeSaved, getSaved, deleteBancheckerAccount, getTopIndex, updateBannedChannel, updatePrefix, updateUser, getUser, getTopByPage, getUserMaxReps, resetRep}
