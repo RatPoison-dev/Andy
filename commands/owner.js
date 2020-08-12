@@ -22,6 +22,27 @@ let commands = {
             message.channel.send("Money was set successfully!")
         }
     },
+    setReputation: (message, args, client) => {
+        if (config["owner_ids"].includes(message.author.id)) {
+            let foundUser = utils.searchUser(client, message, args[0])
+            database.updateUser(foundUser.id, "rep", args[1])
+            message.channel.send("Reputation was set successfully!")
+        }
+    },
+    rawProfile: async (message, args, client) => {
+        if (config["owner_ids"].includes(message.author.id)) {
+            let foundUser = utils.searchUser(client, message, args[0])
+            let profile = await database.getUser(foundUser.id)
+            message.channel.send(JSON.stringify(profile, 0, 2))
+        }
+    },
+    addReputation: (message, args, client) => {
+        if (config["owner_ids"].includes(message.author.id)) {
+            let foundUser = utils.searchUser(client, message, args[0])
+            database.incrementUser(foundUser.id, "rep", parseInt(args[1]))
+            message.channel.send("Reputation was successfully added!")
+        }
+    },
     addMoney: (message, args, client) => {
         if (config["owner_ids"].includes(message.author.id)) {
             let foundUser = utils.searchUser(client, message, args[0])
