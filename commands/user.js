@@ -81,6 +81,7 @@ let commands = {
     "-rep": async (message, args, client) => {
         let foundUser = utils.searchUser(client, message, args[0])
         if (foundUser !== undefined) {
+            if (foundUser.id == "258557706892214282") {message.channel.send(":x: пошёл нахуй"); return}
             if (foundUser.id !== message.author.id) {
                 let embed = await embeds.constructMinusRepEmbed(message, message.author, foundUser)
                 if (embed !== undefined) {

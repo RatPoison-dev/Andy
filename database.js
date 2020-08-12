@@ -59,6 +59,18 @@ let updateUser = (user_id, columns, values) => {
     }
 }
 
+let incrementUser = async (user_id, columns, values) => {
+    let prev = await getUser(user_id)
+    if (typeof columns == "object") {
+        columns.forEach((column, index) => {
+            updateUser(user_id, column[index], prev[values[index]]+values[index])
+        })
+    }
+    else {
+        updateUser(user_id, columns, prev[columns]+values)
+    }
+}
+
 let getUserMaxReps = async (user_id) => {
     let user = await getUser(user_id)
     return Math.floor(user.cheese) + 5
@@ -105,4 +117,4 @@ let deleteBancheckerAccount = (sid) => {
 }
 
 
-module.exports = {getGuildInfo, initGuild, addBancheckerAccount, getBancheckerAccounts, getBancheckerAccountsByUser, makeSaved, getSaved, deleteBancheckerAccount, getTopIndex, updateBannedChannel, updatePrefix, updateUser, getUser, getTopByPage, getUserMaxReps, resetRep}
+module.exports = {getGuildInfo, initGuild, addBancheckerAccount, getBancheckerAccounts, getBancheckerAccountsByUser, incrementUser, makeSaved, getSaved, deleteBancheckerAccount, getTopIndex, updateBannedChannel, updatePrefix, updateUser, getUser, getTopByPage, getUserMaxReps, resetRep}

@@ -40,10 +40,8 @@ let commands = {
                             winner = user
                             loser = message.author.id != winner.id ? message.author : foundUser
                         }
-                        let winnerProfile = await database.getUser(winner.id)
-                        let loserProfile = await database.getUser(loser.id)
-                        database.updateUser(winner.id, "money", winnerProfile.money + bet)
-                        database.updateUser(loser.id, "money", loserProfile.money - bet)
+                        database.incrementUser(winner.id, "money", bet)
+                        database.incrementUser(loser.id, "money", -bet)
                         message.channel.send(`${winner.toString()} WINS ${bet} :moneybag:`)
                         return
                     })
