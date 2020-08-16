@@ -3,69 +3,78 @@ const utils = require("../utils")
 const config = require("../config.json")
 
 let commands = {
-    eval: (message, args) => {
-        if (config["owner_ids"].includes(message.author.id)) {
+    eval: {
+        "run": (message, args) => {
             message.channel.send(eval(args.join(" ")).toString())
-        }
+        },
+        owner: true
     },
-    setMadness: (message, args, client) => {
-        if (config["owner_ids"].includes(message.author.id)) {
+    setMadness: {
+        "run": (message, args, client) => {
             let foundUser = utils.searchUser(client, message, args[0])
             database.updateUser(foundUser.id, "madness", args[1])
             message.channel.send("Madness was set successfully!")
-        }
+        },
+        owner: true
     },
-    setMoney: (message, args, client) => {
-        if (config["owner_ids"].includes(message.author.id)) {
+    setMoney: {
+        "run": (message, args, client) => {
             let foundUser = utils.searchUser(client, message, args[0])
             database.updateUser(foundUser.id, "money", args[1])
             message.channel.send("Money was set successfully!")
-        }
+        },
+        owner: true
     },
-    setReputation: (message, args, client) => {
-        if (config["owner_ids"].includes(message.author.id)) {
+    setReputation: {
+        "run": (message, args, client) => {
             let foundUser = utils.searchUser(client, message, args[0])
             database.updateUser(foundUser.id, "rep", args[1])
             message.channel.send("Reputation was set successfully!")
-        }
+        },
+        owner: true
     },
-    rawProfile: async (message, args, client) => {
-        if (config["owner_ids"].includes(message.author.id)) {
+    rawProfile: {
+        "run": async (message, args, client) => {
             let foundUser = utils.searchUser(client, message, args[0])
             let profile = await database.getUser(foundUser.id)
             message.channel.send(JSON.stringify(profile, 0, 2))
-        }
+        },
+        owner: true
     },
-    addReputation: (message, args, client) => {
-        if (config["owner_ids"].includes(message.author.id)) {
+    addReputation: {
+        "run": (message, args, client) => {
             let foundUser = utils.searchUser(client, message, args[0])
             database.incrementUser(foundUser.id, "rep", parseInt(args[1]))
             message.channel.send("Reputation was successfully added!")
-        }
+        },
+        owner: true
     },
-    addMoney: (message, args, client) => {
-        if (config["owner_ids"].includes(message.author.id)) {
+    addMoney: {
+        "run": (message, args, client) => {
             let foundUser = utils.searchUser(client, message, args[0])
             database.incrementUser(foundUser.id, "money", args[1])
             message.channel.send("Money was successfully added!")
-        }
+        },
+        owner: true
     },
-    addCheese: (message, args, client) => {
-        if (config["owner_ids"].includes(message.author.id)) {
+    addCheese: {
+        "run": (message, args, client) => {
             let foundUser = utils.searchUser(client, message, args[0])
             database.incrementUser(foundUser.id, "cheese", parseFloat(args[1]))
             message.channel.send("Cheese was successfully added!")
-        }
+        },
+        owner: true
     },
-    setCheese: (message, args, client) => {
-        if (config["owner_ids"].includes(message.author.id)) {
+    setCheese: {
+        "run": (message, args, client) => {
             let foundUser = utils.searchUser(client, message, args[0])
             database.updateUser(foundUser.id, "cheese", args[1])
             message.channel.send("Cheese was set successfully!")
-        }
+        },
+        owner: true
     },
-    restoreMessages: async (message, args, client) => {
-        if (config["owner_ids"].includes(message.author.id)) {
+    restoreMessages: {
+        "run": async (message, args, client) => {
             let channel = message.mentions.channels.first()
             let messages = await database.getSaved()
             messages.forEach((row) => {
@@ -79,7 +88,8 @@ let commands = {
                 }
                 channel.send(`Message from user: ${id}\nMessage content: ${row.message_content}\n${row.attachments.replace(",", "\n")}`)
             })
-        }
+        },
+        owner: true
     }
 }
 

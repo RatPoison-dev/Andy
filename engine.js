@@ -4,6 +4,7 @@
 //}
 
 const fs = require("fs")
+const config = require("./config.json")
 let commands = {}
 
 let importCommands = () => {
@@ -16,10 +17,22 @@ let importCommands = () => {
     })
 }
 
+let _runCommand = (command, ...args) => {
+    command(...args)
+}
+
 let runCommand = (command, message, args, client) => {
     if (commands[command] !== undefined) {
-        commands[command](message, args, client)
+        let key = commands[command]
+        if (key.run !== undefined) {
+            if ((key.owner === true && config["owner_ids"].includes(message.author.id)) || key.owner === undefined) {
+                _runCommand(key.run, message, args, client)
+            }
+        }
+        else {
+            _runCommand(key, message, args, client)
+        }
     }
 }
 
-module.exports = { importCommands, runCommand}
+module.exports = { importCommands, runCommand, commands}

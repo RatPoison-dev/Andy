@@ -1,19 +1,32 @@
 const database = require("../database")
+const engine = require("../engine")
+
 
 let commands = {
     help: async (message) => {
+        await message.react("✅")
         let info = await database.getGuildInfo(message.guild.id)
         let prefix = info.prefix
-        message.channel.send(`Current prefix: ${prefix}\nCommands:\nmonitor [link] - add account to bans monitor\ncountMonitor - get number of accounts in ban checker databse\nsetChannel [channel] - channel for bans monitor\nsetPrefix [newPrefix] - set a prefix for bot\nprofile [?user] - get a profile\ndaily - get daily cheese and money\ntop [type] [?page]\n+rep [user] - give user some money and cheese\n-rep [user] - take some cheese from user\npay [user] [amount] - pay user\njdk - get a link to oracle openJDK\nbeta - get a link to download beta branch\ntesting - get a link to download new-testing branch\ncoin - Toss a coin\nduels [bet] [user]`)
+        let commands = engine.commands
+        let s = `Current prefix: ${prefix}\n`
+        for (let command in commands) {
+            if (commands[command].help !== undefined) {
+                s += `${command} ${commands[command].help}\n`
+            }
+        }
+        message.author.send(s)
     },
-    coin: async (message, args) => {
-        let rand = Math.floor(Math.random() * 2)
-        if (rand == 0) {
-            message.channel.send(":compass: Heads!")
-        }
-        else {
-            message.channel.send(":compass: Tails!")
-        }
+    coin: { 
+        "run": async (message, args) => {
+            let rand = Math.floor(Math.random() * 2)
+            if (rand == 0) {
+                message.channel.send(":compass: Heads!")
+            }
+            else {
+                message.channel.send(":compass: Tails!")
+            }
+        },
+        "help": "- Toss a coin"
     },
     // Add some shit here
     dimden: (message) => {
