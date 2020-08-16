@@ -86,7 +86,7 @@ let constructMinusRepEmbed = async (message, author, user) => {
     if (authorProfile.madness > 1) return
     let userProfile = await database.getUser(user.id)
     let maxReps = await database.getUserMaxReps(author.id)
-    if (Date.now() - authorProfile.repTimestamp < 79200000 && authorProfile.repToday >= maxReps) {
+    if (Date.now() - authorProfile.repTimestamp < 79200000 && utils.str2list(authorProfile.repToday).length >= maxReps) {
         embed.setAuthor(author.tag, author.avatarURL())
         embed.setTitle(":x: Error")
         embed.setDescription(`You need to wait **${utils.convertMS(79200000-(Date.now()-authorProfile.repTimestamp))}** before using this command again.`)
