@@ -49,6 +49,9 @@ let commands = {
     },
     what: (message) => {
         message.channel.send("https://cdn.discordapp.com/attachments/549942934464757770/722632593668964443/video0.mp4")
+    },
+    ratto: (message) => {
+        message.channel.send("dude RATTO do u have Masochism or sth ?!")
     }
 }
 

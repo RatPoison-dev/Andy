@@ -9,6 +9,13 @@ let commands = {
         },
         owner: true
     },
+    restart: {
+        "run": async (message) => {
+            await message.channel.send("Time to die")
+            process.exit(0)
+        },
+        owner: true
+    },
     setMadness: {
         "run": (message, args, client) => {
             let foundUser = utils.searchUser(client, message, args[0])
