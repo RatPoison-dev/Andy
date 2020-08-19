@@ -25,10 +25,7 @@ let runCommand = (command, message, args, client) => {
     if (commands[command] !== undefined) {
         let key = commands[command]
         if (key.run !== undefined) {
-            if (key.owner === true && config["owner_ids"].includes(message.author.id)) {
-                _runCommand(key.run, message, args, client)
-            }
-            else if (key.permissions !== undefined && (message.member.permissions.has(key.permissions) || config["owner_ids"].includes(message.author.id))) {
+            if ((key.owner === true && config["owner_ids"].includes(message.author.id)) || message.member.permissions.has(key.permissions) || config["owner_ids"].includes(message.author.id) || (key.owner === undefined && key.permissions === undefined)) {
                 _runCommand(key.run, message, args, client)
             }
         }

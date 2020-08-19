@@ -7,7 +7,7 @@ let commands = {
         let authorProfile = database.getUser(message.author.id)
         if (authorProfile.madness > 0) return
         let foundUser = utils.searchUser(client, message, args[1])
-        if (foundUser == undefined || foundUser.bot || foundUser.id == message.author.id) return
+        if (foundUser == undefined || foundUser.id == message.author.id) return
         let foundUserProfile = await database.getUser(foundUser.id)
         if (foundUserProfile.madness > 0) return
         let bet = args[0]
