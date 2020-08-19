@@ -37,7 +37,7 @@ let commands = {
                 message.channel.send(`There are ${accounts.length} accounts in ban checker database that was added by this user.`)
             }
         },
-        "help": "- get number of accounts in ban checker databse"
+        "help": "[?user] - get number of accounts in ban checker databse"
     }
 }
 

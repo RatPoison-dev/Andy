@@ -22,8 +22,7 @@ let searchUser = (client, message, specifiedUser) => {
         return mentionsArray[0]
     }
     else {
-        let foundUser = specifiedUser == undefined ? undefined : client.users.cache.find(user => specifiedUser.toLowerCase().includes(user.username.toLowerCase()))
-        foundUser = (foundUser !== undefined && foundUser.bot) ? undefined : foundUser
+        let foundUser = specifiedUser == undefined ? undefined : client.users.cache.find(user => !user.bot && (specifiedUser.toLowerCase().includes(user.username.toLowerCase())))
         return foundUser
     }
 }

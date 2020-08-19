@@ -24,8 +24,7 @@ client.on("message", async (message) => {
     let prefix = info.prefix
     let user_id = message.author.id
     // update cheese on every message
-    let previous_info = await database.getUser(user_id)
-    database.updateUser(user_id, "cheese", previous_info.cheese+0.001)
+    database.incrementUser(user_id, "cheese", 0.001)
     
     
     if (messageContent.startsWith(prefix)) {
