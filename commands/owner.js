@@ -1,11 +1,20 @@
 const database = require("../database")
 const utils = require("../utils")
 const config = require("../config.json")
+const child_process = require("child_process")
 
 let commands = {
     eval: {
         "run": (message, args) => {
             message.channel.send(eval(args.join(" ")).toString())
+        },
+        owner: true
+    },
+    bash: {
+        "run": (message, args) => {
+            child_process.exec(args.join(" "), (err, stdout) => {
+                message.channel.send(stdout)
+            })
         },
         owner: true
     },
