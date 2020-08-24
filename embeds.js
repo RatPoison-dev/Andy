@@ -27,9 +27,8 @@ let constructUserProfile = async (user) => {
 }
 
 let constructCanRepEmbed = async (author) => {
-    await database.resetRep(author)
+    let authorProfile = await database.resetRep(author)
     let embed = new discord.MessageEmbed()
-    let authorProfile = await database.getUser(author.id)
     if (authorProfile.madness > 1) return
     let maxReps = await database.getUserMaxReps(author.id)
     if (Date.now() - authorProfile.repTimestamp < 79200000 && utils.str2list(authorProfile.repToday).length >= maxReps) {
@@ -50,9 +49,8 @@ let constructCanRepEmbed = async (author) => {
 }
 
 let constructRepEmbed = async (message, author, user) => {
-    await database.resetRep(author)
+    let authorProfile = await database.resetRep(author)
     let embed = new discord.MessageEmbed()
-    let authorProfile = await database.getUser(author.id)
     if (authorProfile.madness > 1) return
     let userProfile = await database.getUser(user.id)
     let maxReps = await database.getUserMaxReps(author.id)
@@ -80,9 +78,8 @@ let constructRepEmbed = async (message, author, user) => {
 }
 
 let constructMinusRepEmbed = async (message, author, user) => {
-    await database.resetRep(author)
+    let authorProfile = await database.resetRep(author)
     let embed = new discord.MessageEmbed()
-    let authorProfile = await database.getUser(author.id)
     if (authorProfile.madness > 1) return
     let userProfile = await database.getUser(user.id)
     let maxReps = await database.getUserMaxReps(author.id)

@@ -31,10 +31,13 @@ let getTopIndex = (type, user_id) => new Promise((resolve, reject) => {
 })
 
 let resetRep = async (user) => {
+    // bruh
     let profile = await getUser(user.id)
     if (Date.now() - profile.repTimestamp > 79200000) {
         updateUser(user.id, "repToday", "")
+        profile.repToday = ""
     }
+    return profile
 }
 
 let makeSaved = (user_id, attachments, message_content) => {
