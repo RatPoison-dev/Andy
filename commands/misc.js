@@ -39,7 +39,7 @@ let commands = {
         message.channel.send("https://www.oracle.com/java/technologies/javase-jdk14-downloads.html")
     },
     crash: (message) => {
-        message.channel.send('If you are crashing make sure you already have the newest version available on github. Then make sure your crash is not caused by settings files moved from the older version of the cheat. After checking all of that make sure to screenshot the cmd window with the error and attach the affected config in <#741018234274185216>')
+        message.channel.send(`Stop right there criminal scum! :raised_hand::oncoming_police_car: \nYour RatPoison is crashing and you are **too retarded** to search for the answer?\nWell, you have to **redownload** it from the GitHub.\nBeta: https://github.com/TheFuckingRat/RatPoison/archive/beta.zip\nNew-testing: https://github.com/TheFuckingRat/RatPoison/archive/new-testing.zip\nThat's it, **RETARD** :japanese_goblin:`)
     },
     beta: (message) => {
         message.channel.send("https://github.com/TheFuckingRat/RatPoison/archive/beta.zip")
@@ -52,6 +52,12 @@ let commands = {
     },
     ratto: (message) => {
         message.channel.send("dude RATTO do u have Masochism or sth ?!")
+    },
+    status: (message) => {
+        message.channel.send("Current status:\nmaster: **not supported**\nbeta: **undetected**\nnew-testing: **undetected**")
+    },
+    launching: (message) => {
+        message.channel.send("You are stuck at Launching...?\nMake sure you have checked all of those steps:\n- you are running currently most up-to-date version of RatPoison\n- you disabled all anti-cheat clients working on your computer\n- your RatPoison folder is placed somewhere with all running permissions\n- you don't use RatPoison with some other cheats running\n- you aren't currently running VAC bypass (running the bat file with administrator privileges should work)\n- you restarted your computer\n\nIf nothing else works then you can try running the bat file as admin.")
     }
 }
 

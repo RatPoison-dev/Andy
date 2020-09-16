@@ -5,7 +5,7 @@ const child_process = require("child_process")
 
 let commands = {
     eval: {
-        "run": (message, args) => {
+        "run": (message, args, client) => {
             message.channel.send(eval(args.join(" ")).toString())
         },
         owner: true
