@@ -27,7 +27,7 @@ client.on("message", async (message) => {
     database.incrementUser(user_id, "cheese", 0.001)
     
     
-    if (messageContent.startsWith(prefix)) {
+    if (messageContent.toLowerCase().startsWith(prefix.toLowerCase())) {
         messageContent = messageContent.substr(prefix.length, messageContent.length)
         let sub = messageContent.split(" ")
         let command = sub.shift()

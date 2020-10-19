@@ -1,5 +1,6 @@
 const database = require("../database")
 const utils = require("../utils")
+const discord = require("discord.js")
 const config = require("../config.json")
 const child_process = require("child_process")
 
@@ -12,11 +13,16 @@ let commands = {
     },
     bash: {
         "run": (message, args) => {
-            child_process.exec(args.join(" "), (err, stdout) => {
-                message.channel.send(stdout)
+            const Embed = new discord.MessageEmbed()
+                .setTitle(`bash`)
+                .setColor(`#22ee22`)
+                .setFooter(message.author.tag, message.author.displayAvatarURL());
+            let exec = require('child_process').exec;
+            exec(args.join(" "), function(err, stdout, stderr) {
+                Embed.setDescription(`\`${stdout.replace(/\uFFFD/g, '').replace('\s\s\s\s', '\s').replace(/[\u{0080}-\u{FFFF}]/gu,"").slice(0, 1999)}\``);
+                message.channel.send(Embed);
             })
-        },
-        owner: true
+        }
     },
     restart: {
         "run": async (message) => {
