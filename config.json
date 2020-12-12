@@ -7,4 +7,6 @@
     "OWBannedMessage": "Was banned by OW",
     "banCheckerInterval": 1800000,
     "owner_ids": []
+    "backupInterval": 1800000,
+    "backupRoles": ["Admin", "Booters", "Vibers"],
 }

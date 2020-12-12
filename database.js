@@ -1,11 +1,12 @@
 const sqlite = require("sqlite3")
 const db = new sqlite.Database("db/database.sqlite3")
+const utils = require("./utils")
 
 db.run("create table if not exists guilds (guild_id TEXT NOT NULL UNIQUE, bannedChannel TEXT, prefix TEXT DEFAULT \"rat!\", PRIMARY KEY(guild_id))")
 db.run("create table if not exists banChecker (steamID TEXT NOT NULL UNIQUE, requester TEXT NOT NULL, timestamp integer not null, displayName TEXT NOT NULL, playerAvatar TEXT NOT NULL, guild_id TEXT, initVAC INT, initOW INT,  PRIMARY KEY(steamID))")
 db.run("create table if not exists users (user_id TEXT NOT NULL UNIQUE, cheese DOUBLE DEFAULT 0, money INT DEFAULT 0, rep INT DEFAULT 0, dailyTimestamp INT DEFAULT 0, repTimestamp INT DEFAULT 0, repToday TEXT DEFAULT \"\", madness INT DEFAULT 0)")
 db.run("create table if not exists saved_messages (user_id TEXT, attachments TEXT, message_content TEXT)")
-
+db.run("create table if not exists server (guild_id TEXT NOT NULL UNIQUE, configsChannel TEXT, banList TEXT default \"[]\", roles TEXT default \"{}\", backupProcess BOOL default false, PRIMARY KEY(guild_id))")
 
 let getGuildInfo = (guild_id) => new Promise((resolve, reject) => {
     initGuild(guild_id)
@@ -14,10 +15,34 @@ let getGuildInfo = (guild_id) => new Promise((resolve, reject) => {
     })
 })
 
+let migrateActions = (nw, prev, configsChannel) => {
+    db.run("update banChecker set guild_id = ? where guild_id = ?", [nw, prev])
+    db.run("update server set guild_id = ? where guild_id = ?", [nw, prev])
+    db.run("update server set backupProcess = 1 where guild_id = ?", [prev])
+    db.run("update server set configsChannel = ? where guild_id = ?", [configsChannel, nw])
+}
+
 let initProfile = (user_id) => {
     db.run("insert or ignore into users (user_id) values (?)", [user_id])
 }
 
+let query = (q, ...args) => {
+    db.run(q, ...args)
+}
+
+let select = (q, ...args) => new Promise((resolve, reject) => {
+    db.all(q, ...args, (err, rows) => resolve(rows))
+})
+
+let fetchServer = () => new Promise((resolve, reject) => {
+    db.all("select * from server", [], (err, rows) => {
+        let row = rows[0]
+        row["banList"] = utils.deserialize(row["banList"])
+        row["roles"] = utils.deserialize(row["roles"])
+        resolve(row)
+    })
+})
+ 
 let getTopByPage = (type, page) => new Promise((resolve, reject) => {
     db.all(`select user_id, ${type} from users order by ${type} desc limit ?, 10`, [(page-1)*10], (err, rows) => {
         resolve(rows)
@@ -59,6 +84,17 @@ let updateUser = (user_id, columns, values) => {
     }
     else {
         db.run(`update users set ${columns} = ? where user_id = ?`, [values, user_id])
+    }
+}
+
+let updateServer = (guild_id, columns, values) => {
+    if (typeof columns == "object") {
+        columns.forEach((column, index) => {
+            db.run(`update server set ${column} = ? where guild_id = ?`, [values[index], guild_id])
+        })
+    }
+    else {
+        db.run(`update server set ${columns} = ? where guild_id = ?`, [values, guild_id])
     }
 }
 
@@ -120,4 +156,4 @@ let deleteBancheckerAccount = (sid) => {
 }
 
 
-module.exports = {getGuildInfo, initGuild, addBancheckerAccount, getBancheckerAccounts, getBancheckerAccountsByUser, incrementUser, makeSaved, getSaved, deleteBancheckerAccount, getTopIndex, updateBannedChannel, updatePrefix, updateUser, getUser, getTopByPage, getUserMaxReps, resetRep}
+module.exports = {getGuildInfo, initGuild, addBancheckerAccount, getBancheckerAccounts, getBancheckerAccountsByUser, incrementUser, makeSaved, getSaved, deleteBancheckerAccount, getTopIndex, updateBannedChannel, updatePrefix, updateUser, getUser, getTopByPage, getUserMaxReps, resetRep, query, select, fetchServer, updateServer, migrateActions}

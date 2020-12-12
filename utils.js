@@ -11,9 +11,21 @@ let list2str = (list) => {
     return list.join(",")
 }
 
+let list2str2 = (list) => {
+    return "["+list.join(",")+"]"
+}
+
 let str2list = (str) => {
-    if (str == undefined || str == undefined || str == "") return []
+    if (str == undefined || str == "" || str == "[]") return []
     else return str.split(",")
+}
+
+let serialize = (str) => {
+    return JSON.stringify(str)
+}
+
+let deserialize = (str) => {
+    return JSON.parse(str)
 }
 
 let searchUser = (client, message, specifiedUser) => {
@@ -67,4 +79,4 @@ let parseSteamID = (input) => {
     })
 }
 
-module.exports = {parseSteamID, convertMS, searchUser, str2list, list2str, getRandomElem}
+module.exports = {parseSteamID, convertMS, searchUser, str2list, list2str, getRandomElem, serialize, deserialize, list2str2}

@@ -33,25 +33,34 @@ let commands = {
         message.channel.send("Bot is definitely pasted from dimden.")
     },
     invite: (message) => {
-        message.channel.send("https://discord.gg/xkTteTM")
+        message.channel.send("https://dimden.dev/ratpoisonowns")
     },
     jdk: (message) => {
         message.channel.send("https://www.oracle.com/java/technologies/javase-jdk14-downloads.html")
     },
-    crash: (message) => {
-        message.channel.send(`Stop right there criminal scum! :raised_hand::oncoming_police_car: \nYour RatPoison is crashing and you are **too retarded** to search for the answer?\nWell, you have to **redownload** it from the GitHub.\nNew-testing: https://github.com/TheFuckingRat/RatPoison/archive/new-testing.zip\nThat's it, **RETARD** :japanese_goblin:`)
+    master: (message) => {
+        message.channel.send("https://github.com/TheRatCode/RatPoison/archive/master.zip")
     },
-    testing: (message) => {
-        message.channel.send("https://github.com/TheFuckingRat/RatPoison/archive/new-testing.zip")
+    beta: (message) => {
+        message.channel.send("https://github.com/TheRatCode/RatPoison/archive/beta.zip")
     },
+    release: (message) => {
+        message.channel.send("https://github.com/TheRatCode/RatPoison/releases/download/1.7.1/RatPoison-1.7.1.zip")
+    },
+    //crash: (message) => {
+    //    message.channel.send(`Stop right there criminal scum! :raised_hand::oncoming_police_car: \nYour RatPoison is crashing and you are **too retarded** to search for the answer?\nWell, you have to **redownload** it from the GitHub.\nNew-testing: https://github.com/TheFuckingRat/RatPoison/archive/new-testing.zip\nThat's it, **RETARD** :japanese_goblin:`)
+    //},
     what: (message) => {
         message.channel.send("https://cdn.discordapp.com/attachments/549942934464757770/722632593668964443/video0.mp4")
+    },
+    faceit: (message) => {
+        message.channel.send("RatPoison will work without any problems if you don't have FaceIT AntiCheat open.\nWith FaceIT AntiCheat RatPoison will be stuck at Launching..., nothing can be done to prevent that.")
     },
     ratto: (message) => {
         message.channel.send("dude RATTO do u have Masochism or sth ?!")
     },
     status: (message) => {
-        message.channel.send("Current status:\nmaster: **not supported**\nbeta: **not supported**\nnew-testing: **undetected**")
+        message.channel.send("Current status:\nmaster: **undetected**\nbeta: **latest**")
     },
     launching: (message) => {
         message.channel.send("You are stuck at Launching...?\nMake sure you have checked all of those steps:\n- you are running currently most up-to-date version of RatPoison\n- you disabled all anti-cheat clients working on your computer\n- your RatPoison folder is placed somewhere with all running permissions\n- you don't use RatPoison with some other cheats running\n- you aren't currently running VAC bypass (running the bat file with administrator privileges should work)\n- you restarted your computer\n\nIf nothing else works then you can try running the bat file as admin.")

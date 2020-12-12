@@ -2,7 +2,6 @@ const database = require("../database")
 const utils = require("../utils")
 const discord = require("discord.js")
 const config = require("../config.json")
-const child_process = require("child_process")
 
 let commands = {
     eval: {
