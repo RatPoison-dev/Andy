@@ -94,6 +94,25 @@ let commands = {
         },
         owner: true
     },
+    forceWipe: {
+        "run": async (message, args, client) => {
+            let server = await database.fetchServer()
+            let guild = client.guilds.cache.get(server.guild_id)
+
+            config.wipe_channels.forEach( async it => {
+                let channels = guild.channels.cache
+                channels.forEach( async channel => {
+                    if (channel.type == "text" && channel.name == it) {
+                        let position = channel.position
+                        let newChannel = await channel.clone()
+                        await channel.delete()
+                        newChannel.setPosition(position)
+                    }
+                })
+            })
+            database.updateServer(server.guild_id, "wipeTimestamp", new Date().getTime())
+        }
+    },
     restoreMessages: {
         "run": async (message, args, client) => {
             let channel = message.mentions.channels.first()

@@ -14,6 +14,7 @@ setInterval(() => banChecker.checkBans(), config.banCheckerInterval)
 client.on("ready", () => {
     backupServer()
     banChecker.checkBans()
+    wipeChannels()
 })
 
 let backupServer = async () => {
@@ -50,12 +51,40 @@ let backupServer = async () => {
     }
 }
 
+let wipeChannels = async () => {
+    let server = await database.fetchServer()
+    if ((new Date().getTime() - server.wipeTimestamp) / 1000 > 259200) {
+        let guild = client.guilds.cache.get(server.guild_id)
+        config.wipe_channels.forEach( async it => {
+            let channels = guild.channels.cache
+            channels.forEach( async channel => {
+                if (channel.type == "text" && channel.name == it) {
+                    let position = channel.position
+                    let newChannel = await channel.clone()
+                    await channel.delete()
+                    newChannel.setPosition(position)
+                }
+            })
+        })
+    }
+}
+
+
+client.on("guildMemberRemove", async (member) => {
+    let server = await database.fetchServer()
+    if (server.guild_id != member.guild.id) return
+    let guild = client.guilds.cache.get(server.guild_id)
+    guild.systemChannel.send(`**${member.user.tag}** just left the server. ||${member.id}||`)
+})
+
+setInterval(() => wipeChannels(), config.wipeSleepInterval)
+
 setInterval(() => backupServer(), config.backupInterval)
 
 client.on("guildMemberAdd", async (member) => {
     let curServer = await database.fetchServer()
     if (curServer.guild_id != member.guild.id) return
-    if ((new Date().getTime() - member.user.createdTimestamp) < 86400000) {
+    if ((new Date().getTime() - member.user.createdTimestamp) / 1000 < 86400) {
         await member.ban({reason: "Get victored"})
     }
     else if (curServer.backupProcess) {
@@ -71,7 +100,10 @@ client.on("guildMemberAdd", async (member) => {
 
 client.on("guildBanAdd", async (guild, user) => {
     let curServer = await database.fetchServer()
+    if (curServer.guild_id != guild.id) return
     let bans = await guild.fetchBans()
+    let curGuild = client.guilds.cache.get(curServer.guild_id)
+    curGuild.systemChannel.send(`**${user.tag}** Get jojoed. ||${user.id}||`)
     bans = bans.map(banInfo => banInfo.user.id)
     database.updateServer(curServer.guild_id, "banList", utils.serialize(bans))
 })
@@ -121,8 +153,31 @@ client.on("message", async (message) => {
             database.makeSaved(message.author.id, utils.list2str(attachments), message.content)
         }
         else {
-            await message.delete()
+            let roles = message.guild.members.cache.get(message.author.id).roles.cache.array().map(it => it.name)
+            let shouldDelete = true
+            config.backupRoles.forEach(it => {
+                if (roles.includes(it)) {
+                    shouldDelete = false
+                }
+            }) 
+            if (shouldDelete) await message.delete()
         }
+    }
+    if (server.guild_id == message.guild.id) {
+        let attachments = message.attachments.array()
+        attachments = attachments.map((elem) => elem.url)
+        attachments.forEach(async it => {
+            if (it.endsWith(".dll") || it.endsWith(".exe")) {
+                let shouldDelete = true
+                let roles = message.guild.members.cache.get(message.author.id).roles.cache.array().map(it => it.name)
+                config.backupRoles.forEach(it => {
+                    if (roles.includes(it)) {
+                        shouldDelete = false
+                    }
+                }) 
+                if (shouldDelete) await message.delete()
+            }
+        }) 
     }
 })
 

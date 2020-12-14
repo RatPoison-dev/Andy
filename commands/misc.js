@@ -32,6 +32,9 @@ let commands = {
     dimden: (message) => {
         message.channel.send("Bot is definitely pasted from dimden.")
     },
+    andy: (message) => {
+        message.channel.send("https://discord.com/api/oauth2/authorize?client_id=736198301598089286&permissions=8&scope=bot")
+    },
     invite: (message) => {
         message.channel.send("https://dimden.dev/ratpoisonowns")
     },
