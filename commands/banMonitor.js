@@ -13,7 +13,7 @@ let commands = {
                     async (sid) => {
                         sid = sid.getSteamID64()
                         let summaries = await api.GetPlayerSummaries(sid)
-                        let initList = await api.checkBans(sid)
+                        let initList = await api.rawCheckBans(sid)
                         db.addBancheckerAccount(sid, message.author.id, summaries.personaname, summaries.avatarfull, message.guild.id, initList[0], initList[1])
                         message.channel.send(`[BanChecker] SteamID ${sid} has been added to ban checker.`)
                     },

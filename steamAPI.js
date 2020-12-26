@@ -22,6 +22,25 @@ class WebApi {
         let jsonized = await fetched.json()
         return jsonized["response"]["players"][0]
     }
+    async rawCheckBans (user) {
+        let fetched = await fetch(`http://api.steampowered.com/ISteamUser/GetPlayerBans/v1/?key=${this.apiKey}&steamids=${user}`)
+        let bans = await fetched.json()
+        let player = bans.players[0]
+        let outArray = []
+        if (player.NumberOfVACBans !== undefined) {
+            outArray.push(player.NumberOfVACBans)
+        }
+        else {
+            outArray.push(0)
+        }
+        if (player.NumberOfGameBans !== undefined) {
+            outArray.push(player.NumberOfVACBans)
+        }
+        else {
+            outArray.push(0)
+        }
+        return outArray
+    }
     async checkBans (users) {
         let outArray = []
         let usersArray = users.map(it => it.steamID).join(",")
