@@ -6,7 +6,7 @@ db.run("create table if not exists guilds (guild_id TEXT NOT NULL UNIQUE, banned
 db.run("create table if not exists banChecker (steamID TEXT NOT NULL UNIQUE, requester TEXT NOT NULL, timestamp integer not null, displayName TEXT NOT NULL, playerAvatar TEXT NOT NULL, guild_id TEXT, initVAC INT, initOW INT,  PRIMARY KEY(steamID))")
 db.run("create table if not exists users (user_id TEXT NOT NULL UNIQUE, cheese DOUBLE DEFAULT 0, money INT DEFAULT 0, rep INT DEFAULT 0, dailyTimestamp INT DEFAULT 0, repTimestamp INT DEFAULT 0, repToday TEXT DEFAULT \"\", madness INT DEFAULT 0)")
 db.run("create table if not exists saved_messages (user_id TEXT, attachments TEXT, message_content TEXT)")
-db.run("create table if not exists server (guild_id TEXT NOT NULL UNIQUE, configsChannel TEXT, banList TEXT default \"[]\", roles TEXT default \"{}\", backupProcess BOOL default false, wipeTimestamp int default 0, PRIMARY KEY(guild_id))")
+db.run("create table if not exists server (guild_id TEXT NOT NULL UNIQUE, banList TEXT default \"[]\", roles TEXT default \"{}\", backupProcess BOOL default false, wipeTimestamp int default 0, PRIMARY KEY(guild_id))")
 
 
 let getGuildInfo = (guild_id) => new Promise((resolve, reject) => {
@@ -16,11 +16,10 @@ let getGuildInfo = (guild_id) => new Promise((resolve, reject) => {
     })
 })
 
-let migrateActions = (nw, prev, configsChannel) => {
+let migrateActions = (nw, prev) => {
     db.run("update banChecker set guild_id = ? where guild_id = ?", [nw, prev])
     db.run("update server set guild_id = ? where guild_id = ?", [nw, prev])
     db.run("update server set backupProcess = 1 where guild_id = ?", [prev])
-    db.run("update server set configsChannel = ? where guild_id = ?", [configsChannel, nw])
 }
 
 let initProfile = (user_id) => {

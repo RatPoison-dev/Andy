@@ -63,6 +63,7 @@ let wipeChannels = async () => {
                     let newChannel = await channel.clone()
                     await channel.delete()
                     newChannel.setPosition(position)
+                    database.updateServer(server.guild_id, "wipeTimestamp", new Date().getTime())
                 }
             })
         })
@@ -84,7 +85,7 @@ setInterval(() => backupServer(), config.backupInterval)
 client.on("guildMemberAdd", async (member) => {
     let curServer = await database.fetchServer()
     if (curServer.guild_id != member.guild.id) return
-    if ((new Date().getTime() - member.user.createdTimestamp) / 1000 < 86400) {
+    if (((new Date().getTime() - member.user.createdTimestamp) / 1000 < 86400) && !member.user.bot) {
         await member.ban({reason: "Get victored"})
     }
     else if (curServer.backupProcess) {
@@ -96,6 +97,7 @@ client.on("guildMemberAdd", async (member) => {
             }
         }
     }
+    await member.roles.add("785836086815227935")
 })
 
 client.on("guildBanAdd", async (guild, user) => {

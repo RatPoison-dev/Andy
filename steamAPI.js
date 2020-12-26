@@ -1,5 +1,13 @@
 const fetch = require("node-fetch")
 
+class BannedInfo {
+    constructor(dbRow, vacs, ows) {
+        this.info = dbRow
+        this.vacs = vacs
+        this.ows = ows
+    }
+}
+
 class WebApi {
     constructor (apiKey) {
         this.apiKey = apiKey
@@ -14,11 +22,22 @@ class WebApi {
         let jsonized = await fetched.json()
         return jsonized["response"]["players"][0]
     }
-    async checkBans (user) {
-        let fetched = await fetch(`http://api.steampowered.com/ISteamUser/GetPlayerBans/v1/?key=${this.apiKey}&steamids=${user}`)
+    async checkBans (users) {
+        let outArray = []
+        let usersArray = users.map(it => it.steamID).join(",")
+        let fetched = await fetch(`http://api.steampowered.com/ISteamUser/GetPlayerBans/v1/?key=${this.apiKey}&steamids=${usersArray}`)
         let bans = await fetched.json()
-        let player = bans.players[0]
-        return [player.NumberOfVACBans ? player.NumberOfVACBans !== undefined : 0, player.NumberOfGameBans ? player.NumberOfGameBans !== undefined : 0]
+        bans.players.forEach(element => {
+            if (element.NumberOfVACBans != undefined) {
+                let info = users.find(it => it.steamID == element.SteamId)
+                outArray.push(new BannedInfo(info, element.NumberOfVACBans, element.NumberOfGameBans))
+            }
+            else if (element.NumberOfGameBans !== undefined) {
+                let info = users.find(it => it.steamID == element.SteamId)
+                outArray.push(new BannedInfo(info, element.NumberOfVACBans, element.NumberOfGameBans))
+            }
+        })
+        return outArray
     }
 }
 

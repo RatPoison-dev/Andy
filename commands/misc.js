@@ -47,6 +47,12 @@ let commands = {
     beta: (message) => {
         message.channel.send("https://github.com/TheRatCode/RatPoison/archive/beta.zip")
     },
+    config: (message) => {
+        message.channel.send("https://ratpoison.dimden.dev/\nhttps://media.discordapp.net/attachments/789468910076428298/790262074345390100/wherecfg.gif")
+    },
+    configs: (message) => {
+        message.channel.send("https://ratpoison.dimden.dev/\nhttps://media.discordapp.net/attachments/789468910076428298/790262074345390100/wherecfg.gif")
+    },
     release: (message) => {
         message.channel.send("https://github.com/TheRatCode/RatPoison/releases/download/1.7.1/RatPoison-1.7.1.zip")
     },
