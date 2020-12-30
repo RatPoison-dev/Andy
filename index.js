@@ -3,6 +3,10 @@ const config = require("./config.json")
 const engine = require("./engine")
 const database = require("./database")
 const utils = require("./utils")
+const iq_test = require("./iq_test.json")
+//just a bruh moment
+const iAmImportant = {}
+
 engine.importCommands()
 let client = new discord.Client()
 
@@ -11,10 +15,15 @@ let banChecker = new checker(client)
 
 setInterval(() => banChecker.checkBans(), config.banCheckerInterval)
 
-client.on("ready", () => {
+client.on("ready", async () => {
     backupServer()
     banChecker.checkBans()
     wipeChannels()
+    let server = await database.fetchServer()
+    let curGuild = client.guilds.cache.get(server.guild_id)
+    let bans = (await curGuild.fetchBans()).size
+    let bannedChannel = curGuild.channels.cache.find(it => it.name.startsWith("Bans"))
+    bannedChannel.setName(`Bans: ${bans}`)
 })
 
 let backupServer = async () => {
@@ -72,18 +81,111 @@ let wipeChannels = async () => {
 
 
 client.on("guildMemberRemove", async (member) => {
+    let userID = member.user.id
     let server = await database.fetchServer()
     if (server.guild_id != member.guild.id) return
     let guild = client.guilds.cache.get(server.guild_id)
     guild.systemChannel.send(`**${member.user.tag}** just left the server. ||${member.id}||`)
+    let getRes = iAmImportant[userID]
+    let gateway = member.guild.channels.cache.find(it => it.name == "gateway" && it.type == "text")
+    if (getRes !== undefined) {
+        getRes.forEach(it => {
+            (gateway.messages.cache.get(it)).delete()
+        })
+        iAmImportant[userID] = []
+    }
 })
 
 setInterval(() => wipeChannels(), config.wipeSleepInterval)
 
 setInterval(() => backupServer(), config.backupInterval)
 
+const emojiMap = {
+    "1": "1️⃣",
+    "2": "2️⃣",
+    "3": "3️⃣",
+    "4": "4️⃣",
+    "5": "5️⃣"
+}
+
+let gatewaySend = async (gateway, user, message) => {
+    let sendedMessage = await gateway.send(message)
+    if (Object.keys(iAmImportant).includes(user.id)) {
+        iAmImportant[user.id].push(sendedMessage.id)
+    }
+    else {
+        iAmImportant[user.id] = [sendedMessage.id]
+    }
+    database.gatewayAddMessage(user.id, sendedMessage.id)
+    return sendedMessage
+}
+
+let yeah = async (currentIndex, gateway, member) => {
+    let user = member.user
+    let userID = user.id
+    let currentMessage = Object.keys(iq_test).find((_, idx) => idx == currentIndex)
+    let values = iq_test[currentMessage]
+    let correctKeys = []
+    let allKeys = []
+    let finalMessage = `${currentMessage}\n`
+    Object.keys(values).forEach((it, idx) => {
+        if (values[it] == "correct") {
+            correctKeys.push(emojiMap[idx + 1])
+        }
+        allKeys.push(emojiMap[idx + 1])
+        finalMessage += `${idx + 1} - ${it}\n`
+    })
+    let sended = await gatewaySend(gateway, user, finalMessage)
+    let rc = new discord.ReactionCollector(sended, (r, u) => u.id == userID)
+    allKeys.forEach(async it => await sended.react(it))
+    rc.on("collect", async (r, u) => {
+        rc.stop()
+        if (!correctKeys.includes(r.emoji.name)) {
+            let userGateway = await database.getGateway(userID)
+            if (userGateway.tries + 1 >= config["gateway_max_tries"]) {
+                let notPassedRole = member.guild.roles.cache.find(it => it.name == "gateway-not-passed")
+                let curServer = await database.fetchServer()
+                curServer["gatewayNotPassed"].push(userID)
+                database.updateServer(curServer.guild_id, "gatewayNotPassed", utils.list2str2(curServer["gatewayNotPassed"]))
+                await member.roles.add(notPassedRole)
+                let b = iAmImportant[userID]
+                b.forEach(message => {
+                    (gateway.messages.cache.get(message)).delete()
+                })
+                database.deleteGatewayInfo(userID)
+                iAmImportant[userID] = []
+                return
+            }
+            if (userGateway.tries + 2 >= config["gateway_max_tries"]) {
+                await gatewaySend(gateway, user, `${member.toString()} You failed the test. You have last try to pass it.`)
+            }
+            else {
+                await gatewaySend(gateway, user, `${member.toString()} You failed the test.`)
+            }
+            database.increaseGatewayTries(userID)
+            yeah(0, gateway, member)
+        }
+        else {
+            if (currentIndex != Object.keys(iq_test).length-1) {
+                yeah(currentIndex + 1, gateway, member)
+            }
+            else {
+                let ratsRole = member.guild.roles.cache.find(it => it.name == "Rats")
+                await member.roles.add(ratsRole)
+                let b = iAmImportant[userID]
+                b.forEach(async message => { 
+                    gateway.messages.cache.get(message).delete()
+                })
+                database.deleteGatewayInfo(userID)
+                iAmImportant[userID] = []
+            }
+        }
+    })
+}
+
 client.on("guildMemberAdd", async (member) => {
     let curServer = await database.fetchServer()
+    let userID = member.user.id
     if (curServer.guild_id != member.guild.id) return
     if (((new Date().getTime() - member.user.createdTimestamp) / 1000 < 86400) && !member.user.bot) {
         await member.ban({reason: "Get victored"})
@@ -97,24 +199,55 @@ client.on("guildMemberAdd", async (member) => {
             }
         }
     }
-    await member.roles.add("785836086815227935")
+    let gateway = member.guild.channels.cache.find(it => it.name == "gateway" && it.type == "text")
+    let user = member.user
+    let ratsRole = member.guild.roles.cache.find(it => it.name == "Rats")
+    let notPassedRole = member.guild.roles.cache.find(it => it.name == "gateway-not-passed")
+    if (curServer.gatewayNotPassed.includes(userID)) {
+        await member.roles.add(notPassedRole)
+        return
+    }
+    if (curServer.getaway == 0) {
+        await member.roles.add(ratsRole)
+    }
+    else {
+        await gatewaySend(gateway, user, `Hi, ${member.toString()}.\nPass a small IQ test before you can enter.`)
+        try {
+            yeah(0, gateway, member)
+        }
+        catch (e) {
+            console.error(e)
+            console.log("Test failed!")
+            await member.roles.add(ratsRole)
+        }
+    }
 })
 
 client.on("guildBanAdd", async (guild, user) => {
     let curServer = await database.fetchServer()
     if (curServer.guild_id != guild.id) return
+    let realBans = await guild.fetchBans()
     let bans = await guild.fetchBans()
     let curGuild = client.guilds.cache.get(curServer.guild_id)
     curGuild.systemChannel.send(`**${user.tag}** Get jojoed. ||${user.id}||`)
     bans = bans.map(banInfo => banInfo.user.id)
     database.updateServer(curServer.guild_id, "banList", utils.serialize(bans))
+    let logsChannel = guild.channels.cache.find(it => it.name.startsWith("logs"))
+    let thisBan = realBans.find(pov => pov.user.id == user.id)
+    if (thisBan.reason == null) thisBan.reason = "Unspecified."
+    logsChannel.send(`\`\`${user.tag}\`\` was banned with reason \`\`${thisBan.reason}\`\``)
+    let bannedChannel = guild.channels.cache.find(it => it.name.startsWith("Bans"))
+    await bannedChannel.setName(`Bans: ${bans.length}`)
 })
 
 client.on("guildBanRemove", async (guild, user) => {
     let curServer = await database.fetchServer()
+    if (curServer.guild_id != guild.id) return
     let bans = await guild.fetchBans()
     bans = bans.map(banInfo => banInfo.user.id)
     database.updateServer(curServer.guild_id, "banList", utils.serialize(bans))
+    let bannedChannel = guild.channels.cache.find(it => it.name.startsWith("Bans"))
+    await bannedChannel.setName(`Bans: ${bans.length}`)
 })
 
 client.on("guildCreate", (guild) => {
@@ -129,7 +262,7 @@ client.on("message", async (message) => {
     let prefix = info.prefix
     let user_id = message.author.id
     // update cheese on every message
-    database.incrementUser(user_id, "cheese", 0.001)
+    if (server.guild_id == message.guild.id) database.incrementUser(user_id, "cheese", 0.001)
     
     
     if (messageContent.toLowerCase().startsWith(prefix.toLowerCase())) {

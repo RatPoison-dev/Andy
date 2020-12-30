@@ -19,7 +19,8 @@ let commands = {
         "run": async (message, args, client) => {
             database.query("update server set backupProcess = false where guild_id = ?", [prevServer.guild_id])
             message.channel.send("Backup disabled")
-        }
+        },
+        owner: true
     }
 }
 

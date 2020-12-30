@@ -12,7 +12,8 @@ let commands = {
                 message.channel.send(embed)
             }
         },
-        "help": "[?user] - get a profile"
+        "help": "[?user] - get a profile",
+        originalServer: true
     },
     daily: {
         "run": async (message, args, client) => {
@@ -22,7 +23,8 @@ let commands = {
                 message.channel.send(embed)
             }
         },
-        "help": "- get daily cheese and money"
+        "help": "- get daily cheese and money",
+        originalServer: true
     },
     top: {
         "run": async (message, args) => {
@@ -36,7 +38,8 @@ let commands = {
                 message.channel.send(embed)
             }
         },
-        "help": "[type] [?page] - get top by type and page"
+        "help": "[type] [?page] - get top by type and page",
+        originalServer: true
     },
     pay: {
         "run": async (message, args, client) => {
@@ -70,7 +73,8 @@ let commands = {
                 message.channel.send(":x: User was not found.")
             }
         },
-        "help": "[user] [amount] - pay user"
+        "help": "[user] [amount] - pay user",
+        originalServer: true
     },
     "+rep": {
         "run": async (message, args, client) => {
@@ -91,7 +95,8 @@ let commands = {
                 message.channel.send(embed)
             }
         },
-        "help": "[user] - take some cheese from user"
+        "help": "[user] - take some cheese from user",
+        originalServer: true
     },
     "-rep": {
         "run": async (message, args, client) => {
@@ -115,7 +120,8 @@ let commands = {
                 }
             }
         },
-        "help": "[user] - take some cheese from user"
+        "help": "[user] - take some cheese from user",
+        originalServer: true
     }
 
 }

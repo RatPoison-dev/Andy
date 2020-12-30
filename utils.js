@@ -12,12 +12,17 @@ let list2str = (list) => {
 }
 
 let list2str2 = (list) => {
-    return "["+list.join(",")+"]"
+    if (typeof list == 'object') {
+        return "["+list.join(",")+"]"
+    }
+    else if (typeof list == 'string') {
+        return "["+list+"]"
+    }
 }
 
 let str2list = (str) => {
     if (str == undefined || str == "" || str == "[]") return []
-    else return str.split(",")
+    else return str.replace("[", "").replace("]", "").split(",")
 }
 
 let serialize = (str) => {

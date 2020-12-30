@@ -23,6 +23,13 @@ let commands = {
             })
         }
     },
+    gateway: {
+        "run": (message, args) => {
+            database.gatewaySwitchState()
+            message.channel.send("Bamboozled")
+        },
+        owner: true
+    },
     restart: {
         "run": async (message) => {
             await message.channel.send("Time to die")
@@ -67,6 +74,14 @@ let commands = {
             let foundUser = utils.searchUser(client, message, args[0])
             database.incrementUser(foundUser.id, "rep", parseInt(args[1]))
             message.channel.send("Reputation was successfully added!")
+        },
+        owner: true
+    },
+    clear: {
+        "run": async (message, args, client) => {
+            let limit = parseInt(args[0])
+            let messages = await message.channel.messages.fetch({"limit": limit+1})
+            await message.channel.bulkDelete(messages)
         },
         owner: true
     },
