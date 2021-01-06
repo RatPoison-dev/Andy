@@ -6,6 +6,7 @@ const utils = require("./utils")
 const iq_test = require("./iq_test.json")
 //just a bruh moment
 const iAmImportant = {}
+const rcMap = {}
 
 engine.importCommands()
 let client = new discord.Client()
@@ -13,12 +14,15 @@ let client = new discord.Client()
 const checker = require("./banChecker")
 let banChecker = new checker(client)
 
-setInterval(() => banChecker.checkBans(), config.banCheckerInterval)
-
 client.on("ready", async () => {
     backupServer()
     banChecker.checkBans()
     wipeChannels()
+    wipeGateway()
+    setInterval(() => wipeGateway(), 20000)
+    setInterval(() => banChecker.checkBans(), config.banCheckerInterval)
+    setInterval(() => wipeChannels(), config.wipeSleepInterval)
+    setInterval(() => backupServer(), config.backupInterval)
     let server = await database.fetchServer()
     let curGuild = client.guilds.cache.get(server.guild_id)
     let bans = (await curGuild.fetchBans()).size
@@ -79,6 +83,50 @@ let wipeChannels = async () => {
     }
 }
 
+let wipeGateway = async () => {
+    let server = await database.fetchServer()
+    let guild = client.guilds.cache.get(server.guild_id)
+    let gateway = guild.channels.cache.find(it => it.name == "gateway" && it.type == "text")
+    let latestTimestamp = -1
+    let latestMessage = undefined
+    for (let key in iAmImportant) {
+        let messages = iAmImportant[key]
+        messages.forEach(async (it) => {
+            let message = gateway.messages.cache.get(it)
+            let timestamp = message.createdTimestamp
+            if (timestamp > latestTimestamp) {
+                latestTimestamp = timestamp
+                latestMessage = message
+            }
+        })
+        if (latestMessage !== undefined) {
+            let member = guild.members.cache.get(key)
+            let ratsRole = guild.roles.cache.find(it => it.name == "Rats")
+            if (((new Date().getTime() - latestTimestamp) / 1000 > 10) && !latestMessage.deleted && !member.roles.cache.has(ratsRole.id)) {
+                try {
+                    let member = guild.members.cache.get(key)
+                    let dm = await member.createDM()
+                    dm.send("You was kicked from server due to inactivity in gateway.")
+                    await member.kick()
+                    messages.forEach(it => {
+                        let m = gateway.messages.cache.get(it)
+                        if (m !== undefined && !m.deleted) m.delete()
+                        let thisRc = rcMap[it]
+                        if (thisRc !== undefined) {
+                            thisRc.stop()
+                            delete rcMap[it]
+                        }
+                    })
+                    iAmImportant[key] = []
+                }
+                catch {}
+            }
+        }
+        latestTimestamp = -1
+
+    }
+}
+
 
 client.on("guildMemberRemove", async (member) => {
     let userID = member.user.id
@@ -90,15 +138,17 @@ client.on("guildMemberRemove", async (member) => {
     let gateway = member.guild.channels.cache.find(it => it.name == "gateway" && it.type == "text")
     if (getRes !== undefined) {
         getRes.forEach(it => {
-            (gateway.messages.cache.get(it)).delete()
+            let m = gateway.messages.cache.get(it)
+            if (m !== undefined && !m.deleted) m.delete()
+            let thisRc = rcMap[it]
+            if (thisRc !== undefined) {
+                thisRc.stop()
+                delete rcMap[it]
+            }
         })
         iAmImportant[userID] = []
     }
 })
-
-setInterval(() => wipeChannels(), config.wipeSleepInterval)
-
-setInterval(() => backupServer(), config.backupInterval)
 
 const emojiMap = {
     "1": "1️⃣",
@@ -137,9 +187,11 @@ let yeah = async (currentIndex, gateway, member) => {
     })
     let sended = await gatewaySend(gateway, user, finalMessage)
     let rc = new discord.ReactionCollector(sended, (r, u) => u.id == userID)
+    rcMap[sended.id] = rc
     allKeys.forEach(async it => await sended.react(it))
     rc.on("collect", async (r, u) => {
         rc.stop()
+        delete rcMap[sended.id]
         if (!correctKeys.includes(r.emoji.name)) {
             let userGateway = await database.getGateway(userID)
             if (userGateway.tries + 1 >= config["gateway_max_tries"]) {
@@ -150,7 +202,8 @@ let yeah = async (currentIndex, gateway, member) => {
                 await member.roles.add(notPassedRole)
                 let b = iAmImportant[userID]
                 b.forEach(message => {
-                    (gateway.messages.cache.get(message)).delete()
+                    let m = gateway.messages.cache.get(message)
+                    if (m !== undefined && !m.deleted) m.delete()
                 })
                 database.deleteGatewayInfo(userID)
                 iAmImportant[userID] = []
@@ -185,40 +238,43 @@ let yeah = async (currentIndex, gateway, member) => {
 
 client.on("guildMemberAdd", async (member) => {
     let curServer = await database.fetchServer()
-    let userID = member.user.id
+    let user = member.user
+    let userID = user.id
     if (curServer.guild_id != member.guild.id) return
-    if (((new Date().getTime() - member.user.createdTimestamp) / 1000 < 86400) && !member.user.bot) {
+    if (((new Date().getTime() - user.createdTimestamp) / 1000 < 86400) && !user.bot) {
         await member.ban({reason: "Get victored"})
     }
-    else if (curServer.backupProcess) {
+    else {
+        let gateway = member.guild.channels.cache.find(it => it.name == "gateway" && it.type == "text")
+        let ratsRole = member.guild.roles.cache.find(it => it.name == "Rats")
+        let notPassedRole = member.guild.roles.cache.find(it => it.name == "gateway-not-passed")
+        if (curServer.gatewayNotPassed.includes(userID)) {
+            await member.roles.add(notPassedRole)
+            return
+        }
+        if (curServer.getaway == 0) {
+            await member.roles.add(ratsRole)
+        }
+        else {
+            await gatewaySend(gateway, user, `Hi, ${member.toString()}.\nPass a small IQ test before you can enter.`)
+            try {
+                yeah(0, gateway, member)
+            }
+            catch (e) {
+                console.error(e)
+                console.log("Test failed!")
+                await member.roles.add(ratsRole)
+            }
+        }
+    }
+    
+    if (curServer.backupProcess) {
         for (let roleName in curServer.roles) {
             let guildRole = curGuild.roles.cache.find(it => it.name == roleName)
             let members = curServer.roles[roleName]
             if (members.includes(member.user.id)) {
                 member.roles.add(guildRole)
             }
-        }
-    }
-    let gateway = member.guild.channels.cache.find(it => it.name == "gateway" && it.type == "text")
-    let user = member.user
-    let ratsRole = member.guild.roles.cache.find(it => it.name == "Rats")
-    let notPassedRole = member.guild.roles.cache.find(it => it.name == "gateway-not-passed")
-    if (curServer.gatewayNotPassed.includes(userID)) {
-        await member.roles.add(notPassedRole)
-        return
-    }
-    if (curServer.getaway == 0) {
-        await member.roles.add(ratsRole)
-    }
-    else {
-        await gatewaySend(gateway, user, `Hi, ${member.toString()}.\nPass a small IQ test before you can enter.`)
-        try {
-            yeah(0, gateway, member)
-        }
-        catch (e) {
-            console.error(e)
-            console.log("Test failed!")
-            await member.roles.add(ratsRole)
         }
     }
 })
