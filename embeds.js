@@ -171,7 +171,8 @@ let constructBannedEmbed = async (player, type, client) => {
     embed.setURL(`https://steamcommunity.com/profiles/${player.steamID}`)
     let eblo1 = new Date(player.timestamp)
     let substr1 = `${eblo1.getUTCFullYear()}.${eblo1.getUTCMonth()+1}.${eblo1.getUTCDate()}`
-    embed.setFooter(`${bannedType}. Was added by ${client.users.cache.get(player.requester).tag} (${substr1})`)
+    let tmpUser = await client.users.fetch(player.requester)
+    embed.setFooter(`${bannedType}. Was added by ${tmpUser.tag} (${substr1})`)
     embed.setColor(0x004080)
     return embed
 }

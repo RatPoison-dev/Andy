@@ -7,6 +7,7 @@ const iq_test = require("./iq_test.json")
 //just a bruh moment
 const iAmImportant = {}
 const rcMap = {}
+let ignoreEvent = ""
 
 engine.importCommands()
 let client = new discord.Client()
@@ -18,7 +19,6 @@ client.on("ready", async () => {
     backupServer()
     banChecker.checkBans()
     wipeChannels()
-    wipeGateway()
     setInterval(() => wipeGateway(), 20000)
     setInterval(() => banChecker.checkBans(), config.banCheckerInterval)
     setInterval(() => wipeChannels(), config.wipeSleepInterval)
@@ -102,20 +102,21 @@ let wipeGateway = async () => {
         if (latestMessage !== undefined) {
             let member = guild.members.cache.get(key)
             let ratsRole = guild.roles.cache.find(it => it.name == "Rats")
-            if (((new Date().getTime() - latestTimestamp) / 1000 > 10) && !latestMessage.deleted && !member.roles.cache.has(ratsRole.id)) {
+            if (((new Date().getTime() - latestTimestamp) / 1000 > 600) && !latestMessage.deleted && !member.roles.cache.has(ratsRole.id)) {
                 try {
                     let member = guild.members.cache.get(key)
                     let dm = await member.createDM()
+                    ignoreEvent = member.user.id
                     dm.send("You was kicked from server due to inactivity in gateway.")
                     await member.kick()
                     messages.forEach(it => {
                         let m = gateway.messages.cache.get(it)
-                        if (m !== undefined && !m.deleted) m.delete()
                         let thisRc = rcMap[it]
                         if (thisRc !== undefined) {
                             thisRc.stop()
                             delete rcMap[it]
                         }
+                        if (m !== undefined && !m.deleted) m.delete()
                     })
                     iAmImportant[key] = []
                 }
@@ -132,6 +133,10 @@ client.on("guildMemberRemove", async (member) => {
     let userID = member.user.id
     let server = await database.fetchServer()
     if (server.guild_id != member.guild.id) return
+    if (ignoreEvent == userID) {
+        ignoreEvent = ""
+        return
+    }
     let guild = client.guilds.cache.get(server.guild_id)
     guild.systemChannel.send(`**${member.user.tag}** just left the server. ||${member.id}||`)
     let getRes = iAmImportant[userID]
@@ -139,12 +144,12 @@ client.on("guildMemberRemove", async (member) => {
     if (getRes !== undefined) {
         getRes.forEach(it => {
             let m = gateway.messages.cache.get(it)
-            if (m !== undefined && !m.deleted) m.delete()
             let thisRc = rcMap[it]
             if (thisRc !== undefined) {
                 thisRc.stop()
                 delete rcMap[it]
             }
+            if (m !== undefined && !m.deleted) m.delete()
         })
         iAmImportant[userID] = []
     }
@@ -351,7 +356,7 @@ client.on("message", async (message) => {
                     shouldDelete = false
                 }
             }) 
-            if (shouldDelete) await message.delete()
+            if (shouldDelete) message.delete()
         }
     }
     if (server.guild_id == message.guild.id) {
@@ -366,7 +371,7 @@ client.on("message", async (message) => {
                         shouldDelete = false
                     }
                 }) 
-                if (shouldDelete) await message.delete()
+                if (shouldDelete) message.delete()
             }
         }) 
     }
