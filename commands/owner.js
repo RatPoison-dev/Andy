@@ -21,7 +21,8 @@ let commands = {
                 Embed.setDescription(`\`${stdout.replace(/\uFFFD/g, '').replace('\s\s\s\s', '\s').replace(/[\u{0080}-\u{FFFF}]/gu,"").slice(0, 1999)}\``);
                 message.channel.send(Embed);
             })
-        }
+        },
+        owner: true
     },
     gateway: {
         "run": (message, args) => {
@@ -126,7 +127,8 @@ let commands = {
                 })
             })
             database.updateServer(server.guild_id, "wipeTimestamp", new Date().getTime())
-        }
+        },
+        owner: true
     },
     restoreMessages: {
         "run": async (message, args, client) => {
