@@ -6,7 +6,10 @@
     "VACBannedMessage": "Was banned by VAC",
     "OWBannedMessage": "Was banned by OW",
     "banCheckerInterval": 1800000,
-    "owner_ids": []
     "backupInterval": 1800000,
+    "wipeSleepInterval": 1800000,
     "backupRoles": ["Admin", "Booters", "Vibers"],
+    "owner_ids": [],
+    "wipe_channels": [],
+    "gateway_max_tries": 2
 }
