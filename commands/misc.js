@@ -54,7 +54,7 @@ let commands = {
         message.channel.send("https://ratpoison.dimden.dev/\nhttps://media.discordapp.net/attachments/789468910076428298/790262074345390100/wherecfg.gif")
     },
     release: (message) => {
-        message.channel.send("1.7 - https://github.com/TheRatCode/RatPoison/releases/download/1.7.1.1/RatPoison-1.7.1.1.zip\n1.8 - https://github.com/TheRatCode/RatPoison/releases/download/1.8.4/RatPoison-1.8.4.zip")
+        message.channel.send("1.7 - https://github.com/TheRatCode/RatPoison/releases/download/1.7.1.2/RatPoison-1.7.1.2.zip\n1.8 - https://github.com/TheRatCode/RatPoison/releases/download/1.8.4.1/RatPoison-1.8.4.1.zip")
     },
     //crash: (message) => {
     //    message.channel.send(`Stop right there criminal scum! :raised_hand::oncoming_police_car: \nYour RatPoison is crashing and you are **too retarded** to search for the answer?\nWell, you have to **redownload** it from the GitHub.\nNew-testing: https://github.com/TheFuckingRat/RatPoison/archive/new-testing.zip\nThat's it, **RETARD** :japanese_goblin:`)
@@ -76,6 +76,9 @@ let commands = {
     },
     dir: (message) => {
         message.channel.send("https://edge.dimden.dev/047c416f83.png")
+    },
+    jammin: (message) => {
+        message.channel.send("https://tenor.com/view/rat-jammin-rat-jammin-rat-jamming-gif-18426427")
     }
 }
 

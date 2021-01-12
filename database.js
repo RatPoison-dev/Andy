@@ -37,9 +37,11 @@ let gatewayAddMessage = (user_id, message) => {
     })
 }
 
-let gatewaySwitchState = () => {
+let gatewaySwitchState = () => new Promise(async (resolve, reject) => {
     db.run("update server set getaway = case when getaway = 1 then 0 else 1 end")
-}
+    let server = await fetchServer()
+    resolve(server.getaway)
+})
 
 let increaseGatewayTries = (user_id) => {
     db.run("update gateway set tries = tries + 1 where user_id = ?", [user_id])

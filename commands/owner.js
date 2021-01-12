@@ -24,13 +24,6 @@ let commands = {
         },
         owner: true
     },
-    gateway: {
-        "run": (message, args) => {
-            database.gatewaySwitchState()
-            message.channel.send("Bamboozled")
-        },
-        owner: true
-    },
     restart: {
         "run": async (message) => {
             await message.channel.send("Time to die")
@@ -40,7 +33,7 @@ let commands = {
     },
     setMadness: {
         "run": (message, args, client) => {
-            let foundUser = utils.searchUser(client, message, args[0])
+            let foundUser = utils.searchUser(client, message, args)
             database.updateUser(foundUser.id, "madness", args[1])
             message.channel.send("Madness was set successfully!")
         },
@@ -48,7 +41,7 @@ let commands = {
     },
     setMoney: {
         "run": (message, args, client) => {
-            let foundUser = utils.searchUser(client, message, args[0])
+            let foundUser = utils.searchUser(client, message, args)
             database.updateUser(foundUser.id, "money", args[1])
             message.channel.send("Money was set successfully!")
         },
@@ -56,7 +49,7 @@ let commands = {
     },
     setReputation: {
         "run": (message, args, client) => {
-            let foundUser = utils.searchUser(client, message, args[0])
+            let foundUser = utils.searchUser(client, message, args)
             database.updateUser(foundUser.id, "rep", args[1])
             message.channel.send("Reputation was set successfully!")
         },
@@ -64,7 +57,7 @@ let commands = {
     },
     rawProfile: {
         "run": async (message, args, client) => {
-            let foundUser = utils.searchUser(client, message, args[0])
+            let foundUser = utils.searchUser(client, message, args)
             let profile = await database.getUser(foundUser.id)
             message.channel.send(JSON.stringify(profile, 0, 2))
         },
@@ -72,7 +65,7 @@ let commands = {
     },
     addReputation: {
         "run": (message, args, client) => {
-            let foundUser = utils.searchUser(client, message, args[0])
+            let foundUser = utils.searchUser(client, message, args)
             database.incrementUser(foundUser.id, "rep", parseInt(args[1]))
             message.channel.send("Reputation was successfully added!")
         },
@@ -88,7 +81,7 @@ let commands = {
     },
     addMoney: {
         "run": (message, args, client) => {
-            let foundUser = utils.searchUser(client, message, args[0])
+            let foundUser = utils.searchUser(client, message, args)
             database.incrementUser(foundUser.id, "money", args[1])
             message.channel.send("Money was successfully added!")
         },
@@ -96,7 +89,7 @@ let commands = {
     },
     addCheese: {
         "run": (message, args, client) => {
-            let foundUser = utils.searchUser(client, message, args[0])
+            let foundUser = utils.searchUser(client, message, args)
             database.incrementUser(foundUser.id, "cheese", parseFloat(args[1]))
             message.channel.send("Cheese was successfully added!")
         },
@@ -104,29 +97,9 @@ let commands = {
     },
     setCheese: {
         "run": (message, args, client) => {
-            let foundUser = utils.searchUser(client, message, args[0])
+            let foundUser = utils.searchUser(client, message, args)
             database.updateUser(foundUser.id, "cheese", args[1])
             message.channel.send("Cheese was set successfully!")
-        },
-        owner: true
-    },
-    forceWipe: {
-        "run": async (message, args, client) => {
-            let server = await database.fetchServer()
-            let guild = client.guilds.cache.get(server.guild_id)
-
-            config.wipe_channels.forEach( async it => {
-                let channels = guild.channels.cache
-                channels.forEach( async channel => {
-                    if (channel.type == "text" && channel.name == it) {
-                        let position = channel.position
-                        let newChannel = await channel.clone()
-                        await channel.delete()
-                        newChannel.setPosition(position)
-                    }
-                })
-            })
-            database.updateServer(server.guild_id, "wipeTimestamp", new Date().getTime())
         },
         owner: true
     },

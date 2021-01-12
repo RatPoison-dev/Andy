@@ -6,7 +6,7 @@ let commands = {
     duels: (message, args, client) => new Promise(async (resolve, reject) => {
         let authorProfile = database.getUser(message.author.id)
         if (authorProfile.madness > 0) return
-        let foundUser = utils.searchUser(client, message, args[1])
+        let foundUser = utils.searchUser(client, message, args)
         if (foundUser == undefined || foundUser.id == message.author.id) return
         let foundUserProfile = await database.getUser(foundUser.id)
         if (foundUserProfile.madness > 0) return

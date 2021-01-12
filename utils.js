@@ -33,15 +33,25 @@ let deserialize = (str) => {
     return JSON.parse(str)
 }
 
-let searchUser = (client, message, specifiedUser) => {
+let searchUser = (client, message, messageArgs) => {
     let mentionsArray = message.mentions.users.array()
+    let yea = undefined
     if (mentionsArray[0] !== undefined) {
         return mentionsArray[0]
     }
     else {
-        let foundUser = specifiedUser == undefined ? undefined : client.users.cache.find(user => !user.bot && (specifiedUser.toLowerCase().includes(user.username.toLowerCase())))
-        return foundUser
+        let thisArr = []
+        messageArgs.forEach( it => {
+            thisArr.push(it)
+            let thisSearch = thisArr.join(" ")
+            let tmpReturn = message.guild.members.cache.find(member => !member.user.bot && (thisSearch.toLowerCase() == member.user.username.toLowerCase()))
+            if (tmpReturn !== undefined) {
+                yea = tmpReturn
+                return
+            }
+        })
     }
+    return yea
 }
 
 function convertMS(ms) {

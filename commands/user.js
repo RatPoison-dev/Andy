@@ -6,7 +6,7 @@ let commands = {
     profile: {
         "run": async (message, args, client) => {
             let embed
-            let foundUser = utils.searchUser(client, message, args[0])
+            let foundUser = utils.searchUser(client, message, args)
             foundUser == undefined ? embed = await embeds.constructUserProfile(message.author) : embed = await embeds.constructUserProfile(foundUser)
             if (embed !== undefined) {
                 message.channel.send(embed)
@@ -17,7 +17,7 @@ let commands = {
     },
     daily: {
         "run": async (message, args, client) => {
-            let foundUser = utils.searchUser(client, message, args[0])
+            let foundUser = utils.searchUser(client, message, args)
             foundUser == undefined ? embed = await embeds.constructDailyembed(message.author) : embed = await embeds.constructDailyembed(foundUser)
             if (embed !== undefined) {
                 message.channel.send(embed)
@@ -43,7 +43,7 @@ let commands = {
     },
     pay: {
         "run": async (message, args, client) => {
-            let foundUser = utils.searchUser(client, message, args[0])
+            let foundUser = utils.searchUser(client, message, args)
             if (foundUser !== undefined) {
                 if (foundUser.id !== message.author.id) {
                     let authorProfile = await database.getUser(message.author.id)
@@ -78,7 +78,7 @@ let commands = {
     },
     "+rep": {
         "run": async (message, args, client) => {
-            let foundUser = utils.searchUser(client, message, args[0])
+            let foundUser = utils.searchUser(client, message, args)
             if (foundUser !== undefined) {
                 if (foundUser.id !== message.author.id) {
                     let embed = await embeds.constructRepEmbed(message, message.author, foundUser)
@@ -100,7 +100,7 @@ let commands = {
     },
     "-rep": {
         "run": async (message, args, client) => {
-            let foundUser = utils.searchUser(client, message, args[0])
+            let foundUser = utils.searchUser(client, message, args)
             if (foundUser !== undefined) {
                 if (foundUser.id == "258557706892214282") {message.channel.send(":x: пошёл нахуй"); return}
                 if (foundUser.id !== message.author.id) {

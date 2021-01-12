@@ -23,7 +23,10 @@ module.exports = class BanChecker {
                         let bannedType = VACBanned ? "VAC" : "OW"
                         let embed = await embeds.constructBannedEmbed(account.info, bannedType, this.client)
                         let member = await this.client.users.fetch(account.info.requester)
-                        await this.client.channels.cache.get(info.bannedChannel).send(member.toString(), {"embed": embed})
+                        let channel = await this.client.channels.cache.get(info.bannedChannel)
+                        if (channel !== undefined) {
+                            channel.send(member.toString(), {"embed": embed})
+                        }
                         database.deleteBancheckerAccount(account.info.steamID)
                     }
                 }
