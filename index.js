@@ -70,16 +70,15 @@ let wipeChannels = async () => {
         let guild = client.guilds.cache.get(server.guild_id)
         config.wipe_channels.forEach( async it => {
             let channels = guild.channels.cache
-            channels.forEach( async channel => {
-                if (channel.type == "text" && channel.name == it) {
-                    let position = channel.position
-                    let newChannel = await channel.clone()
-                    await channel.delete()
-                    newChannel.setPosition(position)
-                    database.updateServer(server.guild_id, "wipeTimestamp", new Date().getTime())
-                }
-            })
+            let channel = channels.find(e => e.type == "text" && e.name == it)
+            if (channel == undefined) return
+            let position = channel.position
+            console.log(`Should clone channel ${it}`)
+            let newChannel = await channel.clone()
+            await channel.delete("Wipe channels")
+            newChannel.setPosition(position)
         })
+        database.updateServer(server.guild_id, "wipeTimestamp", new Date().getTime())
     }
 }
 
@@ -105,9 +104,8 @@ let wipeGateway = async () => {
             if (((new Date().getTime() - latestTimestamp) / 1000 > 600) && !latestMessage.deleted && !member.roles.cache.has(ratsRole.id)) {
                 try {
                     let member = guild.members.cache.get(key)
-                    let dm = await member.createDM()
                     ignoreEvent = member.user.id
-                    dm.send("You was kicked from server due to inactivity in gateway.")
+                    member.send("You was kicked from server due to inactivity in gateway.").catch()
                     await member.kick()
                     messages.forEach(it => {
                         let m = gateway.messages.cache.get(it)
@@ -133,12 +131,12 @@ client.on("guildMemberRemove", async (member) => {
     let userID = member.user.id
     let server = await database.fetchServer()
     if (server.guild_id != member.guild.id) return
+    let guild = client.guilds.cache.get(server.guild_id)
+    guild.systemChannel.send(`**${member.user.tag}** just left the server. ||${member.id}||`)
     if (ignoreEvent == userID) {
         ignoreEvent = ""
         return
     }
-    let guild = client.guilds.cache.get(server.guild_id)
-    guild.systemChannel.send(`**${member.user.tag}** just left the server. ||${member.id}||`)
     let getRes = iAmImportant[userID]
     let gateway = member.guild.channels.cache.find(it => it.name == "gateway" && it.type == "text")
     if (getRes !== undefined) {
@@ -153,6 +151,7 @@ client.on("guildMemberRemove", async (member) => {
         })
         iAmImportant[userID] = []
     }
+    database.deleteGatewayInfo(userID)
 })
 
 const emojiMap = {
@@ -163,6 +162,16 @@ const emojiMap = {
     "5": "5️⃣"
 }
 
+let emojiToNumber = (e) => {
+    let ret
+    Object.values(emojiMap).forEach((it, idx) => {
+        if (it == e) {
+            ret = idx+1
+        }
+    })
+    return ret
+}
+
 let gatewaySend = async (gateway, user, message) => {
     let sendedMessage = await gateway.send(message)
     if (Object.keys(iAmImportant).includes(user.id)) {
@@ -171,7 +180,7 @@ let gatewaySend = async (gateway, user, message) => {
     else {
         iAmImportant[user.id] = [sendedMessage.id]
     }
-    database.gatewayAddMessage(user.id, sendedMessage.id)
+    database.gatewayCreateRow(user.id)
     return sendedMessage
 }
 
@@ -197,8 +206,11 @@ let yeah = async (currentIndex, gateway, member) => {
     rc.on("collect", async (r, u) => {
         rc.stop()
         delete rcMap[sended.id]
+        let userGateway = await database.getGateway(userID)
+        let answer = emojiToNumber(r.emoji.name)
+        userGateway.answers.push(answer)
+        database.run("update gateway set answers = ? where user_id = ?", [utils.list2str2(userGateway.answers), userID])
         if (!correctKeys.includes(r.emoji.name)) {
-            let userGateway = await database.getGateway(userID)
             if (userGateway.tries + 1 >= config["gateway_max_tries"]) {
                 let notPassedRole = member.guild.roles.cache.find(it => it.name == "gateway-not-passed")
                 let curServer = await database.fetchServer()
@@ -210,7 +222,7 @@ let yeah = async (currentIndex, gateway, member) => {
                     let m = gateway.messages.cache.get(message)
                     if (m !== undefined && !m.deleted) m.delete()
                 })
-                database.deleteGatewayInfo(userID)
+                //database.deleteGatewayInfo(userID)
                 iAmImportant[userID] = []
                 return
             }
@@ -221,6 +233,7 @@ let yeah = async (currentIndex, gateway, member) => {
                 await gatewaySend(gateway, user, `${member.toString()} You failed the test.`)
             }
             database.increaseGatewayTries(userID)
+            database.run("update gateway set answers = ? where user_id = ?", [utils.list2str2([]), userID])
             yeah(0, gateway, member)
         }
         else {
@@ -234,7 +247,6 @@ let yeah = async (currentIndex, gateway, member) => {
                 b.forEach(async message => { 
                     gateway.messages.cache.get(message).delete()
                 })
-                database.deleteGatewayInfo(userID)
                 iAmImportant[userID] = []
             }
         }
@@ -243,6 +255,7 @@ let yeah = async (currentIndex, gateway, member) => {
 
 client.on("guildMemberAdd", async (member) => {
     let curServer = await database.fetchServer()
+    let curGuild = client.guilds.cache.get(curServer.guild_id)
     let user = member.user
     let userID = user.id
     if (curServer.guild_id != member.guild.id) return
@@ -325,7 +338,7 @@ client.on("message", async (message) => {
     // update cheese on every message
     if (server.guild_id == message.guild.id) database.incrementUser(user_id, "cheese", 0.001)
     
-    
+    let tmp = messageContent.toLowerCase().split(" ")
     if (messageContent.toLowerCase().startsWith(prefix.toLowerCase())) {
         messageContent = messageContent.substr(prefix.length, messageContent.length)
         let sub = messageContent.split(" ")
@@ -341,28 +354,31 @@ client.on("message", async (message) => {
             engine.runCommand("monitor", message, args, client)
         }
     }
-
-    if (message.channel.id == server.configsChannel) {
-        let attachments = message.attachments.array()
-        attachments = attachments.map((elem) => elem.url)
-        if (attachments.length > 0) {
-            database.makeSaved(message.author.id, utils.list2str(attachments), message.content)
-        }
-        else {
-            let roles = message.guild.members.cache.get(message.author.id).roles.cache.array().map(it => it.name)
-            let shouldDelete = true
-            config.backupRoles.forEach(it => {
-                if (roles.includes(it)) {
-                    shouldDelete = false
-                }
-            }) 
-            if (shouldDelete) message.delete()
-        }
+    else if (server.guild_id == message.guild.id && (tmp[0] == "+rep" || tmp[0] == "-rep")) {
+        engine.runCommand(tmp[0], message, tmp.slice(1), client)
     }
+
+    //if (message.channel.id == server.configsChannel) {
+    //    let attachments = message.attachments.array()
+    //    attachments = attachments.map((elem) => elem.url)
+    //    if (attachments.length > 0) {
+    //        database.makeSaved(message.author.id, utils.list2str(attachments), message.content)
+    //    }
+    //    else {
+    //        let roles = message.guild.members.cache.get(message.author.id).roles.cache.array().map(it => it.name)
+    //        let shouldDelete = true
+    //        config.backupRoles.forEach(it => {
+    //            if (roles.includes(it)) {
+    //                shouldDelete = false
+    //            }
+    //        }) 
+    //        if (shouldDelete) message.delete()
+    //    }
+    //}
     if (server.guild_id == message.guild.id) {
         let attachments = message.attachments.array()
-        attachments = attachments.map((elem) => elem.url)
-        attachments.forEach(async it => {
+        urls = attachments.map((elem) => elem.url)
+        urls.forEach(async it => {
             if (it.endsWith(".dll") || it.endsWith(".exe")) {
                 let shouldDelete = true
                 let roles = message.guild.members.cache.get(message.author.id).roles.cache.array().map(it => it.name)

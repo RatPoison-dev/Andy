@@ -8,8 +8,8 @@ let constructUserProfile = async (user) => {
     let profile = await database.getUser(user.id)
     if (profile.madness < 3) {
         let embed = new discord.MessageEmbed()
-        embed.setAuthor(user.tag, user.avatarURL())
-        embed.setThumbnail(user.avatarURL())
+        embed.setAuthor(user.tag, user.avatarURL({dynamic: true}))
+        embed.setThumbnail(user.avatarURL({dynamic: true}))
         embed.setTitle("Profile")
         let cheesePlace = await database.getTopIndex("cheese", profile.user_id)
         let moneyPlace = await database.getTopIndex("money", profile.user_id)
@@ -32,7 +32,7 @@ let constructCanRepEmbed = async (author) => {
     if (authorProfile.madness > 1) return
     let maxReps = await database.getUserMaxReps(author.id)
     if (Date.now() - authorProfile.repTimestamp < 79200000 && utils.str2list(authorProfile.repToday).length >= maxReps) {
-        embed.setAuthor(author.tag, author.avatarURL())
+        embed.setAuthor(author.tag, author.avatarURL({dynamic: true}))
         embed.setTitle(":x: Error")
         embed.setDescription(`You need to wait **${utils.convertMS(79200000-(Date.now()-authorProfile.repTimestamp))}** before using this command again.`)
         embed.setColor(0xb02020)
@@ -55,7 +55,7 @@ let constructRepEmbed = async (message, author, user) => {
     let userProfile = await database.getUser(user.id)
     let maxReps = await database.getUserMaxReps(author.id)
     if (Date.now() - authorProfile.repTimestamp < 79200000 && utils.str2list(authorProfile.repToday).length >= maxReps) {
-        embed.setAuthor(author.tag, author.avatarURL())
+        embed.setAuthor(author.tag, author.avatarURL({dynamic: true}))
         embed.setTitle(":x: Error")
         embed.setDescription(`You need to wait **${utils.convertMS(79200000-(Date.now()-authorProfile.repTimestamp))}** before using this command again.`)
         embed.setColor(0xb02020)
@@ -84,7 +84,7 @@ let constructMinusRepEmbed = async (message, author, user) => {
     let userProfile = await database.getUser(user.id)
     let maxReps = await database.getUserMaxReps(author.id)
     if (Date.now() - authorProfile.repTimestamp < 79200000 && utils.str2list(authorProfile.repToday).length >= maxReps) {
-        embed.setAuthor(author.tag, author.avatarURL())
+        embed.setAuthor(author.tag, author.avatarURL({dynamic: true}))
         embed.setTitle(":x: Error")
         embed.setDescription(`You need to wait **${utils.convertMS(79200000-(Date.now()-authorProfile.repTimestamp))}** before using this command again.`)
         embed.setColor(0xb02020)
@@ -109,15 +109,15 @@ let constructDailyembed = async (user) => {
     let profile = await database.getUser(user.id)
     if (profile.madness > 1) return
     if (Date.now() - profile.dailyTimestamp < 79200000) {
-        embed.setAuthor(user.tag, user.avatarURL())
+        embed.setAuthor(user.tag, user.avatarURL({dynamic: true}))
         embed.setTitle(":x: Error")
         embed.setDescription(`You need to wait **${utils.convertMS(79200000-(Date.now()-profile.dailyTimestamp))}** before using this command again.`)
         embed.setColor(0xb02020)
     }
     else {
-        embed.setAuthor(user.tag, user.avatarURL())
+        embed.setAuthor(user.tag, user.avatarURL({dynamic: true}))
         let cheese = Math.floor(Math.random() * 0.05 * 1000) / 1000
-        let money =  Math.floor(Math.random() * 200)
+        let money =  Math.floor(Math.random() * 200) + 10
         embed.setTitle("Daily")
         embed.setDescription(`You recieved your daily ${cheese} :cheese: and ${money} :moneybag:`)
         database.updateUser(user.id, ["cheese", "money", "dailyTimestamp"], [profile.cheese+cheese, profile.money+money, Date.now()])
@@ -132,7 +132,7 @@ let constructTop = async (message, user, type, page) => {
     
     let top = await database.getTopByPage(type, page)
     let embed = new discord.MessageEmbed()
-    embed.setAuthor(user.tag, user.avatarURL())
+    embed.setAuthor(user.tag, user.avatarURL({dynamic: true}))
     embed.setTitle(`Leaderboard by ${type}`)
     let desc = ""
     top.forEach ((elem, index) => {

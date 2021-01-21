@@ -33,25 +33,36 @@ let deserialize = (str) => {
     return JSON.parse(str)
 }
 
-let searchUser = (client, message, messageArgs) => {
+let checkIfBot = (user) => {
+    if (user == undefined || user.bot) return
+    return user
+}
+
+let searchUser = async (client, message, messageArgs) => {
     let mentionsArray = message.mentions.users.array()
-    let yea = undefined
+    let yea
     if (mentionsArray[0] !== undefined) {
-        return mentionsArray[0]
+        yea = mentionsArray[0]
     }
     else {
+        if (/^\d+$/.test(messageArgs[0])) {
+            if (client.users.cache.has(messageArgs[0])) {
+                return client.users.cache.get(messageArgs[0])
+            }
+            client.users.fetch(messageArgs[0]).then(resolved => yea = resolved)
+        }
         let thisArr = []
         messageArgs.forEach( it => {
             thisArr.push(it)
             let thisSearch = thisArr.join(" ")
-            let tmpReturn = message.guild.members.cache.find(member => !member.user.bot && (thisSearch.toLowerCase() == member.user.username.toLowerCase()))
+            let tmpReturn = message.guild.members.cache.find(member => !member.user.bot && (thisSearch.toLowerCase().includes(member.user.username.toLowerCase())))
             if (tmpReturn !== undefined) {
-                yea = tmpReturn
+                yea = tmpReturn.user
                 return
             }
         })
     }
-    return yea
+    return checkIfBot(yea)
 }
 
 function convertMS(ms) {

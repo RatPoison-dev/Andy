@@ -12,7 +12,7 @@ let commands = {
                 message.channel.send("You need to specify channel.")
             }
         },
-        help: "[channel] - channel for bans monitor",
+        help: "[#channel] - channel for bans monitor",
         permissions: "ADMINISTRATOR"
     },
     setPrefix: {

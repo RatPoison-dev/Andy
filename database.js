@@ -10,8 +10,8 @@ db.run("create table if not exists guilds (guild_id TEXT NOT NULL UNIQUE, banned
 db.run("create table if not exists banChecker (steamID TEXT NOT NULL UNIQUE, requester TEXT NOT NULL, timestamp integer not null, displayName TEXT NOT NULL, playerAvatar TEXT NOT NULL, guild_id TEXT, initVAC INT, initOW INT,  PRIMARY KEY(steamID))")
 db.run("create table if not exists users (user_id TEXT NOT NULL UNIQUE, cheese DOUBLE DEFAULT 0, money INT DEFAULT 0, rep INT DEFAULT 0, dailyTimestamp INT DEFAULT 0, repTimestamp INT DEFAULT 0, repToday TEXT DEFAULT \"\", madness INT DEFAULT 0)")
 db.run("create table if not exists saved_messages (user_id TEXT, attachments TEXT, message_content TEXT)")
-db.run("create table if not exists server (guild_id TEXT NOT NULL UNIQUE, gatewayNotPassed TEXT default \"[]\", banList TEXT default \"[]\", roles TEXT default \"{}\", backupProcess BOOL default false, getaway BOOL default true, wipeTimestamp int default 0, PRIMARY KEY(guild_id))")
-db.run("create table if not exists gateway (user_id TEXT NOT NULL UNIQUE, messages TEXT default \"[]\", tries INT default 0)")
+db.run("create table if not exists server (guild_id TEXT NOT NULL UNIQUE, gatewayNotPassed TEXT default \"[]\", banList TEXT default \"[]\", roles TEXT default \"{}\", backupProcess BOOL default false, gateway BOOL default true, wipeTimestamp int default 0, PRIMARY KEY(guild_id))")
+db.run("create table if not exists gateway (user_id TEXT NOT NULL UNIQUE, tries INT default 0, answers text default \"[]\")")
 
 let getGuildInfo = (guild_id) => new Promise((resolve, reject) => {
     initGuild(guild_id)
@@ -20,37 +20,37 @@ let getGuildInfo = (guild_id) => new Promise((resolve, reject) => {
     })
 })
 
+let get = (q, ...args) => new Promise((resolve, reject) => {
+    db.all(q, ...args, (err, rows) => resolve(rows))
+})
+
+let run = (q, ...args) => {
+    db.run(q, ...args)
+}
+
 let migrateActions = (nw, prev) => {
     db.run("update banChecker set guild_id = ? where guild_id = ?", [nw, prev])
     db.run("update server set guild_id = ? where guild_id = ?", [nw, prev])
     db.run("update server set backupProcess = 1 where guild_id = ?", [prev])
 }
 
-let gatewayAddMessage = (user_id, message) => {
-    db.all("select * from gateway where user_id = ?", [user_id], (err, rows) => {
-        if (rows.length == 0) db.run("insert or ignore into gateway (user_id, messages, tries) values (?, ?, 0)", [user_id, utils.list2str2(message)])
-        else {
-            let parsed = utils.str2list(rows[0].messages)
-            parsed.push(message)
-            db.run("update gateway set messages = ? where user_id = ?", [utils.list2str2(parsed), user_id])
-        }
-    })
+let gatewayCreateRow = (user_id) => {
+    db.run("insert or ignore into gateway (user_id, tries) values (?, 0)", [user_id])
 }
 
 let gatewaySwitchState = () => new Promise(async (resolve, reject) => {
-    db.run("update server set getaway = case when getaway = 1 then 0 else 1 end")
+    db.run("update server set gateway = case when gateway = 1 then 0 else 1 end")
     let server = await fetchServer()
-    resolve(server.getaway)
+    resolve(server.gateway)
 })
 
 let increaseGatewayTries = (user_id) => {
     db.run("update gateway set tries = tries + 1 where user_id = ?", [user_id])
-    db.run("update gateway set messages = \"[]\" where user_id = ?", [user_id])
 }
 
 let getGateway = (user_id) => new Promise((resolve, reject) => {
     db.all("select * from gateway where user_id = ?", [user_id], ((err, rows) => {
-        rows[0].messages = utils.str2list(rows[0].messages)
+        rows[0].answers = utils.str2list(rows[0].answers)
         resolve(rows[0])
     }))
 })
@@ -194,4 +194,4 @@ let deleteBancheckerAccount = (sid) => {
 }
 
 
-module.exports = {getGuildInfo, initGuild, addBancheckerAccount, getBancheckerAccounts, getBancheckerAccountsByUser, incrementUser, makeSaved, getSaved, deleteBancheckerAccount, getTopIndex, updateBannedChannel, updatePrefix, updateUser, getUser, getTopByPage, getUserMaxReps, resetRep, query, select, fetchServer, updateServer, migrateActions, gatewayAddMessage, getGateway, deleteGatewayInfo, increaseGatewayTries, gatewaySwitchState}
+module.exports = {getGuildInfo, initGuild, addBancheckerAccount, getBancheckerAccounts, getBancheckerAccountsByUser, incrementUser, makeSaved, getSaved, deleteBancheckerAccount, getTopIndex, updateBannedChannel, updatePrefix, updateUser, getUser, getTopByPage, getUserMaxReps, resetRep, query, select, fetchServer, updateServer, migrateActions, gatewayCreateRow, getGateway, deleteGatewayInfo, increaseGatewayTries, gatewaySwitchState, get, run}

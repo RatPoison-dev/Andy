@@ -1,26 +1,32 @@
 const utils = require("../utils")
 const database = require("../database")
+const iq_test = require("../iq_test.json")
 
 let floppa = async (message, args, client, state) => {
-    let foundUser = utils.searchUser(client, message, args)
-    if (foundUser == undefined) return
+    let foundUser = await utils.searchUser(client, message, args)
+    let userID = foundUser.id
+    if (foundUser == undefined) {
+        message.channel.send("User not found!")
+        return
+    }
     let ratsRole = message.guild.roles.cache.find(it => it.name == "Rats")
     let notPassedRole = message.guild.roles.cache.find(it => it.name == "gateway-not-passed")
     let curServer = await database.fetchServer()
+    let member = message.guild.members.cache.find(it => it.id == userID)
     if (state == 1) {
-        curServer["gatewayNotPassed"].push(foundUser.id)
+        curServer["gatewayNotPassed"].push(userID)
         database.updateServer(curServer.guild_id, "gatewayNotPassed", utils.list2str2(curServer["gatewayNotPassed"]))
-        await foundUser.roles.add(notPassedRole)
-        await foundUser.roles.remove(ratsRole)
+        await member.roles.add(notPassedRole)
+        await member.roles.remove(ratsRole)
         message.react("✅")
     }
     else {
-        let curIdx = curServer["gatewayNotPassed"].findIndex(it => it == foundUser.id)
+        let curIdx = curServer["gatewayNotPassed"].findIndex(it => it == userID)
         if (curIdx !== -1) {
-            delete curServer["gatewayNotPassed"]
+            delete curServer["gatewayNotPassed"][curIdx]
             database.updateServer(curServer.guild_id, "gatewayNotPassed", utils.list2str2(curServer["gatewayNotPassed"]))
-            await foundUser.roles.add(ratsRole)
-            await foundUser.roles.remove(notPassedRole)
+            await member.roles.add(ratsRole)
+            await member.roles.remove(notPassedRole)
             message.react("✅")    
         }
     }
@@ -54,19 +60,46 @@ let commands = {
         },
         owner: true
     },
+    gatewayInfo: {
+        "run": async (message, args, client) => {
+            let user = await utils.searchUser(client, message, args)
+            if (user == undefined) {message.channel.send("User wasn't found"); return}
+            let gatewayInfo = await database.getGateway(user.id)
+            if (gatewayInfo == undefined || gatewayInfo.answers == []) {message.channel.send("User wasn't found"); return}
+            let answers = gatewayInfo.answers
+            let bingus = ""
+            Object.keys(iq_test).forEach((question, idx) => {
+                if (answers[idx] == undefined) return
+                let thisQuestion = iq_test[question]
+                let correctKeys = []
+                Object.keys(thisQuestion).forEach((key, hi) => {
+                    if (thisQuestion[key] == "correct") {
+                        correctKeys.push((hi+1).toString())
+                    }
+                })
+                bingus += `Question: ${question}\nUser's answer: ${answers[idx]}\nCorrect: ${correctKeys.includes(answers[idx])}\n\n`
+                
+            })
+            message.channel.send(bingus)
+        },
+        permissions: "ADMINISTRATOR",
+        originalServer: true
+    },
     punish: {
         "run": async (message, args, client) => {
             floppa(message, args, client, 1)
         },
         originalServer: true,
-        permissions: "MANAGE_ROLES"
+        permissions: "MANAGE_ROLES",
+        help: "[user] - put user in gateway"
     },
     free: {
         "run": async (message, args, client) => {
             floppa(message, args, client, 0)
         },
         originalServer: true,
-        permissions: "MANAGE_ROLES"
+        permissions: "MANAGE_ROLES",
+        help: "[user] - free user from gateway"
     }
 }
 

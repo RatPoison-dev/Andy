@@ -5,15 +5,28 @@ const engine = require("../engine")
 let commands = {
     help: async (message) => {
         await message.react("✅")
-        let info = await database.getGuildInfo(message.guild.id)
+        let thisGuild = message.guild
+        let info = await database.getGuildInfo(thisGuild.id)
         let prefix = info.prefix
         let commands = engine.commands
-        let s = `Current prefix: ${prefix}\n`
-        for (let command in commands) {
-            if (commands[command].help !== undefined) {
-                s += `${command} ${commands[command].help}\n`
+        let curServer = await database.fetchServer()
+        let s = `Current prefix in \"${thisGuild.name}\" server: ${prefix}\n`
+        Object.keys(commands).forEach(command => {
+            let key = commands[command]
+            if (key.help !== undefined) {
+                if (engine.canRunCommand(key, message, curServer)) {
+                    s += `${command} ${commands[command].help}`
+                    let descArr = []
+                    if (key.owner == true) descArr.push("OWNER")
+                    if (key.permissions !== undefined) descArr.push(`PERMISSIONS: ${key.permissions}`)
+                    if (key.originalServer == true) descArr.push("RatPoison Server ONLY")
+                    if (key.aliases !== undefined) descArr.push(`ALIASES: ${key.aliases.join(",")}`)
+                    let tmpJoin = descArr.join("; ")
+                    if (tmpJoin !== "") s += ` (${tmpJoin})`
+                    s += "\n"
+                }
             }
-        }
+        })
         message.author.send(s)
     },
     coin: { 
