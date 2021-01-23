@@ -92,6 +92,10 @@ let wipeGateway = async () => {
         let messages = iAmImportant[key]
         messages.forEach(async (it) => {
             let message = gateway.messages.cache.get(it)
+            if (message == undefined) {
+                iAmImportant[key] = []
+                return
+            }
             let timestamp = message.createdTimestamp
             if (timestamp > latestTimestamp) {
                 latestTimestamp = timestamp

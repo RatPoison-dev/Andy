@@ -72,12 +72,14 @@ let commands = {
                 if (answers[idx] == undefined) return
                 let thisQuestion = iq_test[question]
                 let correctKeys = []
+                let allKeys = []
                 Object.keys(thisQuestion).forEach((key, hi) => {
                     if (thisQuestion[key] == "correct") {
-                        correctKeys.push((hi+1).toString())
+                        correctKeys.push((hi+1).toString())  
                     }
+                    allKeys.push(`${hi+1} - ${key}`)
                 })
-                bingus += `Question: ${question}\nUser's answer: ${answers[idx]}\nCorrect: ${correctKeys.includes(answers[idx])}\n\n`
+                bingus += `Question: ${question}\nPossible answers:\n${allKeys.join("\n")}\nUser's answer: ${answers[idx]}\nCorrect: ${correctKeys.includes(answers[idx])}\n\n`
                 
             })
             message.channel.send(bingus)

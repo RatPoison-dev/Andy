@@ -45,11 +45,12 @@ let searchUser = async (client, message, messageArgs) => {
         yea = mentionsArray[0]
     }
     else {
-        if (/^\d+$/.test(messageArgs[0])) {
-            if (client.users.cache.has(messageArgs[0])) {
-                return client.users.cache.get(messageArgs[0])
+        let firstArgument = messageArgs[0]
+        if (firstArgument !== undefined && /^\d+$/.test(messageArgs[0]) && firstArgument.length >= 16) {
+            if (client.users.cache.has(firstArgument)) {
+                return client.users.cache.get(firstArgument)
             }
-            client.users.fetch(messageArgs[0]).then(resolved => yea = resolved)
+            client.users.fetch(firstArgument).then(resolved => yea = resolved)
         }
         let thisArr = []
         messageArgs.forEach( it => {

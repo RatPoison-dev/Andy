@@ -44,6 +44,7 @@ let commands = {
     setMoney: {
         "run": async (message, args, client) => {
             let foundUser = await utils.searchUser(client, message, args)
+            if (foundUser == undefined) {message.channel.send("Invalid user!"); return}
             database.updateUser(foundUser.id, "money", args[1])
             message.channel.send("Money was set successfully!")
         },

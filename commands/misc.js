@@ -60,11 +60,11 @@ let commands = {
     beta: (message) => {
         message.channel.send("https://github.com/TheRatCode/RatPoison/archive/beta.zip")
     },
-    config: (message) => {
-        message.channel.send("https://ratpoison.dimden.dev/\nhttps://media.discordapp.net/attachments/789468910076428298/790262074345390100/wherecfg.gif")
-    },
-    configs: (message) => {
-        message.channel.send("https://ratpoison.dimden.dev/\nhttps://media.discordapp.net/attachments/789468910076428298/790262074345390100/wherecfg.gif")
+    config: {
+        "run": (message) => {
+            message.channel.send("https://ratpoison.dimden.dev/\nhttps://media.discordapp.net/attachments/789468910076428298/790262074345390100/wherecfg.gif")
+        },
+        aliases: ["cfg", "configs"]
     },
     release: (message) => {
         message.channel.send("1.7 - https://github.com/TheRatCode/RatPoison/releases/download/1.7.1.2/RatPoison-1.7.1.2.zip\n1.8 - https://github.com/TheRatCode/RatPoison/releases/download/1.8.4.1/RatPoison-1.8.4.1.zip")
