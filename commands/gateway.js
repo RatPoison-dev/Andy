@@ -11,24 +11,20 @@ let floppa = async (message, args, client, state) => {
     }
     let ratsRole = message.guild.roles.cache.find(it => it.name == "Rats")
     let notPassedRole = message.guild.roles.cache.find(it => it.name == "gateway-not-passed")
-    let curServer = await database.fetchServer()
     let member = message.guild.members.cache.find(it => it.id == userID)
     if (state == 1) {
-        curServer["gatewayNotPassed"].push(userID)
-        database.updateServer(curServer.guild_id, "gatewayNotPassed", utils.list2str2(curServer["gatewayNotPassed"]))
+        database.gatewayCreateRow(userID)
+        database.run("update gateway set tries = ? where user_id = ?", [Number.MAX_SAFE_INTEGER, userID])
         await member.roles.add(notPassedRole)
         await member.roles.remove(ratsRole)
         message.react("✅")
     }
     else {
-        let curIdx = curServer["gatewayNotPassed"].findIndex(it => it == userID)
-        if (curIdx !== -1) {
-            delete curServer["gatewayNotPassed"][curIdx]
-            database.updateServer(curServer.guild_id, "gatewayNotPassed", utils.list2str2(curServer["gatewayNotPassed"]))
-            await member.roles.add(ratsRole)
-            await member.roles.remove(notPassedRole)
-            message.react("✅")    
-        }
+        database.gatewayCreateRow(userID)
+        database.run("update gateway set tries = ? where user_id = ?", [0, userID])
+        await member.roles.add(ratsRole)
+        await member.roles.remove(notPassedRole)
+        message.react("✅")    
     }
 }
 

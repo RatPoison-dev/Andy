@@ -30,7 +30,7 @@ let runDuel = async (host, participant, writeChannel, bet) => {
     newRC.on("collect", async (_, user) => {
         newRC.stop()
         let loser, winner
-        if (Date.now() - init < 10000) {
+        if (Date.now() - init <= 10000) {
             loser = user
             winner = hostID != loser.id ? host : participant
         }

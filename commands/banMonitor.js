@@ -27,7 +27,7 @@ let commands = {
     },
     countMonitor: {
         "run": async (message, args, client) => {
-            let foundUser = utils.searchUser(client, message, args[0])
+            let foundUser = await utils.searchUser(client, message, args)
             if (foundUser === undefined) {
                 let accounts = await db.getBancheckerAccounts()
                 message.channel.send(`There are ${accounts.length} accounts in ban checker database.`)

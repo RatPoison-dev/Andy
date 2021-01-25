@@ -16,6 +16,7 @@ const checker = require("./banChecker")
 let banChecker = new checker(client)
 
 client.on("ready", async () => {
+    let server = await database.fetchServer()
     backupServer()
     banChecker.checkBans()
     wipeChannels()
@@ -23,7 +24,6 @@ client.on("ready", async () => {
     setInterval(() => banChecker.checkBans(), config.banCheckerInterval)
     setInterval(() => wipeChannels(), config.wipeSleepInterval)
     setInterval(() => backupServer(), config.backupInterval)
-    let server = await database.fetchServer()
     let curGuild = client.guilds.cache.get(server.guild_id)
     let bans = (await curGuild.fetchBans()).size
     let bannedChannel = curGuild.channels.cache.find(it => it.name.startsWith("Bans"))
@@ -155,7 +155,6 @@ client.on("guildMemberRemove", async (member) => {
         })
         iAmImportant[userID] = []
     }
-    database.deleteGatewayInfo(userID)
 })
 
 const emojiMap = {
@@ -184,7 +183,6 @@ let gatewaySend = async (gateway, user, message) => {
     else {
         iAmImportant[user.id] = [sendedMessage.id]
     }
-    database.gatewayCreateRow(user.id)
     return sendedMessage
 }
 
@@ -217,15 +215,13 @@ let yeah = async (currentIndex, gateway, member) => {
         if (!correctKeys.includes(r.emoji.name)) {
             if (userGateway.tries + 1 >= config["gateway_max_tries"]) {
                 let notPassedRole = member.guild.roles.cache.find(it => it.name == "gateway-not-passed")
-                let curServer = await database.fetchServer()
-                curServer["gatewayNotPassed"].push(userID)
-                database.updateServer(curServer.guild_id, "gatewayNotPassed", utils.list2str2(curServer["gatewayNotPassed"]))
                 await member.roles.add(notPassedRole)
                 let b = iAmImportant[userID]
                 b.forEach(message => {
                     let m = gateway.messages.cache.get(message)
                     if (m !== undefined && !m.deleted) m.delete()
                 })
+                database.increaseGatewayTries(userID)
                 //database.deleteGatewayInfo(userID)
                 iAmImportant[userID] = []
                 return
@@ -267,15 +263,18 @@ client.on("guildMemberAdd", async (member) => {
         await member.ban({reason: "Get victored"})
     }
     else {
+        database.gatewayCreateRow(userID)
         let gateway = member.guild.channels.cache.find(it => it.name == "gateway" && it.type == "text")
         let ratsRole = member.guild.roles.cache.find(it => it.name == "Rats")
         let notPassedRole = member.guild.roles.cache.find(it => it.name == "gateway-not-passed")
-        if (curServer.gatewayNotPassed.includes(userID)) {
+        let userGateway = await database.getGateway(userID) 
+        if (userGateway.tries >= config.gateway_max_tries) {
             await member.roles.add(notPassedRole)
             return
         }
-        if (curServer.getaway == 0) {
+        if (curServer.gateway == 0) {
             await member.roles.add(ratsRole)
+            return
         }
         else {
             await gatewaySend(gateway, user, `Hi, ${member.toString()}.\nPass a small IQ test before you can enter.`)
