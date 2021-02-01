@@ -1,6 +1,7 @@
 const utils = require("../utils")
 const database = require("../database")
 const iq_test = require("../iq_test.json")
+const config = require("../config.json")
 
 let floppa = async (message, args, client, state) => {
     let foundUser = await utils.searchUser(client, message, args)
@@ -15,8 +16,9 @@ let floppa = async (message, args, client, state) => {
     if (state == 1) {
         database.gatewayCreateRow(userID)
         database.run("update gateway set tries = ? where user_id = ?", [Number.MAX_SAFE_INTEGER, userID])
+        let memberRoles = member.roles.cache
+        await member.roles.remove(memberRoles)
         await member.roles.add(notPassedRole)
-        await member.roles.remove(ratsRole)
         message.react("✅")
     }
     else {
@@ -59,7 +61,17 @@ let commands = {
     gatewayInfo: {
         "run": async (message, args, client) => {
             let user = await utils.searchUser(client, message, args)
-            if (user == undefined) {message.channel.send("User wasn't found"); return}
+            if (user == undefined) {
+                let gateway = await database.get("select * from gateway")
+                let counter = 0
+                let counter1 = 0
+                gateway.forEach((gatewayRow) => {
+                    counter1 += 1
+                    gatewayRow.tries >= config.gateway_max_tries ? counter += 1 : counter += 0
+                })
+                message.channel.send(`Found ${counter} not passed gateway entries.\nTotal is ${counter1} entries.`)
+                return
+            }
             let gatewayInfo = await database.getGateway(user.id)
             if (gatewayInfo == undefined || gatewayInfo.answers == []) {message.channel.send("User wasn't found"); return}
             let answers = gatewayInfo.answers

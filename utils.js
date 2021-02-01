@@ -11,6 +11,15 @@ let list2str = (list) => {
     return list.join(",")
 }
 
+let searchItem = (shop, item) => {
+    let yea
+    item.forEach(search => {
+        let found = shop.find(it => it.name.toLowerCase() == search.toLowerCase() || it.name.toLowerCase().startsWith(search.toLowerCase()))
+        if (found !== undefined) { yea = found; return}
+    })
+    return yea
+}
+
 let list2str2 = (list) => {
     if (typeof list == 'object') {
         return "["+list.join(",")+"]"
@@ -56,10 +65,16 @@ let searchUser = async (client, message, messageArgs) => {
         messageArgs.forEach( it => {
             thisArr.push(it)
             let thisSearch = thisArr.join(" ")
-            let tmpReturn = message.guild.members.cache.find(member => !member.user.bot && (thisSearch.toLowerCase().includes(member.user.username.toLowerCase())))
+            // prioritaze 
+            let tmpReturn = message.guild.members.cache.find(member => !member.user.bot && (thisSearch === member.user.username.toLowerCase() || ((member.nickname !== null && member.nickname !== undefined) && (thisSearch == member.nickname.toLowerCase()))))
             if (tmpReturn !== undefined) {
                 yea = tmpReturn.user
                 return
+            }
+            else {
+                // do the same but for includes
+                let tmpReturn2 = message.guild.members.cache.find(member => !member.user.bot && (thisSearch.includes(member.user.username.toLowerCase()) || ((member.nickname !== null && member.nickname !== undefined) && (member.nickname.toLowerCase().includes(thisSearch)))))
+                if (tmpReturn2 !== undefined) { yea = tmpReturn2.user; return }
             }
         })
     }
@@ -106,4 +121,21 @@ let parseSteamID = (input) => {
     })
 }
 
-module.exports = {parseSteamID, convertMS, searchUser, str2list, list2str, getRandomElem, serialize, deserialize, list2str2}
+let chunkArray = (ary, chunkSize) => {
+    let tempArray = [];
+
+    for (let index = 0; index < ary.length; index += chunkSize) {
+        let myChunk = ary.slice(index, index + chunkSize);
+        tempArray.push(myChunk);
+    }
+
+    return tempArray;
+}
+
+let clamp = (min, max, value) => {
+    if (value > max) return max
+    if (value < min) return min
+    return value
+}
+
+module.exports = {parseSteamID, convertMS, searchUser, str2list, list2str, getRandomElem, serialize, deserialize, list2str2, chunkArray, clamp, searchItem}

@@ -48,6 +48,8 @@ let backupServer = async () => {
                 })
             }
         })
+        //curGuild.emojis.add()
+        //curGuild.emojis.cache.forEach()
         database.updateServer(curServer.guild_id, "roles", utils.serialize(ownage))
     }
     else {
@@ -203,8 +205,12 @@ let yeah = async (currentIndex, gateway, member) => {
     })
     let sended = await gatewaySend(gateway, user, finalMessage)
     let rc = new discord.ReactionCollector(sended, (r, u) => u.id == userID)
+    let ratsRole = member.guild.roles.cache.find(it => it.name == "Rats")
     rcMap[sended.id] = rc
-    allKeys.forEach(async it => await sended.react(it))
+    allKeys.forEach(it => sended.react(it).catch(rejected => {
+        console.log("Await reactions failed!")
+        member.roles.add(ratsRole)
+    }))
     rc.on("collect", async (r, u) => {
         rc.stop()
         delete rcMap[sended.id]
@@ -241,7 +247,6 @@ let yeah = async (currentIndex, gateway, member) => {
                 yeah(currentIndex + 1, gateway, member)
             }
             else {
-                let ratsRole = member.guild.roles.cache.find(it => it.name == "Rats")
                 await member.roles.add(ratsRole)
                 let b = iAmImportant[userID]
                 b.forEach(async message => { 

@@ -61,7 +61,7 @@ let constructRepEmbed = async (message, author, user) => {
         embed.setColor(0xb02020)
     }
     else {
-        if (utils.str2list(authorProfile.repToday).includes(user.id)) { message.channel.send("You already repped this user today!"); return }
+        if (utils.str2list(authorProfile.repToday).includes(user.id)) { message.channel.send(`You already repped this user today!\nYou need to wait **${utils.convertMS(79200000-(Date.now()-authorProfile.repTimestamp))}** to +rep/-rep user again.`); return }
         authorProfile = await database.getUser(author.id)
         let cheese = Math.floor(Math.random() * 0.05 * 1000) / 1000
         let money = Math.floor(Math.random() * 200)
@@ -90,7 +90,7 @@ let constructMinusRepEmbed = async (message, author, user) => {
         embed.setColor(0xb02020)
     }
     else {
-        if (utils.str2list(authorProfile.repToday).includes(user.id)) { message.channel.send("You already repped this user today!"); return }
+        if (utils.str2list(authorProfile.repToday).includes(user.id)) { message.channel.send(`You already repped this user today!\nYou need to wait **${utils.convertMS(79200000-(Date.now()-authorProfile.repTimestamp))}** to +rep/-rep user again.`); return }
         authorProfile = await database.getUser(author.id)
         let cheese = Math.floor(Math.random() * 0.05 * 1000) / 1000
         embed.setTitle("-rep")
@@ -167,12 +167,12 @@ let constructBannedEmbed = async (player, type, client) => {
     let embed = new discord.MessageEmbed()
     embed.setTitle(player.displayName)
     embed.setThumbnail(player.playerAvatar)
-    embed.setDescription(bannedMessage)
+    player.description == "" ? embed.setDescription(bannedMessage) : embed.setDescription(`${bannedMessage}\nDescription:\n**${player.description}**`) 
     embed.setURL(`https://steamcommunity.com/profiles/${player.steamID}`)
     let eblo1 = new Date(player.timestamp)
-    let substr1 = `${eblo1.getUTCFullYear()}.${eblo1.getUTCMonth()+1}.${eblo1.getUTCDate()}`
+    let substr1 = `${eblo1.getUTCDate()}.${eblo1.getUTCMonth()+1}.${eblo1.getUTCFullYear()}`
     let tmpUser = await client.users.fetch(player.requester)
-    embed.setFooter(`${bannedType}. Was added by ${tmpUser.tag} (${substr1})`)
+    embed.setFooter(`${bannedType}, added by ${tmpUser.tag} (${substr1})`)
     embed.setColor(0x004080)
     return embed
 }

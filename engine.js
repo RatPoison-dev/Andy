@@ -26,8 +26,8 @@ let _runCommand = (command, ...args) => {
 }
 
 let canRunCommand = (key, message, curServer) => {
-    let isOwner = key.owner === true && config["owner_ids"].includes(message.author.id)
-    let ownerCheck = isOwner || !key.owner
+    let isOwner = config["owner_ids"].includes(message.author.id)
+    let ownerCheck = (key.owner == true && isOwner) || !key.owner
     let serverCheck = (key.originalServer && message.guild.id == curServer.guild_id) || !key.originalServer
     let permissionsCheck = message.member.permissions.has(key.permissions)
     let disabledCheck = !key.disabled

@@ -8,13 +8,14 @@ let commands = {
     monitor : {
         "run": (message, args) => {
             let input = args[0]
+            let description = args.slice(1).join(" ")
             if (input.includes("steamcommunity.com/")) {
                 utils.parseSteamID(input).then(
                     async (sid) => {
                         sid = sid.getSteamID64()
                         let summaries = await api.GetPlayerSummaries(sid)
                         let initList = await api.rawCheckBans(sid)
-                        db.addBancheckerAccount(sid, message.author.id, summaries.personaname, summaries.avatarfull, message.guild.id, initList[0], initList[1])
+                        db.addBancheckerAccount(sid, message.author.id, summaries.personaname, summaries.avatarfull, message.guild.id, initList[0], initList[1], description)
                         message.channel.send(`[BanChecker] SteamID ${sid} has been added to ban checker.`)
                     },
                     rejected => {

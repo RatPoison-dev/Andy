@@ -7,11 +7,12 @@ const utils = require("./utils")
 //})
 
 db.run("create table if not exists guilds (guild_id TEXT NOT NULL UNIQUE, bannedChannel TEXT, prefix TEXT DEFAULT \"rat!\", PRIMARY KEY(guild_id))")
-db.run("create table if not exists banChecker (steamID TEXT NOT NULL UNIQUE, requester TEXT NOT NULL, timestamp integer not null, displayName TEXT NOT NULL, playerAvatar TEXT NOT NULL, guild_id TEXT, initVAC INT, initOW INT,  PRIMARY KEY(steamID))")
+db.run("create table if not exists banChecker (steamID TEXT NOT NULL UNIQUE, requester TEXT NOT NULL, timestamp integer not null, displayName TEXT NOT NULL, playerAvatar TEXT NOT NULL, guild_id TEXT, initVAC INT, initOW INT, description TEXT DEFAULT \"\", PRIMARY KEY(steamID))")
 db.run("create table if not exists users (user_id TEXT NOT NULL UNIQUE, cheese DOUBLE DEFAULT 0, money INT DEFAULT 0, rep INT DEFAULT 0, dailyTimestamp INT DEFAULT 0, repTimestamp INT DEFAULT 0, repToday TEXT DEFAULT \"\", madness INT DEFAULT 0)")
 db.run("create table if not exists saved_messages (user_id TEXT, attachments TEXT, message_content TEXT)")
 db.run("create table if not exists server (guild_id TEXT NOT NULL UNIQUE, banList TEXT default \"[]\", roles TEXT default \"{}\", backupProcess BOOL default false, gateway BOOL default true, wipeTimestamp int default 0, PRIMARY KEY(guild_id))")
 db.run("create table if not exists gateway (user_id TEXT NOT NULL UNIQUE, tries INT default 0, answers text default \"[]\")")
+db.run("create table if not exists inventory (user_id text, count int, item_id int)")
 
 let getGuildInfo = (guild_id) => new Promise((resolve, reject) => {
     initGuild(guild_id)
@@ -23,6 +24,15 @@ let getGuildInfo = (guild_id) => new Promise((resolve, reject) => {
 let get = (q, ...args) => new Promise((resolve, reject) => {
     db.all(q, ...args, (err, rows) => resolve(rows))
 })
+
+let addItem = async (user_id, count, item_id) => {
+    let item = await fetchInventoryItem(user_id, item_id)
+    if (item == undefined) run("insert into inventory (user_id, count, item_id) values (?, ?, ?)", [user_id, count, item_id])
+    else run("update inventory set count = ? where user_id = ? and item_id = ?", [count + item.count, user_id, item_id])
+}
+
+let fetchInventoryItem = async (user_id, item_id) => {return (await get("select * from inventory where user_id = ? and item_id = ?", [user_id, item_id]))[0]}
+let fetchInventory = async (user_id) => {return await get("select * from inventory where user_id = ?", [user_id])}
 
 let run = (q, ...args) => {
     db.run(q, ...args)
@@ -171,8 +181,8 @@ let updateBannedChannel = (guild_id, channel) => {
     db.run("update guilds set bannedChannel = ? where guild_id = ?", [channel, guild_id])
 }
 
-let addBancheckerAccount = (steamID, requester, displayName, playerAvatar, guild_id, initVAC, initOW) => {
-    db.run('insert or ignore into banChecker (steamID, requester, timestamp, displayName, playerAvatar, guild_id, initVAC, initOW) values (?, ?, ?, ?, ?, ?, ?, ?)', [steamID, requester, Date.now(), displayName, playerAvatar, guild_id, initVAC, initOW])
+let addBancheckerAccount = (steamID, requester, displayName, playerAvatar, guild_id, initVAC, initOW, description) => {
+    db.run('insert or ignore into banChecker (steamID, requester, timestamp, displayName, playerAvatar, guild_id, initVAC, initOW, description) values (?, ?, ?, ?, ?, ?, ?, ?, ?)', [steamID, requester, Date.now(), displayName, playerAvatar, guild_id, initVAC, initOW, description])
 }
 
 let getBancheckerAccounts = () => new Promise((resolve, reject) => {
@@ -193,4 +203,4 @@ let deleteBancheckerAccount = (sid) => {
 }
 
 
-module.exports = {getGuildInfo, initGuild, addBancheckerAccount, getBancheckerAccounts, getBancheckerAccountsByUser, incrementUser, makeSaved, getSaved, deleteBancheckerAccount, getTopIndex, updateBannedChannel, updatePrefix, updateUser, getUser, getTopByPage, getUserMaxReps, resetRep, query, select, fetchServer, updateServer, migrateActions, gatewayCreateRow, getGateway, deleteGatewayInfo, increaseGatewayTries, gatewaySwitchState, get, run}
+module.exports = {getGuildInfo, initGuild, addBancheckerAccount, getBancheckerAccounts, getBancheckerAccountsByUser, incrementUser, makeSaved, getSaved, deleteBancheckerAccount, getTopIndex, updateBannedChannel, updatePrefix, updateUser, getUser, getTopByPage, getUserMaxReps, resetRep, query, select, fetchServer, updateServer, migrateActions, gatewayCreateRow, getGateway, deleteGatewayInfo, increaseGatewayTries, gatewaySwitchState, get, run, fetchInventory, fetchInventoryItem, addItem}
