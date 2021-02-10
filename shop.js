@@ -1,4 +1,5 @@
 const database = require("./database")
+const config = require("./config.json")
 
 module.exports = [
     {
@@ -26,6 +27,32 @@ module.exports = [
             await member.roles.add(role)
             message.channel.send("Access granted!")
             return true
+        }
+    },
+    {
+        "item_id": 2,
+        "price": 5000,
+        "name": "Big Chungus",
+        "display": true,
+        "description": "Get out of gateway",
+        "onUse": async (message) => {
+            let user = message.author
+            let userID = user.id
+            let gatewayInfo = await database.getGateway(userID)
+            if (gatewayInfo == undefined || gatewayInfo.tries < config.gateway_max_tries) {
+                message.channel.send("You are not in gateway.")
+                return false
+            }
+            else {
+                let ratsRole = message.guild.roles.cache.find(it => it.name == "Rats")
+                let notPassedRole = message.guild.roles.cache.find(it => it.name == "gateway-not-passed")
+                let member = message.guild.members.cache.find(it => it.id == userID)
+                database.gatewayCreateRow(userID)
+                database.run("update gateway set tries = 0 where user_id = ?", [userID])
+                await member.roles.add(ratsRole)
+                await member.roles.remove(notPassedRole)
+                return true
+            }
         }
     }
 ]

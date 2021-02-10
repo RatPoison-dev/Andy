@@ -10,13 +10,15 @@ let commands = {
             args[0] == undefined || !/^\d+$/.test(args[0]) || parseInt(args[0]) < 1 ? page = 1 : page = parseInt(args[0])
             page -= 1
             let lShop = shop.filter(it => it.display)
-            page = utils.clamp(0, Math.ceil(lShop.length / 10), page)
+            page = utils.clamp(0, Math.ceil(lShop.length / 10)-1, page)
             let user = message.author
+            let profile = await database.getUser(user.id)
             let server = await database.fetchServer()
             let serverInfo = await database.getGuildInfo(server.guild_id)
             let prefix = serverInfo.prefix
             let embed = new discord.MessageEmbed().setTitle("Shop").setColor(0xb6b83d).setTimestamp(new Date().getTime()).setAuthor(user.tag, user.avatarURL({dynamic: true}))
-            embed.setDescription(`Available items. Use \`\`${prefix}buy [count] [item]\`\` to buy and \`\`${prefix}use [item]\`\` to use.`)
+            embed.setDescription(`Available items. Use \`\`${prefix}buy [count] [item]\`\` to buy and \`\`${prefix}use [item]\`\` to use.\nYour balance: \`\`${profile.money}\`\``)
+            embed.setFooter(`Page ${page + 1}`)
             let items = utils.chunkArray(lShop, 10)[page]
             items.forEach( shopItem => {
                 let name = `${shopItem.name} - ${shopItem.price} :moneybag:`
@@ -89,6 +91,7 @@ let commands = {
             page = utils.clamp(0, Math.ceil(thisInventory.length / 10), page)
             let embed = new discord.MessageEmbed().setTitle("Inventory").setColor(0xb6b83d).setTimestamp(new Date().getTime()).setAuthor(user.tag, user.avatarURL({dynamic: true}))
             let s = ""
+            embed.setFooter(`Page ${page + 1}`)
             thisInventory.forEach( it => {
                 let item = shop.find(e => e.item_id == it.item_id)
                 s += `${item.name} - ${it.count}\n`

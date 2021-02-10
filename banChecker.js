@@ -1,9 +1,10 @@
-let database = require("./database")
-let config = require("./config.json")
-let steamApi = require("./steamAPI")
-let embeds = require("./embeds")
-let api = new steamApi.WebApi(config.steamWebApiKey)
-const chunk = (arr, size) => arr.reduce((acc, e, i) => (i % size ? acc[acc.length - 1].push(e) : acc.push([e]), acc), []);
+const database = require("./database")
+const config = require("./config.json")
+const steamApi = require("./steamAPI")
+const embeds = require("./embeds")
+const api = new steamApi.WebApi(config.steamWebApiKey)
+const utils = require("./utils")
+
 module.exports = class BanChecker {
     constructor (client) {
         this.client = client
@@ -11,7 +12,7 @@ module.exports = class BanChecker {
     async checkBans () {
         console.log("[BanChecker] Checking for bans")
         let accounts = await database.getBancheckerAccounts()
-        let realAccounts = chunk(accounts, 100)
+        let realAccounts = utils.chunkArray(accounts, 100)
         realAccounts.forEach( async accountList => {
             let outArray = await api.checkBans(accountList)
             outArray.forEach(async account => {

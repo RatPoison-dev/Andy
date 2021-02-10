@@ -69,7 +69,9 @@ let commands = {
                     counter1 += 1
                     gatewayRow.tries >= config.gateway_max_tries ? counter += 1 : counter += 0
                 })
-                message.channel.send(`Found ${counter} not passed gateway entries.\nTotal is ${counter1} entries.`)
+                let role = message.guild.roles.cache.find(it => it.name == "gateway-not-passed")
+                let members = message.guild.members.cache.filter(it => it.roles.cache.has(role.id))
+                message.channel.send(`Found ${counter} not passed gateway entries.\nTotal is ${counter1} entries.\nMembers with gateway-not-passed role: ${members.size}`)
                 return
             }
             let gatewayInfo = await database.getGateway(user.id)

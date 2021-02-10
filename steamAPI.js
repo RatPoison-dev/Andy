@@ -34,7 +34,7 @@ class WebApi {
             outArray.push(0)
         }
         if (player.NumberOfGameBans !== undefined) {
-            outArray.push(player.NumberOfVACBans)
+            outArray.push(player.NumberOfGameBans)
         }
         else {
             outArray.push(0)

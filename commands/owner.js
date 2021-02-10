@@ -91,6 +91,7 @@ let commands = {
     clear: {
         "run": async (message, args, client) => {
             let limit = parseInt(args[0])
+            limit = utils.clamp(1, 100, limit)
             let messages = await message.channel.messages.fetch({"limit": limit+1})
             await message.channel.bulkDelete(messages)
         },

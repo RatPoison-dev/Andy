@@ -11,5 +11,7 @@
     "backupRoles": ["Admin", "Booters", "Vibers"],
     "owner_ids": [],
     "wipe_channels": [],
-    "gateway_max_tries": 2
+    "gateway_max_tries": 2,
+    "rrMaxPlayers": 6,
+    "rrMinPlayers": 3
 }

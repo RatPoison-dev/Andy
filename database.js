@@ -60,7 +60,10 @@ let increaseGatewayTries = (user_id) => {
 
 let getGateway = (user_id) => new Promise((resolve, reject) => {
     db.all("select * from gateway where user_id = ?", [user_id], ((err, rows) => {
-        rows[0].answers = utils.str2list(rows[0].answers)
+        if (rows[0] != undefined) {
+            rows[0].answers = utils.str2list(rows[0].answers)
+        }
+        
         resolve(rows[0])
     }))
 })

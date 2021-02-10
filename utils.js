@@ -73,7 +73,7 @@ let searchUser = async (client, message, messageArgs) => {
             }
             else {
                 // do the same but for includes
-                let tmpReturn2 = message.guild.members.cache.find(member => !member.user.bot && (thisSearch.includes(member.user.username.toLowerCase()) || ((member.nickname !== null && member.nickname !== undefined) && (member.nickname.toLowerCase().includes(thisSearch)))))
+                let tmpReturn2 = message.guild.members.cache.find(member => !member.user.bot && (thisSearch.startsWith(member.user.username.toLowerCase()) || ((member.nickname !== null && member.nickname !== undefined) && (member.nickname.toLowerCase().startsWith(thisSearch)))))
                 if (tmpReturn2 !== undefined) { yea = tmpReturn2.user; return }
             }
         })
@@ -121,16 +121,7 @@ let parseSteamID = (input) => {
     })
 }
 
-let chunkArray = (ary, chunkSize) => {
-    let tempArray = [];
-
-    for (let index = 0; index < ary.length; index += chunkSize) {
-        let myChunk = ary.slice(index, index + chunkSize);
-        tempArray.push(myChunk);
-    }
-
-    return tempArray;
-}
+let chunkArray = (arr, size) => arr.reduce((acc, e, i) => (i % size ? acc[acc.length - 1].push(e) : acc.push([e]), acc), []);
 
 let clamp = (min, max, value) => {
     if (value > max) return max

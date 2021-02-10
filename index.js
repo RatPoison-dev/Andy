@@ -107,7 +107,7 @@ let wipeGateway = async () => {
         if (latestMessage !== undefined) {
             let member = guild.members.cache.get(key)
             let ratsRole = guild.roles.cache.find(it => it.name == "Rats")
-            if (((new Date().getTime() - latestTimestamp) / 1000 > 600) && !latestMessage.deleted && !member.roles.cache.has(ratsRole.id)) {
+            if (((new Date().getTime() - latestTimestamp) / 1000 > 600) && !latestMessage.deleted && member !== undefined && !member.roles.cache.has(ratsRole.id)) {
                 try {
                     let member = guild.members.cache.get(key)
                     ignoreEvent = member.user.id

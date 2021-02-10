@@ -15,7 +15,7 @@ let constructUserProfile = async (user) => {
         let moneyPlace = await database.getTopIndex("money", profile.user_id)
         let repPlace = await database.getTopIndex("rep", profile.user_id)
         embed.addField("[:cheese:] Cheese", `${profile.cheese.toFixed(3)} | ${cheesePlace} Place`)
-        embed.addField("[:moneybag:] Money", `${profile.money} | ${moneyPlace} Place`)
+        embed.addField("[:moneybag:] Money", `${Math.ceil(profile.money)} | ${moneyPlace} Place`)
         embed.addField("[:art:] Reputation", `${profile.rep} | ${repPlace} Place`)
         let maxReps = await database.getUserMaxReps(user.id)
         embed.addField("[:white_check_mark:] Reps today", `${utils.str2list(profile.repToday).length}/${maxReps}`)
