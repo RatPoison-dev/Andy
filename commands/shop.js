@@ -17,7 +17,7 @@ let commands = {
             let serverInfo = await database.getGuildInfo(server.guild_id)
             let prefix = serverInfo.prefix
             let embed = new discord.MessageEmbed().setTitle("Shop").setColor(0xb6b83d).setTimestamp(new Date().getTime()).setAuthor(user.tag, user.avatarURL({dynamic: true}))
-            embed.setDescription(`Available items. Use \`\`${prefix}buy [count] [item]\`\` to buy and \`\`${prefix}use [item]\`\` to use.\nYour balance: \`\`${profile.money}\`\``)
+            embed.setDescription(`Available items. Use \`\`${prefix}buy [count] [item]\`\` to buy and \`\`${prefix}use [item]\`\` to use.\nYour balance: \`\`${Math.ceil(profile.money)}\`\``)
             embed.setFooter(`Page ${page + 1}`)
             let items = utils.chunkArray(lShop, 10)[page]
             items.forEach( shopItem => {
@@ -25,7 +25,7 @@ let commands = {
                 embed.addField(name, shopItem.description)
             })
             embed.setAuthor(user.tag, user.avatarURL({dynamic: true}))
-            message.channel.send(embed)
+            return embed
         },
         originalServer: true,
         help: "[?page] - View available items"

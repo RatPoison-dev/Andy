@@ -3,10 +3,19 @@ const discord = require("discord.js")
 const utils = require("./utils")
 const config = require("./config.json")
 
-let constructUserProfile = async (user) => {
+const colorsMap = {"red": 0xb02020, "green": 0x6b32a8, "yellow": 0xb6b83d}
+let constructResultEmbed = (err, author, color = "red", desc = ":x: Error") => {
+    color = colorsMap[color]
+    err = err.replace(/\uFFFD/g, '').replace('\s\s\s\s', '\s').replace(/[\u{0080}-\u{FFFF}]/gu,"").slice(0, 1999)
+    return new discord.MessageEmbed().setTimestamp(Date.now()).setAuthor(author.tag, author.avatarURL({dynamic: true})).setTitle(desc).setDescription(err).setColor(color)
+}
+
+
+let constructUserProfile = async (requester, user) => {
     await database.resetRep(user)
+    let requesterProfile = await database.getUser(requester.id)
     let profile = await database.getUser(user.id)
-    if (profile.madness < 3) {
+    if (requesterProfile.madness < 3) {
         let embed = new discord.MessageEmbed()
         embed.setAuthor(user.tag, user.avatarURL({dynamic: true}))
         embed.setThumbnail(user.avatarURL({dynamic: true}))
@@ -70,7 +79,10 @@ let constructRepEmbed = async (message, author, user) => {
         let prev = utils.str2list(authorProfile.repToday)
         prev.push(user.id)
         database.updateUser(user.id, ["cheese", "money", "rep"], [userProfile.cheese+cheese, userProfile.money+money, userProfile.rep+1])
-        database.updateUser(author.id, ["repToday", "repTimestamp"], [utils.list2str(prev), Date.now()])
+        database.updateUser(author.id, ["repToday"], [utils.list2str(prev)])
+        if (prev.length == 1) {
+            database.updateUser(author.id, "repTimestamp", Date.now())
+        }
         embed.setColor(0x20b038)
     }
     embed.setTimestamp(Date.now())
@@ -97,14 +109,17 @@ let constructMinusRepEmbed = async (message, author, user) => {
         let prev = utils.str2list(authorProfile.repToday)
         prev.push(user.id)
         embed.setDescription(`You took from <@${user.id}> ${cheese} :cheese:`)
-        database.updateUser(author.id, ["repToday", "repTimestamp"], [utils.list2str(prev), Date.now()])
+        database.updateUser(author.id, ["repToday"], [utils.list2str(prev)])
+        if (prev.length == 1) {
+            database.updateUser(author.id, "repTimestamp", Date.now())
+        }
         database.updateUser(user.id, ["rep", "cheese"], [userProfile.rep - 1, userProfile.cheese - cheese])
         embed.setColor(0x20b038)
     }
     return embed
 }
 
-let constructDailyembed = async (user) => {
+let constructDailyembed = async (user, giveTo) => {
     let embed = new discord.MessageEmbed()
     let profile = await database.getUser(user.id)
     if (profile.madness > 1) return
@@ -119,8 +134,16 @@ let constructDailyembed = async (user) => {
         let cheese = Math.floor(Math.random() * 0.05 * 1000) / 1000
         let money =  Math.floor(Math.random() * 200) + 10
         embed.setTitle("Daily")
-        embed.setDescription(`You recieved your daily ${cheese} :cheese: and ${money} :moneybag:`)
-        database.updateUser(user.id, ["cheese", "money", "dailyTimestamp"], [profile.cheese+cheese, profile.money+money, Date.now()])
+        if (giveTo.id == user.id) {
+            embed.setDescription(`You recieved your daily ${cheese} :cheese: and ${money} :moneybag:`)
+            database.updateUser(user.id, ["cheese", "money", "dailyTimestamp"], [profile.cheese+cheese, profile.money+money, Date.now()])
+        }
+        else {
+            embed.setDescription(`You gave your daily ${cheese} :cheese: and ${money} :moneybag: to ${giveTo}`)
+            database.updateUser(user.id, ["dailyTimestamp"], [Date.now()])
+            database.incrementUser(giveTo.id, ["cheese", "money"], [cheese, money])
+        }
+        
         embed.setColor(0x20b038)
     }
     embed.setTimestamp(Date.now())
@@ -177,4 +200,4 @@ let constructBannedEmbed = async (player, type, client) => {
     return embed
 }
 
-module.exports = {constructBannedEmbed, constructTop, constructDailyembed, constructMinusRepEmbed, constructRepEmbed, constructCanRepEmbed, constructUserProfile}
+module.exports = {constructBannedEmbed, constructTop, constructDailyembed, constructMinusRepEmbed, constructRepEmbed, constructCanRepEmbed, constructUserProfile, constructResultEmbed}

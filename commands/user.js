@@ -7,7 +7,7 @@ let commands = {
         "run": async (message, args, client) => {
             let embed
             let foundUser = await utils.searchUser(client, message, args)
-            foundUser == undefined ? embed = await embeds.constructUserProfile(message.author) : embed = await embeds.constructUserProfile(foundUser)
+            foundUser == undefined ? embed = await embeds.constructUserProfile(message.author, message.author) : embed = await embeds.constructUserProfile(message.author, foundUser)
             if (embed !== undefined) {
                 message.channel.send(embed)
             }
@@ -19,7 +19,7 @@ let commands = {
     daily: {
         "run": async (message, args, client) => {
             let foundUser = await utils.searchUser(client, message, args)
-            foundUser == undefined ? embed = await embeds.constructDailyembed(message.author) : embed = await embeds.constructDailyembed(foundUser)
+            foundUser == undefined ? embed = await embeds.constructDailyembed(message.author, message.author) : embed = await embeds.constructDailyembed(message.author, foundUser)
             if (embed !== undefined) {
                 message.channel.send(embed)
             }
@@ -36,7 +36,7 @@ let commands = {
             else {
                 let page = (args[1] !== undefined && /^\d+$/.test(args[1])) ? args[1] : 1
                 let embed = await embeds.constructTop(message, message.author, topType, page)
-                message.channel.send(embed)
+                return embed
             }
         },
         "help": "[type] [?page] - get top by type and page",
@@ -71,7 +71,7 @@ let commands = {
                 }
             }
             else {
-                message.channel.send(":x: User was not found.")
+                throw "User was not found."
             }
         },
         "help": "[user] [amount] - pay user",
@@ -107,7 +107,7 @@ let commands = {
                 if (foundUser.id !== message.author.id) {
                     let embed = await embeds.constructMinusRepEmbed(message, message.author, foundUser)
                     if (embed !== undefined) {
-                        message.channel.send(embed)
+                        return embed
                     }
                 }
                 else {
@@ -117,14 +117,32 @@ let commands = {
             else {
                 let embed = await embeds.constructCanRepEmbed(message.author)
                 if (embed !== undefined) {
-                    message.channel.send(embed)
+                    return embed
                 }
             }
         },
         "help": "[user] - take some cheese from user",
         originalServer: true
+    },
+    balance: {
+        "run": async (message, args, client) => {
+            let foundUser = await utils.searchUser(client, message, args)
+            if (foundUser == undefined) foundUser = message.author
+            let p = await database.getUser(foundUser.id)
+            return {"result": `${foundUser} has ${p.money} :moneybag:`, "description": "Money"}
+        },
+        originalServer: true,
+        aliases: ["money", "bal"]
+    },
+    cheese: {
+        "run": async (message, args, client) => {
+            let foundUser = await utils.searchUser(client, message, args)
+            if (foundUser == undefined) foundUser = message.author
+            let p = await database.getUser(foundUser.id)
+            return {"result": `${foundUser} has ${p.cheese.toFixed(3)} :cheese:`, "description": "Cheese"}
+        },
+        originalServer: true,
     }
-
 }
 
 module.exports = { commands }

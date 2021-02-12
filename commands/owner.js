@@ -6,10 +6,9 @@ const exec = require('child_process').exec
 
 let commands = {
     eval: {
-        "run": (message, args, client) => new Promise((resolve, reject) => {
+        "run": (message, args, client) => {
             resolve(eval(args.join(" ")).toString())
-        }),
-        "usePromises": true,
+        },
         "owner": true
     },
     bash: {
@@ -36,7 +35,10 @@ let commands = {
     setMadness: {
         "run": async (message, args, client) => {
             let foundUser = await utils.searchUser(client, message, args)
-            database.updateUser(foundUser.id, "madness", args[1])
+            if (foundUser == undefined) throw "User wasn't found!"
+            let parsed = parseInt(args[1])
+            if (isNaN(parsed)) throw "Incorrect amount!"
+            database.updateUser(foundUser.id, "madness", parsed)
             message.channel.send("Madness was set successfully!")
         },
         owner: true
@@ -45,7 +47,10 @@ let commands = {
         "run": async (message, args, client) => {
             let foundUser = await utils.searchUser(client, message, args)
             if (foundUser == undefined) {message.channel.send("Invalid user!"); return}
-            database.updateUser(foundUser.id, "money", args[1])
+            if (foundUser == undefined) throw "User wasn't found!"
+            let parsed = parseInt(args[1])
+            if (isNaN(parsed)) throw "Incorrect amount!"
+            database.updateUser(foundUser.id, "money", parsed)
             message.channel.send("Money was set successfully!")
         },
         owner: true
@@ -53,7 +58,10 @@ let commands = {
     setReputation: {
         "run": async (message, args, client) => {
             let foundUser = await utils.searchUser(client, message, args)
-            database.updateUser(foundUser.id, "rep", args[1])
+            if (foundUser == undefined) throw "User wasn't found!"
+            let parsed = parseInt(args[1])
+            if (isNaN(parsed)) throw "Incorrect amount!"
+            database.updateUser(foundUser.id, "rep", parsed)
             message.channel.send("Reputation was set successfully!")
         },
         owner: true
@@ -83,7 +91,10 @@ let commands = {
     addReputation: {
         "run": async (message, args, client) => {
             let foundUser = await utils.searchUser(client, message, args)
-            database.incrementUser(foundUser.id, "rep", parseInt(args[1]))
+            if (foundUser == undefined) throw "User wasn't found!"
+            let parsed = parseInt(args[1])
+            if (isNaN(parsed)) throw "Incorrect amount!"
+            database.incrementUser(foundUser.id, "rep", parsed)
             message.channel.send("Reputation was successfully added!")
         },
         owner: true
@@ -100,15 +111,22 @@ let commands = {
     addMoney: {
         "run": async (message, args, client) => {
             let foundUser = await utils.searchUser(client, message, args)
-            database.incrementUser(foundUser.id, "money", args[1])
+            if (foundUser == undefined) throw "User wasn't found!"
+            let parsed = parseInt(args[1])
+            if (isNaN(parsed)) throw "Incorrect amount!"
+            database.incrementUser(foundUser.id, "money", parsed)
             message.channel.send("Money was successfully added!")
         },
-        owner: true
+        owner: true,
+        help: "[user] [money] - add money to user"
     },
     addCheese: {
         "run": async (message, args, client) => {
             let foundUser = await utils.searchUser(client, message, args)
-            database.incrementUser(foundUser.id, "cheese", parseFloat(args[1]))
+            if (foundUser == undefined) throw "User wasn't found!"
+            let parsed = parseInt(args[1])
+            if (isNaN(parsed)) throw "Incorrect amount!"
+            database.incrementUser(foundUser.id, "cheese", parsed)
             message.channel.send("Cheese was successfully added!")
         },
         owner: true
@@ -116,7 +134,10 @@ let commands = {
     setCheese: {
         "run": async (message, args, client) => {
             let foundUser = await utils.searchUser(client, message, args)
-            database.updateUser(foundUser.id, "cheese", args[1])
+            if (foundUser == undefined) throw "User wasn't found!"
+            let parsed = parseInt(args[1])
+            if (isNaN(parsed)) throw "Incorrect amount!"
+            database.updateUser(foundUser.id, "cheese", parsed)
             message.channel.send("Cheese was set successfully!")
         },
         owner: true,

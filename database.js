@@ -152,7 +152,7 @@ let incrementUser = async (user_id, columns, values) => {
     let prev = await getUser(user_id)
     if (typeof columns == "object") {
         columns.forEach((column, index) => {
-            updateUser(user_id, column[index], prev[values[index]]+values[index])
+            updateUser(user_id, column, prev[column]+values[index])
         })
     }
     else {
@@ -168,6 +168,9 @@ let getUserMaxReps = async (user_id) => {
 let getUser = (user_id) => new Promise((resolve, reject) => {
     initProfile(user_id)
     db.all("select * from users where user_id = ?", [user_id], (err, rows) => {
+        if (rows[0] !== undefined) {
+            rows[0].money = Math.ceil(rows[0].money)
+        }
         resolve(rows[0])
     })
 })

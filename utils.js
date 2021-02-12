@@ -11,6 +11,67 @@ let list2str = (list) => {
     return list.join(",")
 }
 
+let attrGetter = (obj, attr, def) => {
+    if (typeof obj == "object") {
+        let a = obj[attr]
+        if (a != undefined) return a
+        return def
+    }
+    return def
+}
+
+class Dictionary { //str8 up
+    constructor(words) {
+        this.words = words;
+    };
+    similarity(s1, s2) {
+        let longer = s1;
+        let shorter = s2;
+        if (s1.length < s2.length) {
+            longer = s2;
+            shorter = s1;
+        }
+        let longerLength = longer.length;
+        if (longerLength === 0) return 1.0;
+        return (longerLength - this.editDistance(longer, shorter)) / parseFloat(longerLength);
+    }
+    editDistance(s1, s2) {
+        s1 = s1.toLowerCase();
+        s2 = s2.toLowerCase();
+ 
+        let costs = [];
+        for (let i = 0; i <= s1.length; i++) {
+            let lastValue = i;
+            for (let j = 0; j <= s2.length; j++) {
+                if (i === 0) costs[j] = j;
+                else {
+                    if (j > 0) {
+                        let newValue = costs[j - 1];
+                        if (s1.charAt(i - 1) !== s2.charAt(j - 1))
+                            newValue = Math.min(Math.min(newValue, lastValue),
+                                costs[j]) + 1;
+                        costs[j - 1] = lastValue;
+                        lastValue = newValue;
+                    }
+                }
+            }
+            if (i > 0) costs[s2.length] = lastValue;
+        }
+        return costs[s2.length];
+    }
+    findMostSimilar(term) {
+        let a = {};
+        for(let i in this.words) a[this.words[i]] = this.similarity(this.words[i], term);
+        let r = Object.entries(a).sort( (a,b) => a[1] - b[1] );
+        return [r[r.length-1][0], r[r.length-1][1]];
+    }
+    findSimilar(term) {
+        let a = {};
+        for(let i in this.words) a[this.words[i]] = this.similarity(this.words[i], term);
+        return Object.entries(a).sort( (a,b) => a[1] - b[1] ).reverse();
+    }
+}
+
 let searchItem = (shop, item) => {
     let yea
     item.forEach(search => {
@@ -129,4 +190,4 @@ let clamp = (min, max, value) => {
     return value
 }
 
-module.exports = {parseSteamID, convertMS, searchUser, str2list, list2str, getRandomElem, serialize, deserialize, list2str2, chunkArray, clamp, searchItem}
+module.exports = {parseSteamID, convertMS, searchUser, str2list, list2str, getRandomElem, serialize, deserialize, list2str2, chunkArray, clamp, searchItem, attrGetter, Dictionary}

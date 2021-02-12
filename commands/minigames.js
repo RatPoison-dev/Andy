@@ -35,7 +35,7 @@ let canRunDuel = async (user, bet, checkBet = true) => {
     let profile = await database.getUser(user.id)
     if (profile.madness > 0) return `${user} has madness!`
     if (checkBet && (!/^\d+$/.test(bet) || parseInt(bet) <= 0)) return "Incorrect bet!"
-    if (profile.money - bet <= 0) return `${user} don't have enough money!`
+    if (profile.money - bet <= 0) return `${user} doesn't have enough money!`
     return true
 }
 
@@ -65,10 +65,16 @@ let runDuel = async (host, participant, writeChannel, bet) => {
             winner = user
             loser = hostID != winner.id ? host : participant
         }
-        database.incrementUser(winner.id, "money", bet)
-        database.incrementUser(loser.id, "money", -bet)
-        writeChannel.send(`${winner} WINS ${bet} :moneybag:`)
-        return
+        let loserProfile = await database.getUser(loser.id)
+        if (loserProfile.money - bet >= 0) {
+            database.incrementUser(winner.id, "money", bet)
+            database.incrementUser(loser.id, "money", -bet)
+            writeChannel.send(`${winner} WINS ${bet} :moneybag:`)
+            return
+        }
+        else {
+            writeChannel.send(`${loser} doesn't have enough money!`)
+        }
     })
 }
 
@@ -133,7 +139,7 @@ let commands = {
                 let canRun = await canRunDuel(message.author, bet)
                 let myPrefix = (await database.getGuildInfo(message.guild.id)).prefix
                 if (canRun != true) { channel.send(canRun); return}
-                message.channel.send(`**Game of RR starts in 40 seconds. Bet: ${bet} :moneybag:. Type ${myPrefix}rr to join.**`)
+                message.channel.send(`**Game of RR starts in 45 seconds. Bet: ${bet} :moneybag:. Type ${myPrefix}rr to join.**`)
                 new rrGame([userID], (new Date()).getTime(), channel, bet)
             }
             else {
@@ -169,12 +175,19 @@ let checkRrGames = async () => {
             let thisPlayer = game.participants[game.lastParticipantIndex]
             let chance = Math.random()
             if (chance < (1/config.rrMaxPlayers)) {
-                game.channel.send(`<@${thisPlayer}> **died! Everyone else wins ${(game.bet/(game.participants.length-1)).toFixed(3)} :moneybag:**`)
-                database.incrementUser(thisPlayer, "money", -game.bet)
-                let newArr = game.participants.filter(it => it != thisPlayer)
-                newArr.forEach(player => {
-                    database.incrementUser(player, "money", game.bet/(game.participants.length-1))
-                })
+                let loserProfile = await database.getUser(thisPlayer)
+                if (loserProfile.money - game.bet > 0) {
+                    game.channel.send(`<@${thisPlayer}> **died! Everyone else wins ${(game.bet/(game.participants.length-1)).toFixed(3)} :moneybag:**`)
+                    database.incrementUser(thisPlayer, "money", -game.bet)
+                    let newArr = game.participants.filter(it => it != thisPlayer)
+                    newArr.forEach(player => {
+                        database.incrementUser(player, "money", game.bet/(game.participants.length-1))
+                    })
+                }
+                else {
+                    game.channel.send(`${thisPlayer} doesn't have enough money!`)
+                }
+                
                 game.del()
                 return
             }
