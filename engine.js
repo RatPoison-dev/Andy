@@ -68,15 +68,15 @@ let runCommand = async (command, message, args, client) => {
                     let result = await _runCommand(key.run, message, args, client)
                     let myResult
                     if (result != undefined) {
-                        let myEmbedDescription = utils.attrGetter(result, "description", "Result")
+                        let myEmbedTitle = utils.attrGetter(result, "title", "")
                         myResult = utils.attrGetter(result, "result", result)
-                        myResult.color == undefined ? message.channel.send(embeds.constructResultEmbed(myResult, message.author, "yellow", myEmbedDescription)) : message.channel.send(myResult)
+                        myResult.color == undefined ? message.channel.send(embeds.constructResultEmbed(myResult, message.author, "yellow", title = myEmbedTitle)) : message.channel.send(myResult)
                     }
                 } 
                 catch (e) {
                     let final = utils.attrGetter(e, "stack", e.toString())
                     if (key.help != undefined) {
-                        final += `\nUsage: \`\`${myServer.prefix}${commandString} ${key.help}\`\``
+                        final += `\nUsage: \`\`${myServer.prefix}${command} ${key.help}\`\``
                     }
                     message.channel.send(embeds.constructResultEmbed(final, message.author))
                 }

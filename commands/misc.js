@@ -1,36 +1,53 @@
 const database = require("../database")
 const engine = require("../engine")
+const fs = require("fs")
 
+let addCategory = (categories, category, item) => {
+    if (categories[category] == undefined) categories[category] = [item]
+    else categories[category].push(item)
+}
 
 let commands = {
     help: async (message) => {
-        await message.react("✅")
         let thisGuild = message.guild
         let info = await database.getGuildInfo(thisGuild.id)
         let prefix = info.prefix
         let commands = engine.commands
         let curServer = await database.fetchServer()
         let s = `Current prefix in \"${thisGuild.name}\" server: ${prefix}\n`
+        let categories = {}
         Object.keys(commands).forEach(command => {
             let key = commands[command]
             if (key.help !== undefined) {
                 if (engine.canRunCommand(key, message, curServer)) {
-                    s += `${command} ${commands[command].help}`
+                    let tmpS = `${command} ${commands[command].help}` 
                     let descArr = []
-                    if (key.owner == true) descArr.push("OWNER")
-                    if (key.permissions !== undefined) descArr.push(`PERMISSIONS: ${key.permissions}`)
-                    if (key.originalServer == true) descArr.push("RatPoison Server ONLY")
-                    if (key.aliases !== undefined) descArr.push(`ALIASES: ${key.aliases.join(",")}`)
+                    if (key.permissions !== undefined) descArr.push(`permissions: ${key.permissions}`)
+                    if (key.originalServer == true) descArr.push("RatPoison Server only")
+                    if (key.aliases !== undefined) descArr.push(`aliases: ${key.aliases.join(",")}`)
                     let tmpJoin = descArr.join("; ")
-                    if (tmpJoin !== "") s += ` (${tmpJoin})`
-                    s += "\n"
+                    if (tmpJoin !== "") tmpS += ` (${tmpJoin})`
+                    if (key.owner == true) addCategory(categories, "OWNER", tmpS)
+                    else if (key.permissions != undefined) addCategory(categories, `Permissions: ${key.permissions}`, tmpS)
+                    else addCategory(categories, "USER", tmpS)
                 }
             }
         })
-        message.author.send(s)
+        Object.keys(categories).forEach( myCategory => {
+            s += `[ ${myCategory} ]\n`
+            categories[myCategory].forEach(it => s += `${it}\n`)
+            s += "\n"
+        })
+        s += fs.readFileSync("./help.md")
+        let a = s.length % 2000
+        let ranged = Array.from(Array(a).keys())
+        ranged.forEach(it => {
+            let ownage = s.slice(it * 2000, (it+1)*2000)
+            message.author.send(ownage).then(() => {message.react("✅")}, () => {message.react("❌")})
+        })
     },
     coin: { 
-        "run": async (message, args) => {
+        "run": async (message) => {
             let rand = Math.floor(Math.random() * 2)
             if (rand == 0) {
                 message.channel.send(":compass: Heads!")

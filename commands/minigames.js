@@ -67,6 +67,8 @@ let runDuel = async (host, participant, writeChannel, bet) => {
         }
         let loserProfile = await database.getUser(loser.id)
         if (loserProfile.money - bet >= 0) {
+            database.incrementDuelStats(winner.id, ["kills", "won", "total_games"], [1, bet, 1])
+            database.incrementDuelStats(loser.id, ["deaths", "lost", "total_games"], [1, bet, 1])
             database.incrementUser(winner.id, "money", bet)
             database.incrementUser(loser.id, "money", -bet)
             writeChannel.send(`${winner} WINS ${bet} :moneybag:`)
@@ -127,7 +129,7 @@ let commands = {
         },
         originalServer: true,
         aliases: ["duel"],
-        help: "[bet] [?user] - play a duel"
+        help: "[bet] <user> - play a duel"
     },
     "russianroulette": {
         "run": async (message, args, client) => {
@@ -152,10 +154,9 @@ let commands = {
                 message.channel.send(`**You joined this game of RR. (${myGame.participants.length}/${config.rrMaxPlayers} players)**`)
             }
         },
-
         originalServer: true,
         aliases: ["rr"],
-        help: "[?bet] - play russian roulette"
+        help: "<bet> - play russian roulette"
     }
 }
 

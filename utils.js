@@ -161,7 +161,7 @@ let parseSteamID = (input) => {
     return new Promise(async (resolve, reject) => {
         let parsed = input.match(/^(((http(s){0,1}:\/\/){0,1}(www\.){0,1})steamcommunity\.com\/(id|profiles)\/){0,1}(?<parsed>[A-Z0-9-_]+)(\/{0,1}.{0,})$/i);
         if (!parsed) {
-            reject(new Error("Failed to parse SteamID"));
+            reject("Failed to parse SteamID");
             return;
         }
 
@@ -171,6 +171,9 @@ let parseSteamID = (input) => {
             if (sid.isValid() && sid.instance === 1 && sid.type === 1 && sid.universe === 1) {
                 resolve(sid);
             }
+            //else {
+            //    reject("Failed to Parse SteamID")
+            //}
         } catch (e) { }
 
         // If all of this is true the above one resolved
@@ -178,6 +181,18 @@ let parseSteamID = (input) => {
             return;
         }
         let vanity = await api.getVanityUrl(parsed.groups.parsed)
+        if (vanity == undefined) {
+            reject("Failed to Parse SteamID")
+        }
+        else {
+            let tmpSid = new SteamID(vanity)
+            if (tmpSid.isValid()) {
+                resolve(tmpSid)
+            }
+            else {
+                reject("Failed to Parse SteamID")
+            }
+        }
         resolve(new SteamID(vanity))
     })
 }

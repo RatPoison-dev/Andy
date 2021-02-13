@@ -3,6 +3,7 @@ const utils = require("../utils")
 const discord = require("discord.js")
 const database = require("../database")
 
+// all inventory based commands
 let commands = {
     "shop": {
         "run": async (message, args) => {
@@ -28,7 +29,7 @@ let commands = {
             return embed
         },
         originalServer: true,
-        help: "[?page] - View available items"
+        help: "<page> - View available items"
     },
     "give": {
         "run": async (message, args, client) => {
@@ -66,6 +67,8 @@ let commands = {
     },
     "use": {
         "run": async (message, args, client) => {
+            let aP = await database.getUser(message.author.id)
+            if (aP.madness > 2) throw "Access denied!"
             let user = message.author
             let user_id = user.id
             let item = utils.searchItem(shop, args)
@@ -102,7 +105,7 @@ let commands = {
         },
         originalServer: true,
         aliases: ["inv"],
-        help: "[?user] - view inventory"
+        help: "<user> - view inventory"
     },
     "buy": {
         "run": async (message, args) => {
@@ -122,6 +125,43 @@ let commands = {
         },
         originalServer: true,
         help: "[count] [item] - Buy items for money"
+    },
+    "sell": {
+        "run": async (message, args, client) => {
+            let userID = message.author.id
+            let foundUser = await utils.searchUser(client, message, args)
+            if (foundUser == undefined) throw "User wasn't found!"
+            let foundUserID = foundUser.id
+            let amount = parseInt(args[1])
+            if (isNaN(amount) || amount <= 0) throw "Incorrect amount!"
+            let price = parseInt(args[2])
+            if (isNaN(price) || price < 0) throw "Incorrect sell price!"
+            let myItem = utils.searchItem(shop, args.slice(3))
+            if (myItem == undefined) throw "You don't have this item!"
+            let myInventoryItem = await database.fetchInventoryItem(userID, myItem.item_id)
+            if (myInventoryItem == undefined || myInventoryItem.count - amount < 0) throw "You don't have this item!"
+            let foundUserProfile = await database.getUser(foundUserID)
+            if (foundUserProfile.money - price < 0) throw "User doesn't have enough money!"
+            let m = await message.channel.send(`${foundUser}, do you accept the trade?`)
+            await m.react("✅")
+            await m.react("❌")
+            let rc = new discord.ReactionCollector(m, (r, u) => (u.id == foundUserID) && (r.emoji.name == "✅" || r.emoji.name == "❌"))
+            rc.on("collect", (reaction, user) => {
+                rc.stop()
+                switch (reaction.emoji.name) {
+                    case "✅": {
+                        database.addItem(userID, -amount, myItem.item_id)
+                        database.addItem(foundUserID, amount, myItem.item_id)
+                        message.channel.send("Transaction completed.")
+                    }
+                    case "❌": {
+                        m.edit("❌ Cancelled")
+                        m.reactions.removeAll()
+                    }
+                }
+            })
+        },
+        "help": "[user] [amount] [price] [item] - sell item to user"
     }
 }
 

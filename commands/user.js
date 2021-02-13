@@ -1,6 +1,7 @@
 const database = require("../database")
 const utils = require("../utils")
 const embeds = require("../embeds")
+const { MessageEmbed } = require("discord.js")
 
 let commands = {
     profile: {
@@ -12,7 +13,7 @@ let commands = {
                 message.channel.send(embed)
             }
         },
-        "help": "[?user] - get a profile",
+        "help": "<user> - get a profile",
         originalServer: true,
         aliases: ["p"]
     },
@@ -39,7 +40,7 @@ let commands = {
                 return embed
             }
         },
-        "help": "[type] [?page] - get top by type and page",
+        "help": "[type] <page> - get top by type and page",
         originalServer: true
     },
     pay: {
@@ -126,23 +127,53 @@ let commands = {
     },
     balance: {
         "run": async (message, args, client) => {
+            let aP = await database.getUser(message.author.id)
+            if (aP.madness > 2) throw "Access denied!"
             let foundUser = await utils.searchUser(client, message, args)
             if (foundUser == undefined) foundUser = message.author
             let p = await database.getUser(foundUser.id)
-            return {"result": `${foundUser} has ${p.money} :moneybag:`, "description": "Money"}
+            return {"result": `${foundUser} has ${p.money} :moneybag:`, "title": "Money"}
         },
         originalServer: true,
         aliases: ["money", "bal"]
     },
     cheese: {
         "run": async (message, args, client) => {
+            let aP = await database.getUser(message.author.id)
+            if (aP.madness > 2) throw "Access denied!"
             let foundUser = await utils.searchUser(client, message, args)
             if (foundUser == undefined) foundUser = message.author
             let p = await database.getUser(foundUser.id)
-            return {"result": `${foundUser} has ${p.cheese.toFixed(3)} :cheese:`, "description": "Cheese"}
+            return {"result": `${foundUser} has ${p.cheese.toFixed(3)} :cheese:`, "title": "Cheese"}
         },
         originalServer: true,
-    }
+    },
+    "duel-stats": {
+        "run": async (message, args, client) => {
+            let aP = await database.getUser(message.author.id)
+            if (aP.madness > 0) throw "Access denied!"
+            let foundUser = await utils.searchUser(client, message, args)
+            let display
+            foundUser != undefined ? display = foundUser.id : display = message.author.id
+            let stats = await database.getDuelStats(display)
+            let embed = new MessageEmbed().setAuthor(message.author.tag, message.author.displayAvatarURL()).setColor(embeds.colorsMap["yellow"]).setTimestamp(Date.now()).setDescription(`Duel stats of <@${display}>`)
+            let kpd
+            let e = stats.kills / stats.deaths
+            if (isNaN(e)) kpd = 0
+            else if (!isFinite(e)) kpd = 100
+            else kpd = e * 100
+            embed.addField("KPD", `${kpd}%`, true)
+            embed.addField("Kills", stats.kills, true)
+            embed.addField("Deaths", stats.deaths, true)
+            embed.addField("Total Games", stats.total_games)
+            embed.addField("Won", `${stats.won} :moneybag:`, true)
+            embed.addField("Lost", `${stats.lost} :moneybag:`, true)
+            return embed
+        },
+        originalServer: true,
+        help: "<user> - show duel stats"
+    },
+
 }
 
 module.exports = { commands }

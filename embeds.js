@@ -4,10 +4,12 @@ const utils = require("./utils")
 const config = require("./config.json")
 
 const colorsMap = {"red": 0xb02020, "green": 0x6b32a8, "yellow": 0xb6b83d}
-let constructResultEmbed = (err, author, color = "red", desc = ":x: Error") => {
+let constructResultEmbed = (err, author, color = "red", title = ":x: Error") => {
     color = colorsMap[color]
     err = err.replace(/\uFFFD/g, '').replace('\s\s\s\s', '\s').replace(/[\u{0080}-\u{FFFF}]/gu,"").slice(0, 1999)
-    return new discord.MessageEmbed().setTimestamp(Date.now()).setAuthor(author.tag, author.avatarURL({dynamic: true})).setTitle(desc).setDescription(err).setColor(color)
+    let embed = new discord.MessageEmbed().setTimestamp(Date.now()).setAuthor(author.tag, author.avatarURL({dynamic: true})).setDescription(err).setColor(color)
+    if (title != "") embed.setTitle(title)
+    return embed
 }
 
 
@@ -200,4 +202,4 @@ let constructBannedEmbed = async (player, type, client) => {
     return embed
 }
 
-module.exports = {constructBannedEmbed, constructTop, constructDailyembed, constructMinusRepEmbed, constructRepEmbed, constructCanRepEmbed, constructUserProfile, constructResultEmbed}
+module.exports = {constructBannedEmbed, constructTop, constructDailyembed, constructMinusRepEmbed, constructRepEmbed, constructCanRepEmbed, constructUserProfile, constructResultEmbed, colorsMap}
