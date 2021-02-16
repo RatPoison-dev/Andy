@@ -102,7 +102,7 @@ let commands = {
             floppa(message, args, client, 1)
         },
         originalServer: true,
-        permissions: "MANAGE_ROLES",
+        roles: ["Admin", "Booters"],
         help: "[user] - put user in gateway"
     },
     free: {
@@ -110,7 +110,7 @@ let commands = {
             floppa(message, args, client, 0)
         },
         originalServer: true,
-        permissions: "MANAGE_ROLES",
+        roles: ["Admin", "Booters"],
         help: "[user] - free user from gateway"
     }
 }

@@ -37,7 +37,7 @@ let commands = {
             let foundUser = await utils.searchUser(client, message, args)
             if (foundUser == undefined) throw "User wasn't found!"
             let parsed = parseInt(args[1])
-            if (isNaN(parsed)) throw "Incorrect amount!"
+            if (Number.isNaN(parsed)) throw "Incorrect amount!"
             database.updateUser(foundUser.id, "madness", parsed)
             message.channel.send("Madness was set successfully!")
         },
@@ -49,7 +49,7 @@ let commands = {
             if (foundUser == undefined) {message.channel.send("Invalid user!"); return}
             if (foundUser == undefined) throw "User wasn't found!"
             let parsed = parseInt(args[1])
-            if (isNaN(parsed)) throw "Incorrect amount!"
+            if (Number.isNaN(parsed)) throw "Incorrect amount!"
             database.updateUser(foundUser.id, "money", parsed)
             message.channel.send("Money was set successfully!")
         },
@@ -60,7 +60,7 @@ let commands = {
             let foundUser = await utils.searchUser(client, message, args)
             if (foundUser == undefined) throw "User wasn't found!"
             let parsed = parseInt(args[1])
-            if (isNaN(parsed)) throw "Incorrect amount!"
+            if (Number.isNaN(parsed)) throw "Incorrect amount!"
             database.updateUser(foundUser.id, "rep", parsed)
             message.channel.send("Reputation was set successfully!")
         },
@@ -93,7 +93,7 @@ let commands = {
             let foundUser = await utils.searchUser(client, message, args)
             if (foundUser == undefined) throw "User wasn't found!"
             let parsed = parseInt(args[1])
-            if (isNaN(parsed)) throw "Incorrect amount!"
+            if (Number.isNaN(parsed)) throw "Incorrect amount!"
             database.incrementUser(foundUser.id, "rep", parsed)
             message.channel.send("Reputation was successfully added!")
         },
@@ -113,7 +113,7 @@ let commands = {
             let foundUser = await utils.searchUser(client, message, args)
             if (foundUser == undefined) throw "User wasn't found!"
             let parsed = parseInt(args[1])
-            if (isNaN(parsed)) throw "Incorrect amount!"
+            if (Number.isNaN(parsed)) throw "Incorrect amount!"
             database.incrementUser(foundUser.id, "money", parsed)
             message.channel.send("Money was successfully added!")
         },
@@ -125,7 +125,7 @@ let commands = {
             let foundUser = await utils.searchUser(client, message, args)
             if (foundUser == undefined) throw "User wasn't found!"
             let parsed = parseInt(args[1])
-            if (isNaN(parsed)) throw "Incorrect amount!"
+            if (Number.isNaN(parsed)) throw "Incorrect amount!"
             database.incrementUser(foundUser.id, "cheese", parsed)
             message.channel.send("Cheese was successfully added!")
         },
@@ -136,7 +136,7 @@ let commands = {
             let foundUser = await utils.searchUser(client, message, args)
             if (foundUser == undefined) throw "User wasn't found!"
             let parsed = parseInt(args[1])
-            if (isNaN(parsed)) throw "Incorrect amount!"
+            if (Number.isNaN(parsed)) throw "Incorrect amount!"
             database.updateUser(foundUser.id, "cheese", parsed)
             message.channel.send("Cheese was set successfully!")
         },
@@ -155,7 +155,7 @@ let commands = {
                 else {
                     id = row.user_id
                 }
-                channel.send(`Message from user: ${id}\nMessage content: ${row.message_content}\n${row.attachments.replace(",", "\n")}`)
+                channel.send(`Message from user: ${id}\nMessage content: ${row.message_content}\n${row.attachments.replace(/\,/g, '\n')}`)
             })
         },
         owner: true,

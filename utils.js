@@ -20,6 +20,18 @@ let attrGetter = (obj, attr, def) => {
     return def
 }
 
+let chunkMessage = (s) => {
+    //todo embed autocomplete
+    let chunked = []
+    let needChunk = Math.floor(s.length / 2000) + 1
+    let myRange = Array.from(Array(needChunk).keys())
+    myRange.forEach( it => {
+        let myMessage = s.slice(it * 2000, (it+1)*2000)
+        chunked.push(myMessage)
+    } )
+    return chunked
+}
+
 class Dictionary { //str8 up
     constructor(words) {
         this.words = words;
@@ -205,4 +217,4 @@ let clamp = (min, max, value) => {
     return value
 }
 
-module.exports = {parseSteamID, convertMS, searchUser, str2list, list2str, getRandomElem, serialize, deserialize, list2str2, chunkArray, clamp, searchItem, attrGetter, Dictionary}
+module.exports = {parseSteamID, convertMS, searchUser, str2list, list2str, getRandomElem, serialize, deserialize, list2str2, chunkArray, clamp, searchItem, attrGetter, Dictionary, chunkMessage}

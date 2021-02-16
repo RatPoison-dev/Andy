@@ -11,14 +11,14 @@ let commands = {
             args[0] == undefined || !/^\d+$/.test(args[0]) || parseInt(args[0]) < 1 ? page = 1 : page = parseInt(args[0])
             page -= 1
             let lShop = shop.filter(it => it.display)
-            page = utils.clamp(0, Math.ceil(lShop.length / 10)-1, page)
+            page = utils.clamp(0, Math.floor(lShop.length / 10)-1, page)
             let user = message.author
             let profile = await database.getUser(user.id)
             let server = await database.fetchServer()
             let serverInfo = await database.getGuildInfo(server.guild_id)
             let prefix = serverInfo.prefix
             let embed = new discord.MessageEmbed().setTitle("Shop").setColor(0xb6b83d).setTimestamp(new Date().getTime()).setAuthor(user.tag, user.avatarURL({dynamic: true}))
-            embed.setDescription(`Available items. Use \`\`${prefix}buy [count] [item]\`\` to buy and \`\`${prefix}use [item]\`\` to use.\nYour balance: \`\`${Math.ceil(profile.money)}\`\``)
+            embed.setDescription(`Available items. Use \`\`${prefix}buy [count] [item]\`\` to buy and \`\`${prefix}use [item]\`\` to use.\nYour balance: \`\`${profile.money}\`\``)
             embed.setFooter(`Page ${page + 1}`)
             let items = utils.chunkArray(lShop, 10)[page]
             items.forEach( shopItem => {
@@ -34,7 +34,7 @@ let commands = {
     "give": {
         "run": async (message, args, client) => {
             let foundUser = await utils.searchUser(client, message, args)
-            if (foundUser == undefined && foundUser.id !== message.author.id) { message.channel.send("User wasn't found!"); return}
+            if (foundUser == undefined || foundUser.id == message.author.id) { message.channel.send("User wasn't found!"); return}
             let user = message.author
             let user_id = user.id
             let item = utils.searchItem(shop, args)
@@ -85,13 +85,13 @@ let commands = {
     "inventory": {
         "run": async (message, args, client) => {
             let user = await utils.searchUser(client, message, args)
-            user == undefined ? user = message.author : user = user
+            user = user || message.author
             let userID = user.id
             let page
             args[0] == undefined || !/^\d+$/.test(args[0]) || parseInt(args[0]) < 1 ? page = 1 : page = parseInt(args[0])
             let thisInventory = (await database.fetchInventory(userID)).filter(it => it.count > 0)
             page -= 1
-            page = utils.clamp(0, Math.ceil(thisInventory.length / 10), page)
+            page = utils.clamp(0, Math.floor(thisInventory.length / 10), page)
             let embed = new discord.MessageEmbed().setTitle("Inventory").setColor(0xb6b83d).setTimestamp(new Date().getTime()).setAuthor(user.tag, user.avatarURL({dynamic: true}))
             let s = ""
             embed.setFooter(`Page ${page + 1}`)
@@ -133,9 +133,9 @@ let commands = {
             if (foundUser == undefined) throw "User wasn't found!"
             let foundUserID = foundUser.id
             let amount = parseInt(args[1])
-            if (isNaN(amount) || amount <= 0) throw "Incorrect amount!"
+            if (Number.isNaN(amount) || amount <= 0) throw "Incorrect amount!"
             let price = parseInt(args[2])
-            if (isNaN(price) || price < 0) throw "Incorrect sell price!"
+            if (Number.isNaN(price) || price < 0) throw "Incorrect sell price!"
             let myItem = utils.searchItem(shop, args.slice(3))
             if (myItem == undefined) throw "You don't have this item!"
             let myInventoryItem = await database.fetchInventoryItem(userID, myItem.item_id)

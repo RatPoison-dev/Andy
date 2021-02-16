@@ -28,13 +28,17 @@ let _runCommand = (command, ...args) => {
 }
 
 let canRunCommand = (key, message, curServer) => {
-    let isOwner = config["owner_ids"].includes(message.author.id)
+    let userID = message.author.id
+    let member = message.guild.members.cache.get(userID)
+    let isOwner = config["owner_ids"].includes(userID)
     let ownerCheck = (key.owner == true && isOwner) || !key.owner
-    let serverCheck = (key.originalServer && message.guild.id == curServer.guild_id) || !key.originalServer
+    let runningFromOriginalServer = message.guild.id == curServer.guild_id
+    let serverCheck = (key.originalServer && runningFromOriginalServer) || !key.originalServer
+    let rolesCheck = (runningFromOriginalServer && typeof key.roles == "object" && member.roles.cache.some(it => key.roles.includes(it.name))) || !key.roles
     let permissionsCheck = message.member.permissions.has(key.permissions)
     let disabledCheck = !key.disabled
     if (isOwner) return true
-    return ownerCheck && serverCheck && permissionsCheck && disabledCheck
+    return ownerCheck && serverCheck && permissionsCheck && disabledCheck && rolesCheck
 }
 
 let fixCommand = (command) => {

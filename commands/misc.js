@@ -1,6 +1,7 @@
 const database = require("../database")
 const engine = require("../engine")
 const fs = require("fs")
+const utils = require("../utils")
 
 let addCategory = (categories, category, item) => {
     if (categories[category] == undefined) categories[category] = [item]
@@ -8,6 +9,30 @@ let addCategory = (categories, category, item) => {
 }
 
 let commands = {
+    rules: {
+        "run": (message, args) => {
+            let myRules = fs.readFileSync("./info/rules.md", "utf-8").split("\n")
+            let rule = parseInt(args[0])
+            let final = ""
+            if (Number.isNaN(rule) || myRules.length < rule || rule < 0) {
+                let argsJoin = args.join(" ")
+                if (!argsJoin) { final = myRules.join("\n")}
+                else {
+                    myRules.forEach(it => {
+                        if (final == "" && it.includes(argsJoin)) {final = it; return}
+                    })
+                }
+            }
+            else {
+                final = myRules[ rule - 1]
+            }
+            final = final || myRules.join("\n")
+            message.channel.send(final)
+        },
+        originalServer: true,
+        aliases: ["rule"]
+    },
+
     help: async (message) => {
         let thisGuild = message.guild
         let info = await database.getGuildInfo(thisGuild.id)
@@ -22,7 +47,6 @@ let commands = {
                 if (engine.canRunCommand(key, message, curServer)) {
                     let tmpS = `${command} ${commands[command].help}` 
                     let descArr = []
-                    if (key.permissions !== undefined) descArr.push(`permissions: ${key.permissions}`)
                     if (key.originalServer == true) descArr.push("RatPoison Server only")
                     if (key.aliases !== undefined) descArr.push(`aliases: ${key.aliases.join(",")}`)
                     let tmpJoin = descArr.join("; ")
@@ -38,13 +62,10 @@ let commands = {
             categories[myCategory].forEach(it => s += `${it}\n`)
             s += "\n"
         })
-        s += fs.readFileSync("./help.md")
-        let a = s.length % 2000
-        let ranged = Array.from(Array(a).keys())
-        ranged.forEach(it => {
-            let ownage = s.slice(it * 2000, (it+1)*2000)
-            message.author.send(ownage).then(() => {message.react("✅")}, () => {message.react("❌")})
-        })
+        // ok thx for the info
+        s += fs.readFileSync("./info/help.md", "utf-8")
+        Promise.all(utils.chunkMessage(s).map(it => message.author.send(it))).then(() => {message.react("✅")}, () => {message.react("❌")})
+        
     },
     coin: { 
         "run": async (message) => {

@@ -135,7 +135,7 @@ let commands = {
             return {"result": `${foundUser} has ${p.money} :moneybag:`, "title": "Money"}
         },
         originalServer: true,
-        aliases: ["money", "bal"]
+        aliases: ["money", "bal", "m"]
     },
     cheese: {
         "run": async (message, args, client) => {
@@ -159,7 +159,7 @@ let commands = {
             let embed = new MessageEmbed().setAuthor(message.author.tag, message.author.displayAvatarURL()).setColor(embeds.colorsMap["yellow"]).setTimestamp(Date.now()).setDescription(`Duel stats of <@${display}>`)
             let kpd
             let e = stats.kills / stats.deaths
-            if (isNaN(e)) kpd = 0
+            if (Number.isNaN(e)) kpd = 0
             else if (!isFinite(e)) kpd = 100
             else kpd = e * 100
             embed.addField("KPD", `${kpd}%`, true)

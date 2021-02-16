@@ -188,7 +188,7 @@ let getUser = (user_id) => new Promise((resolve, reject) => {
     initProfile(user_id)
     db.all("select * from users where user_id = ?", [user_id], (err, rows) => {
         if (rows[0] !== undefined) {
-            rows[0].money = Math.ceil(rows[0].money)
+            rows[0].money = Math.floor(rows[0].money)
         }
         resolve(rows[0])
     })
