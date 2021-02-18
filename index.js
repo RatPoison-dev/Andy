@@ -339,6 +339,7 @@ client.on("guildCreate", (guild) => {
 client.on("message", async (message) => {
     if (message.author.bot) return
     let messageContent = message.content
+    if (message.channel.type == "dm") return
     let info = await database.getGuildInfo(message.guild.id)
     let server = await database.fetchServer()
     let prefix = info.prefix

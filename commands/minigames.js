@@ -15,6 +15,7 @@ class rrGame {
         this.lastShootTime = 0
         this.lastParticipantIndex = 0
         this.canJoin = true
+        this.startTime = 0
         rrGame.rrGames.push(this)
     }
 
@@ -174,8 +175,9 @@ let checkRrGames = async () => {
             if ((thisTime - game.lastShootTime) < 5000) return
             game.canJoin = false
             let thisPlayer = game.participants[game.lastParticipantIndex]
+            !game.startTime ? game.startTime = Date.now() : game.startTime = game.startTime
             let chance = Math.random()
-            if (chance < (1/config.rrMaxPlayers)) {
+            if (chance < (1/config.rrMaxPlayers) || (Date.now() - game.startTime > 60000)) {
                 let loserProfile = await database.getUser(thisPlayer)
                 if (loserProfile.money - game.bet > 0) {
                     game.channel.send(`<@${thisPlayer}> **died! Everyone else wins ${(game.bet/(game.participants.length-1)).toFixed(3)} :moneybag:**`)

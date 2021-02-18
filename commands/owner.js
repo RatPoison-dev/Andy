@@ -7,7 +7,7 @@ const exec = require('child_process').exec
 let commands = {
     eval: {
         "run": (message, args, client) => {
-            resolve(eval(args.join(" ")).toString())
+            return eval(args.join(" ")).toString()
         },
         "owner": true
     },

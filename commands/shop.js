@@ -11,7 +11,7 @@ let commands = {
             args[0] == undefined || !/^\d+$/.test(args[0]) || parseInt(args[0]) < 1 ? page = 1 : page = parseInt(args[0])
             page -= 1
             let lShop = shop.filter(it => it.display)
-            page = utils.clamp(0, Math.floor(lShop.length / 10)-1, page)
+            page = utils.clamp(0, Math.ceil(lShop.length / 10)-1, page)
             let user = message.author
             let profile = await database.getUser(user.id)
             let server = await database.fetchServer()
