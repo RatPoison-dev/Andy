@@ -13,7 +13,7 @@ db.run("create table if not exists saved_messages (user_id TEXT, attachments TEX
 db.run("create table if not exists server (guild_id TEXT NOT NULL UNIQUE, banList TEXT default \"[]\", roles TEXT default \"{}\", backupProcess BOOL default false, gateway BOOL default true, wipeTimestamp int default 0, PRIMARY KEY(guild_id))")
 db.run("create table if not exists gateway (user_id TEXT NOT NULL UNIQUE, tries INT default 0, answers text default \"[]\")")
 db.run("create table if not exists inventory (user_id text, count int, item_id int)")
-db.run("create table if not exists duel_stats (user_id text not null unique, kills int default 0, deaths int default 0, won int default 0, lost int default 0, total_games int default 0)")
+db.run("create table if not exists minigames_stats (user_id text not null unique, duels_won_games int default 0, duels_lost_games int default 0, duels_won int default 0, duels_lost int default 0, rr_won_games int default 0, rr_won int default 0, rr_lost int default 0, rr_lost_games int default 0, pot_won_games int default 0, pot_lost_games int default 0, pot_won int default 0, pot_lost int default 0)")
 
 let getGuildInfo = (guild_id) => new Promise((resolve, reject) => {
     initGuild(guild_id)
@@ -110,7 +110,7 @@ let resetRep = async (user) => {
     // bruh
     let profile = await getUser(user.id)
     if (Date.now() - profile.repTimestamp > 79200000) {
-        updateUser(user.id, "repToday", "")
+        updateUser(user.id, "repToday", "", "Reset rep")
         profile.repToday = ""
     }
     return profile
@@ -126,7 +126,8 @@ let getSaved = () => new Promise((resolve, reject) => {
     } )
 })
 
-let updateUser = (user_id, columns, values) => {
+let updateUser = (user_id, columns, values, reason = "Internal call", log = true) => {
+    if (log) console.log(`[UpdateUser] User_id: ${user_id}; Columns: ${columns}; Values: ${values}; Reason: ${reason}`)
     initProfile(user_id)
     if (typeof columns == "object") {
         columns.forEach((column, index) => {
@@ -149,32 +150,35 @@ let updateServer = (guild_id, columns, values) => {
     }
 }
 
-let incrementUser = async (user_id, columns, values) => {
+let incrementUser = async (user_id, columns, values, reason = "Internal call", log = true) => {
+    if (log) console.log(`[IncrementUser] User_id: ${user_id}; Columns: ${columns}; Values: ${values}; Reason: ${reason}`)
     let prev = await getUser(user_id)
     if (typeof columns == "object") {
         columns.forEach((column, index) => {
-            updateUser(user_id, column, prev[column]+values[index])
+            if (Number.isNaN(prev[column]+values[index])) throw `Illegal operation occured! User ID: ${user_id}; Columns: ${JSON.stringify(columns)}; Values ${JSON.stringify(values)}`
+            updateUser(user_id, column, prev[column]+values[index], "", log = false)
         })
     }
     else {
-        updateUser(user_id, columns, prev[columns]+values)
+        if (isNaN(prev[columns]+values)) throw `Illegal operation occured! User ID: ${user_id}; Columns: ${JSON.stringify(columns)}; Values ${JSON.stringify(values)}`
+        updateUser(user_id, columns, prev[columns]+values, "", log = false)
     }
 }
 
-let getDuelStats = async (user_id) => { 
-    db.run("insert or ignore into duel_stats (user_id) values (?)", [user_id])
-    return (await get("select * from duel_stats where user_id = ?", [user_id]))[0]
+let getMinigamesStats = async (user_id) => { 
+    db.run("insert or ignore into minigames_stats (user_id) values (?)", [user_id])
+    return (await get("select * from minigames_stats where user_id = ?", [user_id]))[0]
 }
 
-let incrementDuelStats = async (user_id, columns, values) => {
-    let prev = await getDuelStats(user_id)
+let incrementMinigamesStats = async (user_id, columns, values) => {
+    let prev = await getMinigamesStats(user_id)
     if (typeof columns == "object") {
         columns.forEach((column, index) => {
-            db.run(`update duel_stats set ${column} = ? where user_id = ?`, [prev[column]+values[index], user_id])
+            db.run(`update minigames_stats set ${column} = ? where user_id = ?`, [prev[column]+values[index], user_id])
         })
     }
     else {
-        db.run(`update duel_stats set ${columns} = ? where user_id = ?`, [prev[columns]+values, user_id])
+        db.run(`update minigames_stats set ${columns} = ? where user_id = ?`, [prev[columns]+values, user_id])
     }
 }
 
@@ -228,4 +232,4 @@ let deleteBancheckerAccount = (sid) => {
 }
 
 
-module.exports = {getGuildInfo, initGuild, addBancheckerAccount, getBancheckerAccounts, getBancheckerAccountsByUser, incrementUser, makeSaved, getSaved, deleteBancheckerAccount, getTopIndex, updateBannedChannel, updatePrefix, updateUser, getUser, getTopByPage, getUserMaxReps, resetRep, query, select, fetchServer, updateServer, migrateActions, gatewayCreateRow, getGateway, deleteGatewayInfo, increaseGatewayTries, gatewaySwitchState, get, run, fetchInventory, fetchInventoryItem, addItem, getDuelStats, incrementDuelStats}
+module.exports = {getGuildInfo, initGuild, addBancheckerAccount, getBancheckerAccounts, getBancheckerAccountsByUser, incrementUser, makeSaved, getSaved, deleteBancheckerAccount, getTopIndex, updateBannedChannel, updatePrefix, updateUser, getUser, getTopByPage, getUserMaxReps, resetRep, query, select, fetchServer, updateServer, migrateActions, gatewayCreateRow, getGateway, deleteGatewayInfo, increaseGatewayTries, gatewaySwitchState, get, run, fetchInventory, fetchInventoryItem, addItem, getMinigamesStats, incrementMinigamesStats}

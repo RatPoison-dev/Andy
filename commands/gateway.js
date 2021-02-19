@@ -2,13 +2,13 @@ const utils = require("../utils")
 const database = require("../database")
 const iq_test = require("../iq_test.json")
 const config = require("../config.json")
+const engine = require("../engine")
 
 let floppa = async (message, args, client, state) => {
     let foundUser = await utils.searchUser(client, message, args)
     let userID = foundUser.id
     if (foundUser == undefined) {
-        message.channel.send("User not found!")
-        return
+        throw "User wasn't found!"
     }
     let ratsRole = message.guild.roles.cache.find(it => it.name == "Rats")
     let notPassedRole = message.guild.roles.cache.find(it => it.name == "gateway-not-passed")
@@ -92,6 +92,7 @@ let commands = {
                 bingus += `Question: ${question}\nPossible answers:\n${allKeys.join("\n")}\nUser's answer: ${answers[idx]}\nCorrect: ${correctKeys.includes(answers[idx])}\n\n`
                 
             })
+            bingus = bingus || "No information found!"
             message.channel.send(bingus)
         },
         permissions: "ADMINISTRATOR",
@@ -99,6 +100,8 @@ let commands = {
     },
     punish: {
         "run": async (message, args, client) => {
+            let foundUser = await utils.searchUser(client, message, args)
+            if (foundUser && engine.canRunCommand(engine.commands.punish, message, foundUser.id)) throw "Access denied!"
             floppa(message, args, client, 1)
         },
         originalServer: true,

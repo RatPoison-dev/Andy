@@ -10,7 +10,6 @@ module.exports = class BanChecker {
         this.client = client
     }
     async checkBans () {
-        console.log("[BanChecker] Checking for bans")
         let accounts = await database.getBancheckerAccounts()
         let realAccounts = utils.chunkArray(accounts, 100)
         realAccounts.forEach( async accountList => {

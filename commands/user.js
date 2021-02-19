@@ -150,30 +150,25 @@ let commands = {
     },
     "duel-stats": {
         "run": async (message, args, client) => {
-            let aP = await database.getUser(message.author.id)
-            if (aP.madness > 0) throw "Access denied!"
-            let foundUser = await utils.searchUser(client, message, args)
-            let display
-            foundUser != undefined ? display = foundUser.id : display = message.author.id
-            let stats = await database.getDuelStats(display)
-            let embed = new MessageEmbed().setAuthor(message.author.tag, message.author.displayAvatarURL()).setColor(embeds.colorsMap["yellow"]).setTimestamp(Date.now()).setDescription(`Duel stats of <@${display}>`)
-            let kpd
-            let e = stats.kills / stats.deaths
-            if (Number.isNaN(e)) kpd = 0
-            else if (!isFinite(e)) kpd = 100
-            else kpd = e * 100
-            embed.addField("KPD", `${kpd}%`, true)
-            embed.addField("Kills", stats.kills, true)
-            embed.addField("Deaths", stats.deaths, true)
-            embed.addField("Total Games", stats.total_games)
-            embed.addField("Won", `${stats.won} :moneybag:`, true)
-            embed.addField("Lost", `${stats.lost} :moneybag:`, true)
-            return embed
+            return (await embeds.constructStatsBy("duels", client, message, args))
         },
         originalServer: true,
         help: "<user> - show duel stats"
     },
-
+    "rr-stats": {
+        "run": async (message, args, client) => {
+            return (await embeds.constructStatsBy("rr", client, message, args))
+        },
+        originalServer: true,
+        help: "<user> - show RR stats"
+    },
+    "pot-stats": {
+        "run": async (message, args, client) => {
+            return (await embeds.constructStatsBy("pot", client, message, args))
+        },
+        originalServer: true,
+        help: "<user> - show pot stats"
+    }
 }
 
 module.exports = { commands }

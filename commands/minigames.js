@@ -3,18 +3,41 @@ const database = require("../database")
 const utils = require("../utils")
 const config = require("../config.json")
 
+class potGame {
+    static potGames = []
+
+    constructor(channel) {
+        this.participants = {}
+        this.dead = []
+        this.channel = channel
+        this.collectTime = Date.now()
+        this.lastShootTime = 0
+        potGame.potGames.push(this)
+    }
+
+    del() {
+        potGame.potGames = potGame.potGames.filter(it => it != this)
+    }
+    
+    calcTotal() {
+        return Object.values(this.participants).reduce((a, b) => a + b)
+    }
+
+    static byChannel (channel) {
+        return potGame.potGames.find(it => it.channel.id == channel.id)
+    }
+}
+
 class rrGame {
     static rrGames = []
 
-    constructor (participants, collectTime, channel, bet) {
+    constructor (participants, channel, bet) {
         this.participants = participants
-        this.collectTime = collectTime
+        this.collectTime = Date.now()
         this.channel = channel
         this.bet = bet
-        this.sent = false
         this.lastShootTime = 0
         this.lastParticipantIndex = 0
-        this.canJoin = true
         this.startTime = 0
         rrGame.rrGames.push(this)
     }
@@ -32,10 +55,11 @@ class rrGame {
     }
 }
 
-let canRunDuel = async (user, bet, checkBet = true) => {
+let canRunGame = async (user, bet, checkBet = true) => {
     let profile = await database.getUser(user.id)
     if (profile.madness > 0) return `${user} has madness!`
-    if (checkBet && (!/^\d+$/.test(bet) || parseInt(bet) <= 0)) return "Incorrect bet!"
+    let parsed = parseInt(bet)
+    if (checkBet && (isNaN(parsed) || parsed <= 0)) return "Incorrect bet!"
     if (profile.money - bet <= 0) return `${user} doesn't have enough money!`
     return true
 }
@@ -43,9 +67,9 @@ let canRunDuel = async (user, bet, checkBet = true) => {
 let runDuel = async (host, participant, writeChannel, bet) => {
     let hostID = host.id
     let participantID = participant.id
-    let hostCanRun = await canRunDuel(host, bet)
+    let hostCanRun = await canRunGame(host, bet)
     if (hostCanRun != true) {writeChannel.send(hostCanRun); return}
-    let participantCanRun = await canRunDuel(participant, bet)
+    let participantCanRun = await canRunGame(participant, bet)
     if (participantCanRun != true) {writeChannel.send(participantCanRun); return}
     //let hostProfile = await database.getUser(hostID)
     //let participantProfile = await database.getUser(participantID)
@@ -68,10 +92,10 @@ let runDuel = async (host, participant, writeChannel, bet) => {
         }
         let loserProfile = await database.getUser(loser.id)
         if (loserProfile.money - bet >= 0) {
-            database.incrementDuelStats(winner.id, ["kills", "won", "total_games"], [1, bet, 1])
-            database.incrementDuelStats(loser.id, ["deaths", "lost", "total_games"], [1, bet, 1])
-            database.incrementUser(winner.id, "money", bet)
-            database.incrementUser(loser.id, "money", -bet)
+            database.incrementMinigamesStats(winner.id, ["duels_won_games", "duels_won"], [1, bet])
+            database.incrementMinigamesStats(loser.id, ["duels_lost_games", "duels_lost"], [1, bet])
+            database.incrementUser(winner.id, "money", bet, "Won a duel")
+            database.incrementUser(loser.id, "money", -bet, "Lost a duel")
             writeChannel.send(`${winner} WINS ${bet} :moneybag:`)
             return
         }
@@ -89,10 +113,9 @@ let commands = {
             let foundUser = await utils.searchUser(client, message, args)
             let bet = args[0]
             let writeChannel = message.channel
-            let canRun = await canRunDuel(host, bet)
+            let canRun = await canRunGame(host, bet)
             if (canRun != true) {writeChannel.send(canRun); return}
-
-            if (foundUser == undefined) {
+            if (!foundUser) {
                 let runningDuel = false
                 let msg = await writeChannel.send(`${host} Search some opponents for duel. Click to join`)
                 msg.react("✅")
@@ -130,6 +153,7 @@ let commands = {
         },
         originalServer: true,
         aliases: ["duel"],
+        //allowedChannels: ["bot-commands"],
         help: "[bet] <user> - play a duel"
     },
     "russianroulette": {
@@ -138,59 +162,144 @@ let commands = {
             let userID = message.author.id
             let bet = args[0]
             let myGame = rrGame.byChannel(channel)
-            if (myGame == undefined) {
-                let canRun = await canRunDuel(message.author, bet)
+            if (!myGame) {
                 let myPrefix = (await database.getGuildInfo(message.guild.id)).prefix
-                if (canRun != true) { channel.send(canRun); return}
+                let canRun = await canRunGame(message.author, bet, true)
+                if (canRun != true) throw canRun
+                bet = parseInt(bet)
+                if (!canRun) { message.channel.send(canRun); return}
+                database.incrementUser(userID, "money", -bet, "Initial start RR bet")
                 message.channel.send(`**Game of RR starts in 45 seconds. Bet: ${bet} :moneybag:. Type ${myPrefix}rr to join.**`)
-                new rrGame([userID], (new Date()).getTime(), channel, bet)
+                setTimeout(() => {
+                    let game = rrGame.byChannel(channel)
+                    message.channel.send(`**Game of RR starts in less than 15 seconds! Bet: ${game.bet} :moneybag:. Use ${myPrefix}rr to join. (${game.participants.length}/${config.rrMaxPlayers} players)**`)
+                }, 30000)
+                new rrGame([userID], channel, bet)
             }
             else {
-                let canRun = await canRunDuel(message.author, myGame.bet, false)
-                if (canRun != true) { message.channel.send(canRun); return}
                 if (myGame.participants.length + 1 > config.rrMaxPlayers) { channel.send("**Game is full! Wait for it to end.**"); return }
                 if (myGame.participants.includes(userID)) { channel.send("**You are already taking part in this RR!**"); return }
-                if (!myGame.canJoin) { channel.send("Game is already in progress."); return }
+                if (Date.now() - myGame.collectTime >= 45000) { channel.send("**Game is already in progress.**"); return }
+                let canRun = await canRunGame(message.author, myGame.bet, true)
+                if (!canRun) { message.channel.send(canRun); return}
                 myGame.addParticipant(userID)
+                database.incrementUser(userID, "money", -myGame.bet, "Joined RR")
                 message.channel.send(`**You joined this game of RR. (${myGame.participants.length}/${config.rrMaxPlayers} players)**`)
             }
         },
         originalServer: true,
         aliases: ["rr"],
-        help: "<bet> - play russian roulette"
+        //allowedChannels: ["bot-commands"],
+        help: "<bet> - play russian roulette",
+    },
+    //cant wait to see people lose all their money
+    "pot": {
+        "run": async (message, args, client) => {
+            let channel = message.channel
+            let userID = message.author.id
+            let myGame = potGame.byChannel(channel)
+            let bet = args[0]
+            let canRun = await canRunGame(message.author, bet, true)
+            bet = parseInt(bet)
+            if (canRun != true) throw canRun
+            if (!myGame) {
+                let myPrefix = (await database.getGuildInfo(message.guild.id)).prefix
+                let myGame = new potGame(channel)
+                myGame.participants[userID] = bet
+                database.incrementUser(userID, "money", -bet, "Initial start pot bet")
+                setTimeout(() => channel.send(`**Pot game starts in 1.5 minutes. Type ${myPrefix}pot to join. Total money: ${Math.floor(potGame.byChannel(channel).calcTotal())} :moneybag:**`), 30000)
+                setTimeout(() => channel.send(`**Pot game starts in 1 minute. Type ${myPrefix}pot to join. Total money: ${Math.floor(potGame.byChannel(channel).calcTotal())} :moneybag:**`), 60000)
+                setTimeout(() => channel.send(`**Pot game starts in 30 seconds. Type ${myPrefix}pot to join. Total money: ${Math.floor(potGame.byChannel(channel).calcTotal())} :moneybag:**`), 90000)
+                channel.send(`**Pot game starts in 2 minutes. Type ${myPrefix}pot to join.**`)
+            }
+            else {
+                if (Date.now() - myGame.collectTime >= 120000) { channel.send("**Game is already in progress.**"); return}
+                database.incrementUser(userID, "money", -bet, "Add money to pot")
+                if (!myGame.participants[userID]) myGame.participants[userID] = bet
+                else myGame.participants[userID] += bet
+                let total = Math.floor(myGame.calcTotal())
+                message.channel.send(`**You added ${bet} :moneybag: to the pot. Total money in pot: ${total}. Your chance of winning: ${Math.floor(myGame.participants[userID]/total * 100)}%**`)
+            }
+        },
+        originalServer: true,
+        //allowedChannels: ["bot-commands"]
     }
 }
 
-let checkRrGames = async () => {
+let runMiniGames = async () => {
+    potGame.potGames.forEach( async (game) => {
+        let thisTime = Date.now()
+        if (thisTime - game.collectTime >= 120000) {
+            let myPKeys = Object.keys(game.participants)
+            if (myPKeys.length == 1) {
+                game.channel.send("**Not enough players to start pot game!**") 
+                myPKeys.forEach(it => database.incrementUser(it, "money", game.participants[it], "Pot game rejected"))
+                game.del()
+                return
+            }
+            if (Date.now() - game.lastShootTime < 5000) return
+            let chosen
+            let reduced = {}
+            myPKeys.forEach(it => {
+                if (!game.dead.includes(it)) {
+                    reduced[it] = game.participants[it]
+                }
+            })
+            let myTotal = game.calcTotal()
+            while (!chosen) {
+                let chance = Math.random()
+                let myKeys = Object.keys(reduced)
+                let randomP = myKeys[Math.floor(Math.random() * myKeys.length)]
+                let myChance = reduced[randomP] / myTotal
+                if (chance > myChance) {
+                    chosen = randomP
+                }
+            }
+            game.dead.push(chosen)
+
+            if (myPKeys.length == game.dead.length + 1) {
+                let winner = myPKeys.find(it => !game.dead.includes(it))
+                database.incrementUser(winner, "money", myTotal, "Won the pot")
+                database.incrementMinigamesStats(winner, ["pot_won_games", "pot_won"], [1, myTotal - game.participants[winner]])
+                game.channel.send(`<@${chosen}> **died and lost ${game.participants[chosen]}!** <@${winner}> **wins ${myTotal} :moneybag:**`)
+                game.del()
+            }
+            else {
+                game.channel.send(`<@${chosen}> **died and lost ${game.participants[chosen]}!**`)
+                game.lastShootTime = Date.now()
+            }
+            database.incrementMinigamesStats(chosen, ["pot_lost_games", "pot_lost"], [1, game.participants[chosen]])
+        }
+    })
+
     rrGame.rrGames.forEach( async (game) => {
         let thisTime = (new Date()).getTime()
-        if (((thisTime - game.collectTime) >= 30000) && !game.sent) {
-            let myPrefix = (await database.getGuildInfo(game.channel.guild.id)).prefix
-            game.channel.send(`**Game of RR starts in less than 15 seconds! Bet: ${game.bet} :moneybag:. Use ${myPrefix}rr to join. (${game.participants.length}/${config.rrMaxPlayers} players)**`)
-            game.sent = true
-            
-        }
-        else if ((thisTime - game.collectTime) >= 45000) {
-            if (game.participants.length < config.rrMinPlayers) { game.channel.send(`:x: **Not enough players (min: ${config.rrMinPlayers}, current: ${game.participants.length}) to start game of RR**`); game.del(); return }
+        if ((thisTime - game.collectTime) >= 45000) {
+            if (game.participants.length < config.rrMinPlayers) { 
+                game.channel.send(`:x: **Not enough players (min: ${config.rrMinPlayers}, current: ${game.participants.length}) to start game of RR**`)
+                game.participants.forEach(it => database.incrementUser(it, "money", game.bet, "RR game rejected"))
+                game.del()
+                return
+            }
             if ((thisTime - game.lastShootTime) < 5000) return
-            game.canJoin = false
             let thisPlayer = game.participants[game.lastParticipantIndex]
             !game.startTime ? game.startTime = Date.now() : game.startTime = game.startTime
             let chance = Math.random()
             if (chance < (1/config.rrMaxPlayers) || (Date.now() - game.startTime > 60000)) {
                 let loserProfile = await database.getUser(thisPlayer)
-                if (loserProfile.money - game.bet > 0) {
+                if (loserProfile.money - game.bet > 0) { // shouldn't happen
                     game.channel.send(`<@${thisPlayer}> **died! Everyone else wins ${(game.bet/(game.participants.length-1)).toFixed(3)} :moneybag:**`)
-                    database.incrementUser(thisPlayer, "money", -game.bet)
+                    database.incrementMinigamesStats(thisPlayer, ["rr_lost_games", "rr_lost"], [1, game.bet])
                     let newArr = game.participants.filter(it => it != thisPlayer)
+                    let fatShit = game.bet + (game.bet / (game.participants.length - 1))
                     newArr.forEach(player => {
-                        database.incrementUser(player, "money", game.bet/(game.participants.length-1))
+                        database.incrementMinigamesStats(player, ["rr_won_games", "rr_won"], [1, game.bet / (game.participants.length - 1)])
+                        database.incrementUser(player, "money", fatShit, "RR winner")
                     })
                 }
                 else {
-                    game.channel.send(`${thisPlayer} doesn't have enough money!`)
+                    game.channel.send(`<@${thisPlayer}> doesn't have enough money!`)
                 }
-                
                 game.del()
                 return
             }
@@ -208,6 +317,6 @@ let checkRrGames = async () => {
     })
 }
 
-setInterval(checkRrGames, 1000)
+setInterval(runMiniGames, 1000)
 
 module.exports = { commands }

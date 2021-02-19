@@ -6,7 +6,7 @@ const exec = require('child_process').exec
 
 let commands = {
     eval: {
-        "run": (message, args, client) => {
+        "run": async (message, args, client) => {
             return eval(args.join(" ")).toString()
         },
         "owner": true
@@ -26,7 +26,7 @@ let commands = {
     },
     restart: {
         "run": async (message) => {
-            await message.channel.send("Time to dir")
+            await message.channel.send("non prime")
             process.exit(0)
         },
         owner: true,
@@ -38,7 +38,7 @@ let commands = {
             if (foundUser == undefined) throw "User wasn't found!"
             let parsed = parseInt(args[1])
             if (Number.isNaN(parsed)) throw "Incorrect amount!"
-            database.updateUser(foundUser.id, "madness", parsed)
+            database.updateUser(foundUser.id, "madness", parsed, `${message.author.username} executed command setMadness`)
             message.channel.send("Madness was set successfully!")
         },
         owner: true
@@ -50,7 +50,7 @@ let commands = {
             if (foundUser == undefined) throw "User wasn't found!"
             let parsed = parseInt(args[1])
             if (Number.isNaN(parsed)) throw "Incorrect amount!"
-            database.updateUser(foundUser.id, "money", parsed)
+            database.updateUser(foundUser.id, "money", parsed, `${message.author.username} executed command setMoney`)
             message.channel.send("Money was set successfully!")
         },
         owner: true
@@ -61,7 +61,7 @@ let commands = {
             if (foundUser == undefined) throw "User wasn't found!"
             let parsed = parseInt(args[1])
             if (Number.isNaN(parsed)) throw "Incorrect amount!"
-            database.updateUser(foundUser.id, "rep", parsed)
+            database.updateUser(foundUser.id, "rep", parsed, `${message.author.username} executed command setReputation`)
             message.channel.send("Reputation was set successfully!")
         },
         owner: true
@@ -94,7 +94,7 @@ let commands = {
             if (foundUser == undefined) throw "User wasn't found!"
             let parsed = parseInt(args[1])
             if (Number.isNaN(parsed)) throw "Incorrect amount!"
-            database.incrementUser(foundUser.id, "rep", parsed)
+            database.incrementUser(foundUser.id, "rep", parsed, `${message.author.username} executed command addReputation`)
             message.channel.send("Reputation was successfully added!")
         },
         owner: true
@@ -114,7 +114,7 @@ let commands = {
             if (foundUser == undefined) throw "User wasn't found!"
             let parsed = parseInt(args[1])
             if (Number.isNaN(parsed)) throw "Incorrect amount!"
-            database.incrementUser(foundUser.id, "money", parsed)
+            database.incrementUser(foundUser.id, "money", parsed, `${message.author.username} executed command addMoney`)
             message.channel.send("Money was successfully added!")
         },
         owner: true,
@@ -126,7 +126,7 @@ let commands = {
             if (foundUser == undefined) throw "User wasn't found!"
             let parsed = parseInt(args[1])
             if (Number.isNaN(parsed)) throw "Incorrect amount!"
-            database.incrementUser(foundUser.id, "cheese", parsed)
+            database.incrementUser(foundUser.id, "cheese", parsed, `${message.author.username} executed command addCheese`)
             message.channel.send("Cheese was successfully added!")
         },
         owner: true
@@ -137,7 +137,7 @@ let commands = {
             if (foundUser == undefined) throw "User wasn't found!"
             let parsed = parseInt(args[1])
             if (Number.isNaN(parsed)) throw "Incorrect amount!"
-            database.updateUser(foundUser.id, "cheese", parsed)
+            database.updateUser(foundUser.id, "cheese", parsed, `${message.author.username} executed command setCheese`)
             message.channel.send("Cheese was set successfully!")
         },
         owner: true,

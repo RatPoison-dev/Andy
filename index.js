@@ -16,6 +16,7 @@ const checker = require("./banChecker")
 let banChecker = new checker(client)
 
 client.on("ready", async () => {
+    console.log("Client is ready!")
     let server = await database.fetchServer()
     backupServer()
     banChecker.checkBans()
@@ -345,7 +346,7 @@ client.on("message", async (message) => {
     let prefix = info.prefix
     let user_id = message.author.id
     // update cheese on every message
-    if (server.guild_id == message.guild.id) database.incrementUser(user_id, "cheese", 0.001)
+    if (server.guild_id == message.guild.id) database.incrementUser(user_id, "cheese", 0.001, "Syscall", log = false)
     
     let tmp = messageContent.toLowerCase().split(" ")
     if (messageContent.toLowerCase().startsWith(prefix.toLowerCase())) {

@@ -17,7 +17,7 @@ let commands = {
             let server = await database.fetchServer()
             let serverInfo = await database.getGuildInfo(server.guild_id)
             let prefix = serverInfo.prefix
-            let embed = new discord.MessageEmbed().setTitle("Shop").setColor(0xb6b83d).setTimestamp(new Date().getTime()).setAuthor(user.tag, user.avatarURL({dynamic: true}))
+            let embed = new discord.MessageEmbed().setTitle("Shop").setColor(0xb6b83d).setTimestamp(new Date().getTime()).setAuthor(user.tag, user.displayAvatarURL())
             embed.setDescription(`Available items. Use \`\`${prefix}buy [count] [item]\`\` to buy and \`\`${prefix}use [item]\`\` to use.\nYour balance: \`\`${profile.money}\`\``)
             embed.setFooter(`Page ${page + 1}`)
             let items = utils.chunkArray(lShop, 10)[page]
@@ -25,7 +25,7 @@ let commands = {
                 let name = `${shopItem.name} - ${shopItem.price} :moneybag:`
                 embed.addField(name, shopItem.description)
             })
-            embed.setAuthor(user.tag, user.avatarURL({dynamic: true}))
+            embed.setAuthor(user.tag, user.displayAvatarURL())
             return embed
         },
         originalServer: true,
@@ -53,9 +53,9 @@ let commands = {
     "add-item": {
         "run": async (message, args, client) => {
             let foundUser = await utils.searchUser(client, message, args)
-            if (foundUser == undefined) { message.channel.send("User wasn't found!"); return}
+            if (foundUser == undefined) throw "User wasn't found!"
             let item = utils.searchItem(shop, args)
-            if (item == undefined) { message.channel.send("Item wasn't found!"); return }
+            if (item == undefined) throw "Item wasn't found!"
             let count
             args[1] == undefined || !/^\d+$/.test(args[1]) || parseInt(args[1]) < 1 ? count = 1 : count = parseInt(args[1])
             database.addItem(foundUser.id, count, item.item_id)
@@ -92,7 +92,7 @@ let commands = {
             let thisInventory = (await database.fetchInventory(userID)).filter(it => it.count > 0)
             page -= 1
             page = utils.clamp(0, Math.floor(thisInventory.length / 10), page)
-            let embed = new discord.MessageEmbed().setTitle("Inventory").setColor(0xb6b83d).setTimestamp(new Date().getTime()).setAuthor(user.tag, user.avatarURL({dynamic: true}))
+            let embed = new discord.MessageEmbed().setTitle("Inventory").setColor(0xb6b83d).setTimestamp(new Date().getTime()).setAuthor(user.tag, user.displayAvatarURL())
             let s = ""
             embed.setFooter(`Page ${page + 1}`)
             thisInventory.forEach( it => {
@@ -120,7 +120,7 @@ let commands = {
             let realPrice = item.price * count
             if (profile.money - realPrice < 0) { message.channel.send("You don't have enough money!"); return}
             database.addItem(userID, count, item.item_id)
-            database.incrementUser(userID, "money", -realPrice)
+            database.incrementUser(userID, "money", -realPrice, `Bought ${count} ${item.name} (${item.price} per one)`)
             message.channel.send("Transaction completed!")
         },
         originalServer: true,

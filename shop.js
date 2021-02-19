@@ -1,5 +1,6 @@
 const database = require("./database")
 const config = require("./config.json")
+const discord = require("discord.js")
 
 module.exports = [
     {
@@ -51,8 +52,25 @@ module.exports = [
                 database.run("update gateway set tries = 0 where user_id = ?", [userID])
                 await member.roles.add(ratsRole)
                 await member.roles.remove(notPassedRole)
+                message.channel.send("Access granted!")
                 return true
             }
+        }
+    },
+    {
+        "item_id": 3,
+        "price": 10000,
+        "name": "Megaflop",
+        "display": false,
+        "onUse": async (message) => {
+            let m = await message.channel.send("https://edge.dimden.dev/2842ddb921.png")
+            await m.react("❤️")
+            let rc = new discord.ReactionCollector(m, (r, u) => u.id == message.author.id, { time: 60000 })
+            rc.on("collect", () => {
+                rc.stop()
+                m.edit("https://tenor.com/view/floppa-my-beloved-floppa-cat-heart-gif-20386309")
+            })
+            return false
         }
     }
 ]

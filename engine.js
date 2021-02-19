@@ -27,18 +27,19 @@ let _runCommand = (command, ...args) => {
     return command(...args)
 }
 
-let canRunCommand = (key, message, curServer) => {
-    let userID = message.author.id
+let canRunCommand = async (key, message, userID) => {
+    let curServer = await database.fetchServer()
     let member = message.guild.members.cache.get(userID)
     let isOwner = config["owner_ids"].includes(userID)
     let ownerCheck = (key.owner == true && isOwner) || !key.owner
     let runningFromOriginalServer = message.guild.id == curServer.guild_id
     let serverCheck = (key.originalServer && runningFromOriginalServer) || !key.originalServer
     let rolesCheck = (runningFromOriginalServer && typeof key.roles == "object" && member.roles.cache.some(it => key.roles.includes(it.name))) || !key.roles
+    let channelsChack = (runningFromOriginalServer && typeof key.allowedChannels == "object" && key.allowedChannels.includes(message.channel.name)) || !key.allowedChannels
     let permissionsCheck = message.member.permissions.has(key.permissions)
     let disabledCheck = !key.disabled
-    if (isOwner) return true
-    return ownerCheck && serverCheck && permissionsCheck && disabledCheck && rolesCheck
+    if (isOwner && disabledCheck) return true
+    return ownerCheck && serverCheck && permissionsCheck && disabledCheck && rolesCheck && channelsChack
 }
 
 let fixCommand = (command) => {
@@ -62,12 +63,11 @@ let fixCommand = (command) => {
 }
 
 let runCommand = async (command, message, args, client) => {
-    let curServer = await database.fetchServer()
     let myServer = await database.getGuildInfo(message.guild.id)
     let key = fixCommand(command)
     if (key !== undefined) {
         if (key.run !== undefined) {
-            if (canRunCommand(key, message, curServer)) {
+            if (await canRunCommand(key, message, message.author.id)) {
                 try {
                     let result = await _runCommand(key.run, message, args, client)
                     let myResult
