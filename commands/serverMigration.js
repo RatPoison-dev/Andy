@@ -5,9 +5,9 @@ let commands = {
     migrateServer: {
         "run": async (message, args, client) => {
             let server = message.guild.id
-            let prevServer = await database.fetchServer()
+            let prevServer = database.fetchServer()
             database.migrateActions(server, prevServer.guild_id, configsChannel.id)
-            database.updateBannedChannel(server, message.guild.channels.cache.find(it => it.name == "accounts-to-watch").id)
+            database.updateGuild(server, "bannedChannel", message.guild.channels.cache.find(it => it.name == "accounts-to-watch").id)
             prevServer.banList.forEach(user => {
                 message.guild.members.ban(user)
             })

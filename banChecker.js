@@ -10,7 +10,7 @@ module.exports = class BanChecker {
         this.client = client
     }
     async checkBans () {
-        let accounts = await database.getBancheckerAccounts()
+        let accounts = database.getBancheckerAccounts()
         let realAccounts = utils.chunkArray(accounts, 100)
         realAccounts.forEach( async accountList => {
             let outArray = await api.checkBans(accountList)
@@ -18,7 +18,7 @@ module.exports = class BanChecker {
                 let VACBanned = account.vacs > account.info.initVAC
                 let OWBanned = account.ows > account.info.initOW
                 if (VACBanned || OWBanned) {
-                    let info = await database.getGuildInfo(account.info.guild_id)
+                    let info = database.getGuildInfo(account.info.guild_id)
                     if (info.bannedChannel !== null) {
                         let bannedType = VACBanned ? "VAC" : "OW"
                         let embed = await embeds.constructBannedEmbed(account.info, bannedType, this.client)
@@ -27,7 +27,7 @@ module.exports = class BanChecker {
                         if (channel !== undefined) {
                             channel.send(member.toString(), {"embed": embed})
                         }
-                        database.deleteBancheckerAccount(account.info.steamID)
+                        database.run("delete from banChecker where steamID = ?", account.info.steamID)
                     }
                 }
             })

@@ -48,8 +48,8 @@ let commands = {
             let foundUser = await utils.searchUser(client, message, args)
             if (foundUser !== undefined) {
                 if (foundUser.id !== message.author.id) {
-                    let authorProfile = await database.getUser(message.author.id)
-                    let userProfile = await database.getUser(foundUser.id)
+                    let authorProfile = database.getUser(message.author.id)
+                    let userProfile = database.getUser(foundUser.id)
                     let amount = args[1]
                     if (amount !== undefined && /^\d+$/.test(amount)) {
                         amount = parseInt(amount)
@@ -127,11 +127,11 @@ let commands = {
     },
     balance: {
         "run": async (message, args, client) => {
-            let aP = await database.getUser(message.author.id)
+            let aP = database.getUser(message.author.id)
             if (aP.madness > 2) throw "Access denied!"
             let foundUser = await utils.searchUser(client, message, args)
             if (foundUser == undefined) foundUser = message.author
-            let p = await database.getUser(foundUser.id)
+            let p = database.getUser(foundUser.id)
             return {"result": `${foundUser} has ${p.money} :moneybag:`, "title": "Money"}
         },
         originalServer: true,
@@ -139,11 +139,11 @@ let commands = {
     },
     cheese: {
         "run": async (message, args, client) => {
-            let aP = await database.getUser(message.author.id)
+            let aP = database.getUser(message.author.id)
             if (aP.madness > 2) throw "Access denied!"
             let foundUser = await utils.searchUser(client, message, args)
             if (foundUser == undefined) foundUser = message.author
-            let p = await database.getUser(foundUser.id)
+            let p = database.getUser(foundUser.id)
             return {"result": `${foundUser} has ${p.cheese.toFixed(3)} :cheese:`, "title": "Cheese"}
         },
         originalServer: true,

@@ -13,12 +13,12 @@ let constructResultEmbed = (err, author, color = "red", title = ":x: Error") => 
 }
 
 let constructStatsBy = async (statsBy, client, message, args) => {
-    let aP = await database.getUser(message.author.id)
+    let aP = database.getUser(message.author.id)
     if (aP.madness > 0) throw "Access denied!"
     let foundUser = await utils.searchUser(client, message, args)
     let display
     foundUser != undefined ? display = foundUser.id : display = message.author.id
-    let stats = await database.getMinigamesStats(display)
+    let stats = database.getMinigamesStats(display)
     let embed = new discord.MessageEmbed().setAuthor(message.author.tag, message.author.displayAvatarURL()).setColor(colorsMap["yellow"]).setTimestamp(Date.now()).setDescription(`${statsBy.capitalize()} stats of <@${display}>`)
     let kpd
     let e = stats[`${statsBy}_won_games`] / stats[`${statsBy}_lost_games`]
@@ -36,21 +36,21 @@ let constructStatsBy = async (statsBy, client, message, args) => {
 
 
 let constructUserProfile = async (requester, user) => {
-    await database.resetRep(user)
-    let requesterProfile = await database.getUser(requester.id)
-    let profile = await database.getUser(user.id)
+    database.resetRep(user)
+    let requesterProfile = database.getUser(requester.id)
+    let profile = database.getUser(user.id)
     if (requesterProfile.madness < 3) {
         let embed = new discord.MessageEmbed()
         embed.setAuthor(user.tag, user.displayAvatarURL())
         embed.setThumbnail(user.displayAvatarURL())
         embed.setTitle("Profile")
-        let cheesePlace = await database.getTopIndex("cheese", profile.user_id)
-        let moneyPlace = await database.getTopIndex("money", profile.user_id)
-        let repPlace = await database.getTopIndex("rep", profile.user_id)
+        let cheesePlace = database.getTopIndex("cheese", profile.user_id)
+        let moneyPlace = database.getTopIndex("money", profile.user_id)
+        let repPlace = database.getTopIndex("rep", profile.user_id)
         embed.addField("[:cheese:] Cheese", `${profile.cheese.toFixed(3)} | ${cheesePlace} Place`)
         embed.addField("[:moneybag:] Money", `${Math.floor(profile.money)} | ${moneyPlace} Place`)
         embed.addField("[:art:] Reputation", `${profile.rep} | ${repPlace} Place`)
-        let maxReps = await database.getUserMaxReps(user.id)
+        let maxReps = database.getUserMaxReps(user.id)
         let myMan = utils.str2list(profile.repToday)
         embed.addField("[:white_check_mark:] Reps today", myMan.length > 0 ? `${myMan.length}/${maxReps} (${myMan.map(it => '<@'+it+'>').join(', ')})` : `${myMan.length}/${maxReps}`)
         embed.addField("[:angry:] Madness", `${profile.madness}/3`)
@@ -61,10 +61,10 @@ let constructUserProfile = async (requester, user) => {
 }
 
 let constructCanRepEmbed = async (author) => {
-    let authorProfile = await database.resetRep(author)
+    let authorProfile = database.resetRep(author)
     let embed = new discord.MessageEmbed()
     if (authorProfile.madness > 1) return
-    let maxReps = await database.getUserMaxReps(author.id)
+    let maxReps = database.getUserMaxReps(author.id)
     if (Date.now() - authorProfile.repTimestamp < 79200000 && utils.str2list(authorProfile.repToday).length >= maxReps) {
         embed.setAuthor(author.tag, author.displayAvatarURL())
         embed.setTitle(":x: Error")
@@ -72,8 +72,8 @@ let constructCanRepEmbed = async (author) => {
         embed.setColor(0xb02020)
     }
     else {
-        let maxReps = await database.getUserMaxReps(author.id)
-        authorProfile = await database.getUser(author.id)
+        let maxReps = database.getUserMaxReps(author.id)
+        authorProfile = database.getUser(author.id)
         embed.setTitle("+rep")
         embed.setDescription(`You can +rep/-rep people ${maxReps-utils.str2list(authorProfile.repToday).length} more times.`)
         embed.setColor(0x20b038)
@@ -83,11 +83,11 @@ let constructCanRepEmbed = async (author) => {
 }
 
 let constructRepEmbed = async (message, author, user) => {
-    let authorProfile = await database.resetRep(author)
+    let authorProfile = database.resetRep(author)
     let embed = new discord.MessageEmbed()
     if (authorProfile.madness > 1) return
-    let userProfile = await database.getUser(user.id)
-    let maxReps = await database.getUserMaxReps(author.id)
+    let userProfile = database.getUser(user.id)
+    let maxReps = database.getUserMaxReps(author.id)
     if (Date.now() - authorProfile.repTimestamp < 79200000 && utils.str2list(authorProfile.repToday).length >= maxReps) {
         embed.setAuthor(author.tag, author.displayAvatarURL())
         embed.setTitle(":x: Error")
@@ -96,7 +96,7 @@ let constructRepEmbed = async (message, author, user) => {
     }
     else {
         if (utils.str2list(authorProfile.repToday).includes(user.id)) { message.channel.send(`You already repped this user today!\nYou need to wait **${utils.convertMS(79200000-(Date.now()-authorProfile.repTimestamp))}** to +rep/-rep user again.`); return }
-        authorProfile = await database.getUser(author.id)
+        authorProfile = database.getUser(author.id)
         let cheese = Math.floor(Math.random() * 0.05 * 1000) / 1000
         let money = Math.floor(Math.random() * 200)
         embed.setTitle("+rep")
@@ -115,11 +115,11 @@ let constructRepEmbed = async (message, author, user) => {
 }
 
 let constructMinusRepEmbed = async (message, author, user) => {
-    let authorProfile = await database.resetRep(author)
+    let authorProfile = database.resetRep(author)
     let embed = new discord.MessageEmbed()
     if (authorProfile.madness > 1) return
-    let userProfile = await database.getUser(user.id)
-    let maxReps = await database.getUserMaxReps(author.id)
+    let userProfile = database.getUser(user.id)
+    let maxReps = database.getUserMaxReps(author.id)
     if (Date.now() - authorProfile.repTimestamp < 79200000 && utils.str2list(authorProfile.repToday).length >= maxReps) {
         embed.setAuthor(author.tag, author.displayAvatarURL())
         embed.setTitle(":x: Error")
@@ -128,7 +128,7 @@ let constructMinusRepEmbed = async (message, author, user) => {
     }
     else {
         if (utils.str2list(authorProfile.repToday).includes(user.id)) { message.channel.send(`You already repped this user today!\nYou need to wait **${utils.convertMS(79200000-(Date.now()-authorProfile.repTimestamp))}** to +rep/-rep user again.`); return }
-        authorProfile = await database.getUser(author.id)
+        authorProfile = database.getUser(author.id)
         let cheese = Math.floor(Math.random() * 0.05 * 1000) / 1000
         embed.setTitle("-rep")
         let prev = utils.str2list(authorProfile.repToday)
@@ -146,7 +146,7 @@ let constructMinusRepEmbed = async (message, author, user) => {
 
 let constructDailyembed = async (user, giveTo) => {
     let embed = new discord.MessageEmbed()
-    let profile = await database.getUser(user.id)
+    let profile = database.getUser(user.id)
     if (profile.madness > 1) return
     if (Date.now() - profile.dailyTimestamp < 79200000) {
         embed.setAuthor(user.tag, user.displayAvatarURL())
@@ -178,7 +178,7 @@ let constructDailyembed = async (user, giveTo) => {
 
 let constructTop = async (message, user, type, page) => {
     
-    let top = await database.getTopByPage(type, page)
+    let top = database.getTopByPage(type, page)
     let embed = new discord.MessageEmbed()
     embed.setAuthor(user.tag, user.displayAvatarURL())
     embed.setTitle(`Leaderboard by ${type}`)

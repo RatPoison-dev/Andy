@@ -13,9 +13,9 @@ let commands = {
             let lShop = shop.filter(it => it.display)
             page = utils.clamp(0, Math.ceil(lShop.length / 10)-1, page)
             let user = message.author
-            let profile = await database.getUser(user.id)
-            let server = await database.fetchServer()
-            let serverInfo = await database.getGuildInfo(server.guild_id)
+            let profile = database.getUser(user.id)
+            let server = database.fetchServer()
+            let serverInfo = database.getGuildInfo(server.guild_id)
             let prefix = serverInfo.prefix
             let embed = new discord.MessageEmbed().setTitle("Shop").setColor(0xb6b83d).setTimestamp(new Date().getTime()).setAuthor(user.tag, user.displayAvatarURL())
             embed.setDescription(`Available items. Use \`\`${prefix}buy [count] [item]\`\` to buy and \`\`${prefix}use [item]\`\` to use.\nYour balance: \`\`${profile.money}\`\``)
@@ -39,7 +39,7 @@ let commands = {
             let user_id = user.id
             let item = utils.searchItem(shop, args)
             if (item == undefined) { message.channel.send("You don't have this item!"); return }
-            let itemInfo = await database.fetchInventoryItem(user_id, item.item_id)
+            let itemInfo = database.fetchInventoryItem(user_id, item.item_id)
             let count
             args[1] == undefined || !/^\d+$/.test(args[1]) || parseInt(args[1]) < 1 ? count = 1 : count = parseInt(args[1])
             if (itemInfo == undefined || itemInfo.count - count < 0) { message.channel.send("You don't have this item!"); return }
@@ -67,13 +67,13 @@ let commands = {
     },
     "use": {
         "run": async (message, args, client) => {
-            let aP = await database.getUser(message.author.id)
+            let aP = database.getUser(message.author.id)
             if (aP.madness > 2) throw "Access denied!"
             let user = message.author
             let user_id = user.id
             let item = utils.searchItem(shop, args)
             if (item == undefined) { message.channel.send("You don't have this item!"); return }
-            let itemInfo = await database.fetchInventoryItem(user_id, item.item_id)
+            let itemInfo = database.fetchInventoryItem(user_id, item.item_id)
             if (itemInfo == undefined || itemInfo.count - 1 < 0) { message.channel.send("You don't have this item!"); return }
             let eRes = await item.onUse(message, args, client)
             if (eRes) {
@@ -89,7 +89,7 @@ let commands = {
             let userID = user.id
             let page
             args[0] == undefined || !/^\d+$/.test(args[0]) || parseInt(args[0]) < 1 ? page = 1 : page = parseInt(args[0])
-            let thisInventory = (await database.fetchInventory(userID)).filter(it => it.count > 0)
+            let thisInventory = (database.fetchInventory(userID)).filter(it => it.count > 0)
             page -= 1
             page = utils.clamp(0, Math.floor(thisInventory.length / 10), page)
             let embed = new discord.MessageEmbed().setTitle("Inventory").setColor(0xb6b83d).setTimestamp(new Date().getTime()).setAuthor(user.tag, user.displayAvatarURL())
@@ -111,7 +111,7 @@ let commands = {
         "run": async (message, args) => {
             let user = message.author
             let userID = user.id
-            let profile = await database.getUser(userID)
+            let profile = database.getUser(userID)
             let item = utils.searchItem(shop, args.slice(1))
             if (item == undefined || !item.display) { message.channel.send("Item wasn't found!"); return }
             let count = args[0]
@@ -138,9 +138,9 @@ let commands = {
             if (Number.isNaN(price) || price < 0) throw "Incorrect sell price!"
             let myItem = utils.searchItem(shop, args.slice(3))
             if (myItem == undefined) throw "You don't have this item!"
-            let myInventoryItem = await database.fetchInventoryItem(userID, myItem.item_id)
+            let myInventoryItem = database.fetchInventoryItem(userID, myItem.item_id)
             if (myInventoryItem == undefined || myInventoryItem.count - amount < 0) throw "You don't have this item!"
-            let foundUserProfile = await database.getUser(foundUserID)
+            let foundUserProfile = database.getUser(foundUserID)
             if (foundUserProfile.money - price < 0) throw "User doesn't have enough money!"
             let m = await message.channel.send(`${foundUser}, do you accept the trade?`)
             await m.react("✅")

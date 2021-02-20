@@ -28,7 +28,7 @@ let _runCommand = (command, ...args) => {
 }
 
 let canRunCommand = async (key, message, userID) => {
-    let curServer = await database.fetchServer()
+    let curServer = database.fetchServer()
     let member = message.guild.members.cache.get(userID)
     let isOwner = config["owner_ids"].includes(userID)
     let ownerCheck = (key.owner == true && isOwner) || !key.owner
@@ -63,7 +63,7 @@ let fixCommand = (command) => {
 }
 
 let runCommand = async (command, message, args, client) => {
-    let myServer = await database.getGuildInfo(message.guild.id)
+    let myServer = database.getGuildInfo(message.guild.id)
     let key = fixCommand(command)
     if (key !== undefined) {
         if (key.run !== undefined) {

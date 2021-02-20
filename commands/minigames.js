@@ -56,7 +56,7 @@ class rrGame {
 }
 
 let canRunGame = async (user, bet, checkBet = true) => {
-    let profile = await database.getUser(user.id)
+    let profile = database.getUser(user.id)
     if (profile.madness > 0) return `${user} has madness!`
     let parsed = parseInt(bet)
     if (checkBet && (isNaN(parsed) || parsed <= 0)) return "Incorrect bet!"
@@ -71,8 +71,8 @@ let runDuel = async (host, participant, writeChannel, bet) => {
     if (hostCanRun != true) {writeChannel.send(hostCanRun); return}
     let participantCanRun = await canRunGame(participant, bet)
     if (participantCanRun != true) {writeChannel.send(participantCanRun); return}
-    //let hostProfile = await database.getUser(hostID)
-    //let participantProfile = await database.getUser(participantID)
+    //let hostProfile = database.getUser(hostID)
+    //let participantProfile = database.getUser(participantID)
     bet = parseInt(bet)
     let ms = await writeChannel.send("READY\n\n\n\nSTATUS")
     let init = Date.now()
@@ -90,7 +90,7 @@ let runDuel = async (host, participant, writeChannel, bet) => {
             winner = user
             loser = hostID != winner.id ? host : participant
         }
-        let loserProfile = await database.getUser(loser.id)
+        let loserProfile = database.getUser(loser.id)
         if (loserProfile.money - bet >= 0) {
             database.incrementMinigamesStats(winner.id, ["duels_won_games", "duels_won"], [1, bet])
             database.incrementMinigamesStats(loser.id, ["duels_lost_games", "duels_lost"], [1, bet])
@@ -163,7 +163,7 @@ let commands = {
             let bet = args[0]
             let myGame = rrGame.byChannel(channel)
             if (!myGame) {
-                let myPrefix = (await database.getGuildInfo(message.guild.id)).prefix
+                let myPrefix = (database.getGuildInfo(message.guild.id)).prefix
                 let canRun = await canRunGame(message.author, bet, true)
                 if (canRun != true) throw canRun
                 bet = parseInt(bet)
@@ -203,7 +203,7 @@ let commands = {
             bet = parseInt(bet)
             if (canRun != true) throw canRun
             if (!myGame) {
-                let myPrefix = (await database.getGuildInfo(message.guild.id)).prefix
+                let myPrefix = (database.getGuildInfo(message.guild.id)).prefix
                 let myGame = new potGame(channel)
                 myGame.participants[userID] = bet
                 database.incrementUser(userID, "money", -bet, "Initial start pot bet")
@@ -286,7 +286,7 @@ let runMiniGames = async () => {
             !game.startTime ? game.startTime = Date.now() : game.startTime = game.startTime
             let chance = Math.random()
             if (chance < (1/config.rrMaxPlayers) || (Date.now() - game.startTime > 60000)) {
-                let loserProfile = await database.getUser(thisPlayer)
+                let loserProfile = database.getUser(thisPlayer)
                 if (loserProfile.money - game.bet > 0) { // shouldn't happen
                     game.channel.send(`<@${thisPlayer}> **died! Everyone else wins ${(game.bet/(game.participants.length-1)).toFixed(3)} :moneybag:**`)
                     database.incrementMinigamesStats(thisPlayer, ["rr_lost_games", "rr_lost"], [1, game.bet])

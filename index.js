@@ -10,14 +10,14 @@ const rcMap = {}
 let ignoreEvent = ""
 
 engine.importCommands()
-let client = new discord.Client()
+let client = new discord.Client({"disableMentions": "everyone"})
 
 const checker = require("./banChecker")
 let banChecker = new checker(client)
 
 client.on("ready", async () => {
-    console.log("Client is ready!")
-    let server = await database.fetchServer()
+    console.log(`[Andy] Logged in as: ${client.user.tag}`)
+    let server = database.fetchServer()
     backupServer()
     banChecker.checkBans()
     wipeChannels()
@@ -32,7 +32,7 @@ client.on("ready", async () => {
 })
 
 let backupServer = async () => {
-    let curServer = await database.fetchServer()
+    let curServer = database.fetchServer()
     let curGuild = client.guilds.cache.get(curServer.guild_id)
     //backup bans
     let bans = await curGuild.fetchBans()
@@ -68,7 +68,7 @@ let backupServer = async () => {
 }
 
 let wipeChannels = async () => {
-    let server = await database.fetchServer()
+    let server = database.fetchServer()
     if ((new Date().getTime() - server.wipeTimestamp) / 1000 > 259200) {
         let guild = client.guilds.cache.get(server.guild_id)
         config.wipe_channels.forEach( async it => {
@@ -86,7 +86,7 @@ let wipeChannels = async () => {
 }
 
 let wipeGateway = async () => {
-    let server = await database.fetchServer()
+    let server = database.fetchServer()
     let guild = client.guilds.cache.get(server.guild_id)
     let gateway = guild.channels.cache.find(it => it.name == "gateway" && it.type == "text")
     let latestTimestamp = -1
@@ -136,7 +136,7 @@ let wipeGateway = async () => {
 
 client.on("guildMemberRemove", async (member) => {
     let userID = member.user.id
-    let server = await database.fetchServer()
+    let server = database.fetchServer()
     if (server.guild_id != member.guild.id) return
     let guild = client.guilds.cache.get(server.guild_id)
     guild.systemChannel.send(`**${member.user.tag}** just left the server. ||${member.id}||`)
@@ -215,7 +215,7 @@ let yeah = async (currentIndex, gateway, member) => {
     rc.on("collect", async (r, u) => {
         rc.stop()
         delete rcMap[sended.id]
-        let userGateway = await database.getGateway(userID)
+        let userGateway = database.getGateway(userID)
         let answer = emojiToNumber(r.emoji.name)
         userGateway.answers.push(answer)
         database.run("update gateway set answers = ? where user_id = ?", [utils.list2str2(userGateway.answers), userID])
@@ -260,7 +260,7 @@ let yeah = async (currentIndex, gateway, member) => {
 }
 
 client.on("guildMemberAdd", async (member) => {
-    let curServer = await database.fetchServer()
+    let curServer = database.fetchServer()
     let curGuild = client.guilds.cache.get(curServer.guild_id)
     let user = member.user
     let userID = user.id
@@ -273,7 +273,7 @@ client.on("guildMemberAdd", async (member) => {
         let gateway = member.guild.channels.cache.find(it => it.name == "gateway" && it.type == "text")
         let ratsRole = member.guild.roles.cache.find(it => it.name == "Rats")
         let notPassedRole = member.guild.roles.cache.find(it => it.name == "gateway-not-passed")
-        let userGateway = await database.getGateway(userID) 
+        let userGateway = database.getGateway(userID) 
         if (userGateway.tries >= config.gateway_max_tries) {
             await member.roles.add(notPassedRole)
             return
@@ -307,7 +307,7 @@ client.on("guildMemberAdd", async (member) => {
 })
 
 client.on("guildBanAdd", async (guild, user) => {
-    let curServer = await database.fetchServer()
+    let curServer = database.fetchServer()
     if (curServer.guild_id != guild.id) return
     let realBans = await guild.fetchBans()
     let bans = await guild.fetchBans()
@@ -324,7 +324,7 @@ client.on("guildBanAdd", async (guild, user) => {
 })
 
 client.on("guildBanRemove", async (guild, user) => {
-    let curServer = await database.fetchServer()
+    let curServer = database.fetchServer()
     if (curServer.guild_id != guild.id) return
     let bans = await guild.fetchBans()
     bans = bans.map(banInfo => banInfo.user.id)
@@ -341,8 +341,8 @@ client.on("message", async (message) => {
     if (message.author.bot) return
     let messageContent = message.content
     if (message.channel.type == "dm") return
-    let info = await database.getGuildInfo(message.guild.id)
-    let server = await database.fetchServer()
+    let info = database.getGuildInfo(message.guild.id)
+    let server = database.fetchServer()
     let prefix = info.prefix
     let user_id = message.author.id
     // update cheese on every message

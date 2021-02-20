@@ -8,6 +8,7 @@ let commands = {
     monitor : {
         "run": async (message, args) => {
             let input = args[0]
+            if (!input) throw "You need to specify link!"
             let description = args.slice(1).join(" ")
             if (input.includes("steamcommunity.com/")) {
                 let sid = await utils.parseSteamID(input)
@@ -23,12 +24,12 @@ let commands = {
     countMonitor: {
         "run": async (message, args, client) => {
             let foundUser = await utils.searchUser(client, message, args)
-            if (foundUser === undefined) {
-                let accounts = await db.getBancheckerAccounts()
+            if (!foundUser) {
+                let accounts = db.getBancheckerAccounts()
                 return `There are ${accounts.length} accounts in ban checker database.`
             }
             else {
-                let accounts = await db.getBancheckerAccountsByUser(foundUser.id)
+                let accounts = db.getBancheckerAccounts(foundUser.id)
                 return `There are ${accounts.length} accounts in ban checker database that was added by this user.`
             }
         },

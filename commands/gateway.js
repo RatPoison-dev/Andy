@@ -33,7 +33,7 @@ let floppa = async (message, args, client, state) => {
 let commands = {
     forceWipe: {
         "run": async (message, args, client) => {
-            let server = await database.fetchServer()
+            let server = database.fetchServer()
             let guild = client.guilds.cache.get(server.guild_id)
 
             config.wipe_channels.forEach( async it => {
@@ -53,7 +53,7 @@ let commands = {
     },
     gateway: {
         "run": async (message, args) => {
-            let newState = await database.gatewaySwitchState()
+            let newState = database.gatewaySwitchState()
             message.channel.send(`New gateway state: ${newState}`)
         },
         owner: true
@@ -62,7 +62,7 @@ let commands = {
         "run": async (message, args, client) => {
             let user = await utils.searchUser(client, message, args)
             if (user == undefined) {
-                let gateway = await database.get("select * from gateway")
+                let gateway = database.get("select * from gateway")
                 let counter = 0
                 let counter1 = 0
                 gateway.forEach((gatewayRow) => {
@@ -74,7 +74,7 @@ let commands = {
                 message.channel.send(`Found ${counter} not passed gateway entries.\nTotal is ${counter1} entries.\nMembers with gateway-not-passed role: ${members.size}`)
                 return
             }
-            let gatewayInfo = await database.getGateway(user.id)
+            let gatewayInfo = database.getGateway(user.id)
             if (gatewayInfo == undefined || gatewayInfo.answers == []) {message.channel.send("User wasn't found"); return}
             let answers = gatewayInfo.answers
             let bingus = ""

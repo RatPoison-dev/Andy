@@ -21,7 +21,7 @@ module.exports = [
         "display": true,
         "description": "Grants access to #general2",
         "onUse": async (message, args, client) => {
-            let server = await database.fetchServer()
+            let server = database.fetchServer()
             let guild = client.guilds.cache.get(server.guild_id)
             let role = guild.roles.cache.find(it => it.name == "gateway-access")
             let member = guild.members.cache.get(message.author.id)
@@ -39,7 +39,7 @@ module.exports = [
         "onUse": async (message) => {
             let user = message.author
             let userID = user.id
-            let gatewayInfo = await database.getGateway(userID)
+            let gatewayInfo = database.getGateway(userID)
             if (gatewayInfo == undefined || gatewayInfo.tries < config.gateway_max_tries) {
                 message.channel.send("You are not in gateway.")
                 return false

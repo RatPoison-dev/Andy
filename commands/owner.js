@@ -69,7 +69,7 @@ let commands = {
     rawProfile: {
         "run": async (message, args, client) => {
             let foundUser = await utils.searchUser(client, message, args)
-            let profile = await database.getUser(foundUser.id)
+            let profile = database.getUser(foundUser.id)
             message.channel.send(JSON.stringify(profile, 0, 2))
         },
         owner: true
@@ -77,7 +77,7 @@ let commands = {
     sql: {
         "run": async (message, args, client) => {
             if (args[0] == "get") {
-                let res = (await database.get(args.slice(1).join(" ")))
+                let res = (database.get(args.slice(1).join(" ")))
                 message.channel.send(JSON.stringify(res).slice(0, 1999))
             }
             else if (args[0] == "run") {
@@ -145,7 +145,7 @@ let commands = {
     restoreMessages: {
         "run": async (message, args, client) => {
             let channel = message.mentions.channels.first()
-            let messages = await database.getSaved()
+            let messages = database.get("select * from saved_messages")
             messages.forEach((row) => {
                 let id
                 let user = client.users.cache.get(row.user_id)

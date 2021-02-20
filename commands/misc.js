@@ -35,16 +35,15 @@ let commands = {
 
     help: async (message) => {
         let thisGuild = message.guild
-        let info = await database.getGuildInfo(thisGuild.id)
+        let info = database.getGuildInfo(thisGuild.id)
         let prefix = info.prefix
         let commands = engine.commands
-        let curServer = await database.fetchServer()
         let s = `Current prefix in \"${thisGuild.name}\" server: ${prefix}\n`
         let categories = {}
         Object.keys(commands).forEach(command => {
             let key = commands[command]
             if (key.help !== undefined) {
-                if (engine.canRunCommand(key, message, curServer)) {
+                if (engine.canRunCommand(key, message, message.author.id)) {
                     let tmpS = `${command} ${commands[command].help}` 
                     let descArr = []
                     if (key.originalServer == true) descArr.push("RatPoison Server only")
