@@ -3,7 +3,7 @@ const discord = require("discord.js")
 const utils = require("./utils")
 const config = require("./config.json")
 
-const colorsMap = {"red": 0xb02020, "green": 0x6b32a8, "yellow": 0xb6b83d}
+const colorsMap = {"red": 0xb02020, "purple": 0x6b32a8, "yellow": 0xb6b83d, "green": 0x22ee22}
 let constructResultEmbed = (err, author, color = "red", title = ":x: Error") => {
     color = colorsMap[color]
     err = typeof err == "string" ? err.replace(/\uFFFD/g, '').replace('\s\s\s\s', '\s').replace(/[\u{0080}-\u{FFFF}]/gu,"").slice(0, 1999) : err

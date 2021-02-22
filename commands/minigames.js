@@ -2,7 +2,7 @@ const discord = require("discord.js")
 const database = require("../database")
 const utils = require("../utils")
 const config = require("../config.json")
-
+const { colorsMap } = require("../embeds")
 class potGame {
     static potGames = []
 
@@ -223,8 +223,68 @@ let commands = {
         },
         originalServer: true,
         //allowedChannels: ["bot-commands"]
+    },
+    "crash": {
+        "run": async (message, args, client) => {
+            let userID = message.author.id
+            let bet = args[0]
+            let canRun = await canRunGame(message.author, bet)
+            if (canRun != true) throw canRun
+            bet = parseInt(bet)
+            let embed = new discord.MessageEmbed().setAuthor(message.author.tag, message.author.displayAvatarURL()).setColor(colorsMap["yellow"]).setTimestamp(Date.now()).setTitle("Crash")
+            let zeroCrash = Math.random() > 0.8
+            let current = 1
+            let shouldRange1Crash = Math.random() > 0.5
+            let range1Crashed = randomNumber(1.3, 2)
+            let shouldRange2Crash = Math.random() > 0.7
+            let range2Crashed = randomNumber(2, 3)
+            let range3Crashed = randomNumber(3, 4)
+            embed.addField("Multiplier", `${current.toFixed(1)}x`, true)
+            embed.addField("Profit", `**${(bet*current-bet).toFixed(3)}** :moneybag:`, true)
+            let crashed = false
+            let stopped = false
+            embed.setDescription("Game starts within 2 seconds! Click on ✅ to stop")
+            let myMessage = await message.channel.send(embed)
+            await myMessage.react("✅")
+            database.incrementUser(userID, "money", -bet, "Started crash game")
+            let rc = new discord.ReactionCollector(myMessage, (r, u) => u.id == message.author.id && r.emoji.name == "✅")
+            rc.on("collect", () => {
+                rc.stop()
+                stopped = true
+            })
+            while (!crashed && !stopped) {
+                await utils.sleep(2000)
+                if (zeroCrash && current == 1 && !stopped) {crashed = true; break}
+                if (stopped) break
+                current += 0.2
+                if (shouldRange1Crash && current < 2 && current > range1Crashed) {crashed = true; break}
+                else if (shouldRange2Crash && current > 2 && current < 3 && current > range2Crashed && !stopped) {crashed = true; break}
+                else if (current > range3Crashed && !stopped) {crashed = true;  break}
+                embed.fields[0].value = `${current.toFixed(1)}x`
+                embed.fields[1].value = `**${(bet*current-bet).toFixed(3)}** :moneybag:`
+                await myMessage.edit(embed)
+            }
+            if (crashed) {
+                embed.setColor(colorsMap.red)
+                embed.fields[0].name = "Crashed at"
+                embed.fields[1].value = `**${-bet}** :moneybag:`
+                await myMessage.edit(embed)
+            }
+            else if (stopped) {
+                embed.fields[0].name = "Stopped at"
+                database.incrementUser(userID, "money", bet*current, "Stopped crash game")
+                embed.setColor(colorsMap.purple)
+                await myMessage.edit(embed)
+            }
+
+        },
+        originalServer: true
     }
 }
+
+function randomNumber(min, max) {
+    return Math.random() * (max - min) + min;
+  }
 
 let runMiniGames = async () => {
     potGame.potGames.forEach( async (game) => {

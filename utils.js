@@ -217,4 +217,10 @@ let clamp = (min, max, value) => {
     return value
 }
 
-module.exports = {parseSteamID, convertMS, searchUser, str2list, list2str, getRandomElem, serialize, deserialize, list2str2, chunkArray, clamp, searchItem, attrGetter, Dictionary, chunkMessage}
+function sleep(ms) {
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
+  } 
+
+module.exports = {parseSteamID, convertMS, searchUser, str2list, list2str, getRandomElem, serialize, deserialize, list2str2, chunkArray, clamp, searchItem, attrGetter, Dictionary, chunkMessage, sleep}
