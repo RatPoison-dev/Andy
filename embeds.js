@@ -6,7 +6,7 @@ const config = require("./config.json")
 const colorsMap = {"red": 0xb02020, "green": 0x6b32a8, "yellow": 0xb6b83d}
 let constructResultEmbed = (err, author, color = "red", title = ":x: Error") => {
     color = colorsMap[color]
-    err = err.replace(/\uFFFD/g, '').replace('\s\s\s\s', '\s').replace(/[\u{0080}-\u{FFFF}]/gu,"").slice(0, 1999)
+    err = typeof err == "string" ? err.replace(/\uFFFD/g, '').replace('\s\s\s\s', '\s').replace(/[\u{0080}-\u{FFFF}]/gu,"").slice(0, 1999) : err
     let embed = new discord.MessageEmbed().setTimestamp(Date.now()).setAuthor(author.tag, author.displayAvatarURL()).setDescription(err).setColor(color)
     if (title != "") embed.setTitle(title)
     return embed
@@ -58,6 +58,7 @@ let constructUserProfile = async (requester, user) => {
         embed.setTimestamp(Date.now())
         return embed
     }
+    else throw "Access denied! (You have madness)"
 }
 
 let constructCanRepEmbed = async (author) => {
@@ -175,38 +176,6 @@ let constructDailyembed = async (user, giveTo) => {
     return embed
 }
 
-
-let constructTop = async (message, user, type, page) => {
-    
-    let top = database.getTopByPage(type, page)
-    let embed = new discord.MessageEmbed()
-    embed.setAuthor(user.tag, user.displayAvatarURL())
-    embed.setTitle(`Leaderboard by ${type}`)
-    let desc = ""
-    top.forEach ((elem, index) => {
-        if (type === "cheese") {
-            if (message.guild.members.cache.get(elem.user_id) !== undefined) {
-                desc += `${index+1}. <@${elem.user_id}> • ${elem[type].toFixed(3)}\n`
-            }
-            else {
-                desc += `${index+1}. ~~<@${elem.user_id}> • ${elem[type].toFixed(3)}~~\n`
-            }
-        }
-        else {
-            if (message.guild.members.cache.get(elem.user_id) !== undefined) {
-                desc += `${index+1}. <@${elem.user_id}> • ${Math.floor(elem[type])}\n`
-            }
-            else {
-                desc += `${index+1}. ~~<@${elem.user_id}> • ${Math.floor(elem[type])}~~\n`
-            }
-        }
-    })
-    embed.setDescription(desc)
-    embed.setColor(0x6b32a8)
-    embed.setTimestamp(Date.now())
-    return embed
-}
-
 let constructBannedEmbed = async (player, type, client) => {
     let bannedMessage
     let bannedType
@@ -229,4 +198,4 @@ String.prototype.capitalize = function() {
     return this.charAt(0).toUpperCase() + this.slice(1);
 }
 
-module.exports = {constructBannedEmbed, constructTop, constructDailyembed, constructMinusRepEmbed, constructRepEmbed, constructCanRepEmbed, constructUserProfile, constructResultEmbed, colorsMap, constructStatsBy}
+module.exports = {constructBannedEmbed, constructDailyembed, constructMinusRepEmbed, constructRepEmbed, constructCanRepEmbed, constructUserProfile, constructResultEmbed, colorsMap, constructStatsBy}

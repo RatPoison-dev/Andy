@@ -10,7 +10,7 @@
     "wipeSleepInterval": 1800000,
     "backupRoles": ["Admin", "Booters", "Vibers"],
     "owner_ids": [],
-    "wipe_channels": [],
+    "wipe_channels": {"ratpoison owns": ["general", "help-support", "bot-commands", "general2"], "r/cats": ["general", "bot-shit", "help"]},
     "gateway_max_tries": 2,
     "rrMaxPlayers": 6,
     "rrMinPlayers": 3

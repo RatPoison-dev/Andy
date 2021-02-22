@@ -4,6 +4,7 @@ const engine = require("./engine")
 const database = require("./database")
 const utils = require("./utils")
 const iq_test = require("./iq_test.json")
+const cron = require("cron")
 //just a bruh moment
 const iAmImportant = {}
 const rcMap = {}
@@ -15,9 +16,20 @@ let client = new discord.Client({"disableMentions": "everyone"})
 const checker = require("./banChecker")
 let banChecker = new checker(client)
 
+const job = new cron.CronJob("00 00 00 * * *" , async () => {
+    let server = await database.fetchServer()
+    let myGuild = client.guilds.cache.get(server.guild_id)
+    let myMembers = myGuild.members.cache.filter(it => it.roles.cache.some(it => it.name == "Cute Rats" || it.name == "Donators"))
+    myMembers.forEach(it => {
+        database.incrementUser(it.user.id, "cheese", 0.05, "Daily cheese claim (donator | booster)")
+    })
+})
+
+
 client.on("ready", async () => {
     console.log(`[Andy] Logged in as: ${client.user.tag}`)
     let server = database.fetchServer()
+    job.start()
     backupServer()
     banChecker.checkBans()
     wipeChannels()
@@ -39,19 +51,21 @@ let backupServer = async () => {
     bans = bans.map(banInfo => banInfo.user.id)
     database.updateServer(curServer.guild_id, "banList", utils.serialize(bans))
     // backup roles
-    let ownage = {}
+    let rolesMap = {}
+    let emojiMap = {}
     if (curServer.backupProcess == 'false' || curServer.backupProcess == 0) {
         curGuild.roles.cache.forEach(role => {
             if (config.backupRoles.includes(role.name)) {
-                ownage[role.name] = []
+                rolesMap[role.name] = []
                 role.members.forEach(user => {
-                    ownage[role.name].push(user.id)
+                    rolesMap[role.name].push(user.id)
                 })
             }
         })
-        //curGuild.emojis.add()
-        //curGuild.emojis.cache.forEach()
-        database.updateServer(curServer.guild_id, "roles", utils.serialize(ownage))
+        curGuild.emojis.cache.forEach(it => {
+            emojiMap[it.name] = it.url
+        })
+        database.updateServer(curServer.guild_id, ["roles", "emojis"], [utils.serialize(rolesMap), utils.serialize(emojiMap)])
     }
     else {
         for (let roleName in curServer.roles) {
@@ -70,16 +84,19 @@ let backupServer = async () => {
 let wipeChannels = async () => {
     let server = database.fetchServer()
     if ((new Date().getTime() - server.wipeTimestamp) / 1000 > 259200) {
-        let guild = client.guilds.cache.get(server.guild_id)
-        config.wipe_channels.forEach( async it => {
-            let channels = guild.channels.cache
-            let channel = channels.find(e => e.type == "text" && e.name == it)
-            if (channel == undefined) return
-            let position = channel.position
-            console.log(`Should clone channel ${it}`)
-            let newChannel = await channel.clone()
-            await channel.delete("Wipe channels")
-            newChannel.setPosition(position)
+        let myServers = Object.keys(config.wipe_channels)
+        myServers.forEach( myServer => {
+            let myGuild = client.guilds.cache.find(it => it.name.toLowerCase().startsWith(myServer))
+            let channels = myGuild.channels.cache
+            config.wipe_channels[myServer].forEach( async (it) => {
+                let myChannel = channels.find(e =>  e.type == "text" && e.name == it)
+                if (myChannel == undefined) return
+                let position = myChannel.position
+                console.log(`Should clone channel ${it}`)
+                let newChannel = await myChannel.clone()
+                await myChannel.delete("Wipe channels")
+                newChannel.setPosition(position)
+            })
         })
         database.updateServer(server.guild_id, "wipeTimestamp", new Date().getTime())
     }

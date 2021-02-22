@@ -118,10 +118,10 @@ let commands = {
             if (!/^\d+$/.test(count) || parseInt(count) <= 0) { message.channel.send("Incorrect count!"); return}
             count = parseInt(count)
             let realPrice = item.price * count
-            if (profile.money - realPrice < 0) { message.channel.send("You don't have enough money!"); return}
+            if (profile.money - realPrice < 0) throw "You don't have enough money!"
             database.addItem(userID, count, item.item_id)
             database.incrementUser(userID, "money", -realPrice, `Bought ${count} ${item.name} (${item.price} per one)`)
-            message.channel.send("Transaction completed!")
+            return {"title": "Buy item", "result": `Successfully bought **${count}** \`\`${item.name}\`\` for **${realPrice}** :moneybag:`}
         },
         originalServer: true,
         help: "[count] [item] - Buy items for money"

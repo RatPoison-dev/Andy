@@ -1,7 +1,7 @@
 const database = require("../database")
 const utils = require("../utils")
 const embeds = require("../embeds")
-const { MessageEmbed } = require("discord.js")
+const discord = require("discord.js")
 
 let commands = {
     profile: {
@@ -9,9 +9,7 @@ let commands = {
             let embed
             let foundUser = await utils.searchUser(client, message, args)
             foundUser == undefined ? embed = await embeds.constructUserProfile(message.author, message.author) : embed = await embeds.constructUserProfile(message.author, foundUser)
-            if (embed !== undefined) {
-                message.channel.send(embed)
-            }
+            if (embed) message.channel.send(embed)
         },
         "help": "<user> - get a profile",
         originalServer: true,
@@ -31,14 +29,33 @@ let commands = {
     top: {
         "run": async (message, args) => {
             let topType = args[0]
-            if (topType === undefined || !['cheese', 'money', "rep"].includes(topType)) {
-                message.channel.send("Please set type of top: 'cheese', 'money' or 'rep'")
+            if (!topType || !['cheese', 'money', "rep"].includes(topType)) throw "Please set type of top: 'cheese', 'money' or 'rep'"
+            let page = (args[1] !== undefined && /^\d+$/.test(args[1])) ? args[1] : 1
+            let top = database.getTopByPage(topType, page)
+            let embed = new discord.MessageEmbed()
+            embed.setAuthor(message.author.tag, message.author.displayAvatarURL())
+            embed.setTitle(`Leaderboard by ${topType}`)
+            let desc = ""
+            if (topType == "money") {
+                let mySum = 0
+                database.get("select money from users").forEach(it => mySum += it.money)
+                desc += `**Total bank ${mySum} :moneybag:**\n`
             }
-            else {
-                let page = (args[1] !== undefined && /^\d+$/.test(args[1])) ? args[1] : 1
-                let embed = await embeds.constructTop(message, message.author, topType, page)
-                return embed
-            }
+            let membersCache = message.guild.members.cache
+            top.forEach ((elem, index) => {
+                let userExists = membersCache.get(elem.user_id)
+                desc += `${index+1}. `
+                desc += userExists ? `<@${elem.user_id}> • ` : `~~<@${elem.user_id}> • `
+                if (topType == "cheese") desc += `${elem[topType].toFixed(3)} :cheese:`
+                else if (topType == "money") desc += `${Math.floor(elem[topType])} :moneybag:`
+                else desc += `${elem[topType]}`
+                desc += userExists ? "\n" : "~~\n"
+            })
+            embed.setFooter(`Page ${page}`)
+            embed.setDescription(desc)
+            embed.setColor(0x6b32a8)
+            embed.setTimestamp(Date.now())
+            return embed
         },
         "help": "[type] <page> - get top by type and page",
         originalServer: true

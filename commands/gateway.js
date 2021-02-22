@@ -7,9 +7,7 @@ const engine = require("../engine")
 let floppa = async (message, args, client, state) => {
     let foundUser = await utils.searchUser(client, message, args)
     let userID = foundUser.id
-    if (foundUser == undefined) {
-        throw "User wasn't found!"
-    }
+    if (!foundUser) throw "User wasn't found!"
     let ratsRole = message.guild.roles.cache.find(it => it.name == "Rats")
     let notPassedRole = message.guild.roles.cache.find(it => it.name == "gateway-not-passed")
     let member = message.guild.members.cache.find(it => it.id == userID)

@@ -60,7 +60,7 @@ let canRunGame = async (user, bet, checkBet = true) => {
     if (profile.madness > 0) return `${user} has madness!`
     let parsed = parseInt(bet)
     if (checkBet && (isNaN(parsed) || parsed <= 0)) return "Incorrect bet!"
-    if (profile.money - bet <= 0) return `${user} doesn't have enough money!`
+    if (profile.money - bet < 0) return `${user} doesn't have enough money!`
     return true
 }
 
@@ -181,7 +181,7 @@ let commands = {
                 if (myGame.participants.includes(userID)) { channel.send("**You are already taking part in this RR!**"); return }
                 if (Date.now() - myGame.collectTime >= 45000) { channel.send("**Game is already in progress.**"); return }
                 let canRun = await canRunGame(message.author, myGame.bet, true)
-                if (!canRun) { message.channel.send(canRun); return}
+                if (canRun != true) { message.channel.send(canRun); return}
                 myGame.addParticipant(userID)
                 database.incrementUser(userID, "money", -myGame.bet, "Joined RR")
                 message.channel.send(`**You joined this game of RR. (${myGame.participants.length}/${config.rrMaxPlayers} players)**`)
@@ -285,21 +285,15 @@ let runMiniGames = async () => {
             let thisPlayer = game.participants[game.lastParticipantIndex]
             !game.startTime ? game.startTime = Date.now() : game.startTime = game.startTime
             let chance = Math.random()
-            if (chance < (1/config.rrMaxPlayers) || (Date.now() - game.startTime > 60000)) {
-                let loserProfile = database.getUser(thisPlayer)
-                if (loserProfile.money - game.bet > 0) { // shouldn't happen
-                    game.channel.send(`<@${thisPlayer}> **died! Everyone else wins ${(game.bet/(game.participants.length-1)).toFixed(3)} :moneybag:**`)
-                    database.incrementMinigamesStats(thisPlayer, ["rr_lost_games", "rr_lost"], [1, game.bet])
-                    let newArr = game.participants.filter(it => it != thisPlayer)
-                    let fatShit = game.bet + (game.bet / (game.participants.length - 1))
-                    newArr.forEach(player => {
-                        database.incrementMinigamesStats(player, ["rr_won_games", "rr_won"], [1, game.bet / (game.participants.length - 1)])
-                        database.incrementUser(player, "money", fatShit, "RR winner")
-                    })
-                }
-                else {
-                    game.channel.send(`<@${thisPlayer}> doesn't have enough money!`)
-                }
+            if (chance < (1/config.rrMaxPlayers)) {
+                game.channel.send(`<@${thisPlayer}> **died! Everyone else wins ${(game.bet/(game.participants.length-1)).toFixed(3)} :moneybag:**`)
+                database.incrementMinigamesStats(thisPlayer, ["rr_lost_games", "rr_lost"], [1, game.bet])
+                let newArr = game.participants.filter(it => it != thisPlayer)
+                let fatShit = game.bet + (game.bet / (game.participants.length - 1))
+                newArr.forEach(player => {
+                    database.incrementMinigamesStats(player, ["rr_won_games", "rr_won"], [1, game.bet / (game.participants.length - 1)])
+                    database.incrementUser(player, "money", fatShit, "RR winner")
+                })
                 game.del()
                 return
             }

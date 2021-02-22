@@ -105,6 +105,7 @@ let updateServer = (guild_id, columns, values) => updateAnything("server", "guil
 let updateGuild = (guild_id, ...args) => updateAnything("guilds", "guild_id", guild_id, ...args)
 
 let incrementUser = (user_id, columns, values, reason = "Internal call", log = true) => {
+    initProfile(user_id)
     if (log) console.log(`[IncrementUser] User_id: ${user_id}; Columns: ${columns}; Values: ${values}; Reason: ${reason}`)
     let prev = getUser(user_id)
     if (typeof columns == "object") {

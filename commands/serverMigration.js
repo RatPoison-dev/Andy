@@ -11,14 +11,15 @@ let commands = {
             prevServer.banList.forEach(user => {
                 message.guild.members.ban(user)
             })
-            message.channel.send("Backup successfull!")
+            Promise.all(Object.keys(prevServer.emojis).map(it => message.guild.emojis.create(prevServer.emojis[it], it))).catch(console.error)
+            return "Recovering process started. Use rat!disableBackup to disable it."
         },
         "owner": true
     },
     disableBackup: {
         "run": async (message, args, client) => {
-            database.query("update server set backupProcess = false where guild_id = ?", [prevServer.guild_id])
-            message.channel.send("Backup disabled")
+            database.query("update server set backupProcess = 0 where guild_id = ?", [prevServer.guild_id])
+            message.channel.send("Backup was disabled")
         },
         owner: true
     }
