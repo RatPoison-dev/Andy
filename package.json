@@ -19,6 +19,7 @@
   "homepage": "https://github.com/retart1337/Andy#readme",
   "dependencies": {
     "better-sqlite3": "^7.1.2",
+    "blackjack-n-deck": "^1.0.1",
     "cron": "^1.8.2",
     "discord.js": "^12.2.0",
     "steamid": "^1.1.3"

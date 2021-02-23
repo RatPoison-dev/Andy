@@ -99,7 +99,7 @@ let commands = {
     punish: {
         "run": async (message, args, client) => {
             let foundUser = await utils.searchUser(client, message, args)
-            if (foundUser && engine.canRunCommand(engine.commands.punish, message, foundUser.id)) throw "Access denied!"
+            if (foundUser && (engine.canRunCommand(engine.commands.punish, message, foundUser.id))) throw "Access denied!"
             floppa(message, args, client, 1)
         },
         originalServer: true,

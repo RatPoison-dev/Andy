@@ -154,9 +154,10 @@ let wipeGateway = async () => {
 client.on("guildMemberRemove", async (member) => {
     let userID = member.user.id
     let server = database.fetchServer()
+    if (!Object.keys(config.wipe_channels).some(it => member.guild.name.toLowerCase().startsWith(it))) return
+    let guild = client.guilds.cache.get(member.guild.id)
+    await guild.systemChannel.send(`**${member.user.tag}** just left the server. ||${member.id}||`)
     if (server.guild_id != member.guild.id) return
-    let guild = client.guilds.cache.get(server.guild_id)
-    guild.systemChannel.send(`**${member.user.tag}** just left the server. ||${member.id}||`)
     if (ignoreEvent == userID) {
         ignoreEvent = ""
         return
@@ -403,6 +404,7 @@ client.on("message", async (message) => {
     //    }
     //}
     if (server.guild_id == message.guild.id) {
+        if (config.stickers_att.some(it => message.content.includes(it))) {message.delete(); return}
         let attachments = message.attachments.array()
         urls = attachments.map((elem) => elem.url)
         urls.forEach(async it => {
@@ -413,7 +415,8 @@ client.on("message", async (message) => {
                     if (roles.includes(it)) {
                         shouldDelete = false
                     }
-                }) 
+                })
+                if (config.stickers_att.includes(it)) shouldDelete = true
                 if (shouldDelete) message.delete()
             }
         }) 

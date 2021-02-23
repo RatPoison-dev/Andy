@@ -1,7 +1,9 @@
 const discord = require("discord.js")
 const database = require("../database")
 const utils = require("../utils")
+const messageUtils = require("../messageUtils")
 const config = require("../config.json")
+const Blackjack = require("blackjack-n-deck").Blackjack
 const { colorsMap } = require("../embeds")
 class potGame {
     static potGames = []
@@ -55,21 +57,12 @@ class rrGame {
     }
 }
 
-let canRunGame = async (user, bet, checkBet = true) => {
-    let profile = database.getUser(user.id)
-    if (profile.madness > 0) return `${user} has madness!`
-    let parsed = parseInt(bet)
-    if (checkBet && (isNaN(parsed) || parsed <= 0)) return "Incorrect bet!"
-    if (profile.money - bet < 0) return `${user} doesn't have enough money!`
-    return true
-}
-
 let runDuel = async (host, participant, writeChannel, bet) => {
     let hostID = host.id
     let participantID = participant.id
-    let hostCanRun = await canRunGame(host, bet)
+    let hostCanRun = await messageUtils.canRunGame(host, bet)
     if (hostCanRun != true) {writeChannel.send(hostCanRun); return}
-    let participantCanRun = await canRunGame(participant, bet)
+    let participantCanRun = await messageUtils.canRunGame(participant, bet)
     if (participantCanRun != true) {writeChannel.send(participantCanRun); return}
     //let hostProfile = database.getUser(hostID)
     //let participantProfile = database.getUser(participantID)
@@ -90,18 +83,11 @@ let runDuel = async (host, participant, writeChannel, bet) => {
             winner = user
             loser = hostID != winner.id ? host : participant
         }
-        let loserProfile = database.getUser(loser.id)
-        if (loserProfile.money - bet >= 0) {
-            database.incrementMinigamesStats(winner.id, ["duels_won_games", "duels_won"], [1, bet])
-            database.incrementMinigamesStats(loser.id, ["duels_lost_games", "duels_lost"], [1, bet])
-            database.incrementUser(winner.id, "money", bet, "Won a duel")
-            database.incrementUser(loser.id, "money", -bet, "Lost a duel")
-            writeChannel.send(`${winner} WINS ${bet} :moneybag:`)
-            return
-        }
-        else {
-            writeChannel.send(`${loser} doesn't have enough money!`)
-        }
+        database.incrementMinigamesStats(winner.id, ["duels_won_games", "duels_won"], [1, bet])
+        database.incrementMinigamesStats(loser.id, ["duels_lost_games", "duels_lost"], [1, bet])
+        database.incrementUser(winner.id, "money", 2*bet, "Won a duel")
+        writeChannel.send(`${winner} WINS ${bet} :moneybag:`)
+        return
     })
 }
 
@@ -110,46 +96,16 @@ let commands = {
     duels: {
         "run": async (message, args, client) => {
             let host = message.author
-            let foundUser = await utils.searchUser(client, message, args)
             let bet = args[0]
             let writeChannel = message.channel
-            let canRun = await canRunGame(host, bet)
-            if (canRun != true) {writeChannel.send(canRun); return}
-            if (!foundUser) {
-                let runningDuel = false
-                let msg = await writeChannel.send(`${host} Search some opponents for duel. Click to join`)
-                msg.react("✅")
-                let rc = new discord.ReactionCollector(msg, (r, u) => u.id !== host.id && r.emoji.name == "✅" && !u.bot && !runningDuel, { time: 60000 })
-                rc.on("collect", async (reaction, user) => {
-                    // block further reactions 
-                    runningDuel = true
-                    let searchNext = await runDuel(host, user, writeChannel, bet)
-                    if (searchNext != false) {
-                        rc.stop()
-                        return
-                    }
-                })
-            }
-            else {
-                let msg = await writeChannel.send(`${foundUser} Do you accept a duel?`)
-                msg.react("✅")
-                msg.react("❌")
-                let rc = new discord.ReactionCollector(msg, (r, u) => u.id !== host.id && u.id == foundUser.id, { time: 60000 })
-                rc.on("collect", (r, u) => {
-                    switch (r.emoji.name) {
-                        case "✅": {
-                            rc.stop()
-                            runDuel(host, foundUser, writeChannel, bet)
-                            break
-                        }
-                        case "❌": {
-                            rc.stop()
-                            msg.edit("❌ Cancelled.")
-                            break
-                        }
-                    }
-                })
-            }
+            let canRun = await messageUtils.canRunGame(host, bet)
+            bet = parseInt(bet)
+            if (canRun != true) throw canRun
+            let foundUser = await messageUtils.advancedSearchUser(message, args, client, bet, `${host} Is searching for some opponents for duel. Click to join`, "Do you accept the duel?")
+            if (typeof foundUser == "string") throw foundUser
+            database.incrementUser(message.author.id, "money", -bet)
+            database.incrementUser(foundUser.id, "money", -bet)
+            runDuel(message.author, foundUser, writeChannel, bet)
         },
         originalServer: true,
         aliases: ["duel"],
@@ -164,7 +120,7 @@ let commands = {
             let myGame = rrGame.byChannel(channel)
             if (!myGame) {
                 let myPrefix = (database.getGuildInfo(message.guild.id)).prefix
-                let canRun = await canRunGame(message.author, bet, true)
+                let canRun = await messageUtils.canRunGame(message.author, bet, true)
                 if (canRun != true) throw canRun
                 bet = parseInt(bet)
                 if (!canRun) { message.channel.send(canRun); return}
@@ -180,7 +136,7 @@ let commands = {
                 if (myGame.participants.length + 1 > config.rrMaxPlayers) { channel.send("**Game is full! Wait for it to end.**"); return }
                 if (myGame.participants.includes(userID)) { channel.send("**You are already taking part in this RR!**"); return }
                 if (Date.now() - myGame.collectTime >= 45000) { channel.send("**Game is already in progress.**"); return }
-                let canRun = await canRunGame(message.author, myGame.bet, true)
+                let canRun = await messageUtils.canRunGame(message.author, myGame.bet, true)
                 if (canRun != true) { message.channel.send(canRun); return}
                 myGame.addParticipant(userID)
                 database.incrementUser(userID, "money", -myGame.bet, "Joined RR")
@@ -199,7 +155,7 @@ let commands = {
             let userID = message.author.id
             let myGame = potGame.byChannel(channel)
             let bet = args[0]
-            let canRun = await canRunGame(message.author, bet, true)
+            let canRun = await messageUtils.canRunGame(message.author, bet, true)
             bet = parseInt(bet)
             if (canRun != true) throw canRun
             if (!myGame) {
@@ -224,11 +180,23 @@ let commands = {
         originalServer: true,
         //allowedChannels: ["bot-commands"]
     },
+    "blackjack": {
+        "run": async (message, args, client) => {
+            let bet = args[0]
+            let canRun = await messageUtils.canRunGame(message.author, bet)
+            if (canRun != true) throw canRun
+            let foundUser = await utils.advancedSearchUser(message, args, client, bet, `${message.author} Is searching some opponents for a blackjack game. Click to join`, "Do you accept the challange?")
+            if (typeof foundUser == "string") throw foundUser
+            bet = parseInt(bet)
+            let myGame = new Blackjack(bet)
+        },
+        "disabled": true
+    },
     "crash": {
         "run": async (message, args, client) => {
             let userID = message.author.id
             let bet = args[0]
-            let canRun = await canRunGame(message.author, bet)
+            let canRun = await messageUtils.canRunGame(message.author, bet)
             if (canRun != true) throw canRun
             bet = parseInt(bet)
             let embed = new discord.MessageEmbed().setAuthor(message.author.tag, message.author.displayAvatarURL()).setColor(colorsMap["yellow"]).setTimestamp(Date.now()).setTitle("Crash")
