@@ -121,7 +121,6 @@ let commands = {
         "run": async (message, args, client) => {
             let foundUser = await utils.searchUser(client, message, args)
             if (foundUser !== undefined) {
-                if (foundUser.id == "258557706892214282") {message.channel.send(":x: пошёл нахуй"); return}
                 if (foundUser.id !== message.author.id) {
                     let embed = await embeds.constructMinusRepEmbed(message, message.author, foundUser)
                     if (embed !== undefined) {
