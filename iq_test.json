@@ -1,6 +1,22 @@
 {
-    "Question": {
-        "answer1": "wrong",
-        "answer2": "correct"
+    "What does the x button in menu do?": {
+        "Closes CS:GO.": "wrong",
+        "Closes all windows.": "wrong",
+        "Closes RatPoison. ": "correct",
+        "Currently is not programmed to do anything.": "wrong"
+    },
+    "What keeps ratpoison undetected?": {
+        "Java": "correct",
+        "License": "correct",
+        "Valve employees.": "wrong",
+        "It is detected": "wrong"
+    },
+    "Does RatPoison work on faceit with anticheat on?": {
+        "Yes": "wrong",
+        "No": "correct"
+    },
+    "Is RatPoison internal or external?": {
+        "Internal": "wrong",
+        "External": "correct"
     }
 }

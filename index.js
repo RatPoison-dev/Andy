@@ -29,6 +29,14 @@ const job = new cron.CronJob("00 00 00 * * *" , async () => {
 client.on("ready", async () => {
     console.log(`[Andy] Logged in as: ${client.user.tag}`)
     let server = database.fetchServer()
+    //let guildToDump = client.guilds.cache.get("813001976278941707")
+    //let guildToSteal = client.guilds.cache.get("785830829439320095")
+    //guildToSteal.emojis.cache.forEach( async (emoji) => {
+    //    if (!guildToDump.emojis.cache.some(it => it.name == emoji.name)) {
+    //        await guildToDump.emojis.create(emoji.url, emoji.name)
+    //    }
+    //})
+
     job.start()
     backupServer()
     banChecker.checkBans()
@@ -38,6 +46,7 @@ client.on("ready", async () => {
     setInterval(() => wipeChannels(), config.wipeSleepInterval)
     setInterval(() => backupServer(), config.backupInterval)
     let curGuild = client.guilds.cache.get(server.guild_id)
+    let logs = await curGuild.fetchAuditLogs({type: "MEMBER_ROLE_UPDATE", limit: 100})
     let bans = (await curGuild.fetchBans()).size
     let bannedChannel = curGuild.channels.cache.find(it => it.name.startsWith("Bans"))
     bannedChannel.setName(`Bans: ${bans}`)
@@ -81,16 +90,15 @@ let backupServer = async () => {
     }
 }
 
-let wipeChannels = async () => {
-    let server = database.fetchServer()
-    if ((new Date().getTime() - server.wipeTimestamp) / 1000 > 259200) {
-        let myServers = Object.keys(config.wipe_channels)
-        myServers.forEach( myServer => {
-            let myGuild = client.guilds.cache.find(it => it.name.toLowerCase().startsWith(myServer))
-            let channels = myGuild.channels.cache
-            config.wipe_channels[myServer].forEach( async (it) => {
-                let myChannel = channels.find(e =>  e.type == "text" && e.name == it)
-                if (myChannel == undefined) return
+client.on("wipeChannels", () => {
+    let myServers = Object.keys(config.wipe_channels)
+    myServers.forEach( myServer => {
+        let myGuild = client.guilds.cache.find(it => it.name.toLowerCase().startsWith(myServer))
+        if (!myGuild) return
+        let channels = myGuild.channels.cache
+        config.wipe_channels[myServer].forEach( async (it) => {
+            let myChannel = channels.find(e =>  e.type == "text" && e.name == it)
+                if (!myChannel) return
                 let position = myChannel.position
                 console.log(`Should clone channel ${it}`)
                 let newChannel = await myChannel.clone()
@@ -98,6 +106,12 @@ let wipeChannels = async () => {
                 newChannel.setPosition(position)
             })
         })
+})
+
+let wipeChannels = async () => {
+    let server = database.fetchServer()
+    if ((new Date().getTime() - server.wipeTimestamp) / 1000 > 259200) {
+        client.emit("wipeChannels")  
         database.updateServer(server.guild_id, "wipeTimestamp", new Date().getTime())
     }
 }
@@ -283,7 +297,7 @@ client.on("guildMemberAdd", async (member) => {
     let user = member.user
     let userID = user.id
     if (curServer.guild_id != member.guild.id) return
-    if (((new Date().getTime() - user.createdTimestamp) / 1000 < 86400) && !user.bot) {
+    if (((new Date().getTime() - user.createdTimestamp) / 1000 < 86400) && !user.bot && curServer.antiRade) {
         await member.ban({reason: "Get victored"})
     }
     else {

@@ -15,7 +15,7 @@ let commands = {
                 sid = sid.getSteamID64()
                 let summaries = await api.GetPlayerSummaries(sid)
                 let initList = await api.rawCheckBans(sid)
-                db.addBancheckerAccount(sid, message.author.id, summaries.personaname, summaries.avatarfull, message.guild.id, initList[0], initList[1], description)
+                db.addBancheckerAccount(sid, message.author.id, summaries.personaname, summaries.avatarfull, message.guild.id, initList[0], initList[1], description, true)
                 message.channel.send(`[BanChecker] SteamID ${sid} has been added to ban checker.`)
             }
         },

@@ -115,7 +115,8 @@ let commands = {
             }
         },
         "help": "[user] - give some cheese to user",
-        originalServer: true
+        originalServer: true,
+        blockedChannels: ["general"]
     },
     "-rep": {
         "run": async (message, args, client) => {
@@ -140,7 +141,8 @@ let commands = {
             }
         },
         "help": "[user] - take some cheese from user",
-        originalServer: true
+        originalServer: true,
+        blockedChannels: ["general"]
     },
     balance: {
         "run": async (message, args, client) => {

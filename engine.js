@@ -36,10 +36,11 @@ let canRunCommand = (key, message, userID) => {
     let serverCheck = (key.originalServer && runningFromOriginalServer) || !key.originalServer
     let rolesCheck = (runningFromOriginalServer && member && typeof key.roles == "object" && member.roles.cache.some(it => key.roles.includes(it.name))) || !key.roles || !member
     let channelsChack = (runningFromOriginalServer && typeof key.allowedChannels == "object" && key.allowedChannels.includes(message.channel.name)) || !key.allowedChannels
+    let channelsChack2 = (runningFromOriginalServer && typeof key.blockedChannels == "object" && !key.blockedChannels.includes(message.channel.name)) || !key.blockedChannels
     let permissionsCheck = member && message.member.permissions.has(key.permissions) || !member
     let disabledCheck = !key.disabled
     if (isOwner && disabledCheck) return true
-    return ownerCheck && serverCheck && permissionsCheck && disabledCheck && rolesCheck && channelsChack
+    return ownerCheck && serverCheck && permissionsCheck && disabledCheck && rolesCheck && channelsChack && channelsChack2
 }
 
 let fixCommand = (command) => {

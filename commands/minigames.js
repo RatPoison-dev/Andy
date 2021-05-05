@@ -3,8 +3,7 @@ const database = require("../database")
 const utils = require("../utils")
 const messageUtils = require("../messageUtils")
 const config = require("../config.json")
-const Blackjack = require("blackjack-n-deck").Blackjack
-const { colorsMap } = require("../embeds")
+const embeds = require("../embeds")
 class potGame {
     static potGames = []
 
@@ -180,18 +179,6 @@ let commands = {
         originalServer: true,
         //allowedChannels: ["bot-commands"]
     },
-    "blackjack": {
-        "run": async (message, args, client) => {
-            let bet = args[0]
-            let canRun = await messageUtils.canRunGame(message.author, bet)
-            if (canRun != true) throw canRun
-            let foundUser = await utils.advancedSearchUser(message, args, client, bet, `${message.author} Is searching some opponents for a blackjack game. Click to join`, "Do you accept the challange?")
-            if (typeof foundUser == "string") throw foundUser
-            bet = parseInt(bet)
-            let myGame = new Blackjack(bet)
-        },
-        "disabled": true
-    },
     "crash": {
         "run": async (message, args, client) => {
             let userID = message.author.id
@@ -199,9 +186,11 @@ let commands = {
             let canRun = await messageUtils.canRunGame(message.author, bet)
             if (canRun != true) throw canRun
             bet = parseInt(bet)
-            let embed = new discord.MessageEmbed().setAuthor(message.author.tag, message.author.displayAvatarURL()).setColor(colorsMap["yellow"]).setTimestamp(Date.now()).setTitle("Crash")
+            let embed = new discord.MessageEmbed().setAuthor(message.author.tag, message.author.displayAvatarURL()).setColor(embeds.colorsMap["yellow"]).setTimestamp(Date.now()).setTitle("Crash")
             let zeroCrash = Math.random() > 0.8
-            let current = 1
+            let current = 0
+            let shouldRange0Crash = Math.random() > 0.7
+            let range0Crashed = randomNumber(0, 1)
             let shouldRange1Crash = Math.random() > 0.5
             let range1Crashed = randomNumber(1.3, 2)
             let shouldRange2Crash = Math.random() > 0.7
@@ -222,18 +211,19 @@ let commands = {
             })
             while (!crashed && !stopped) {
                 await utils.sleep(2000)
-                if (zeroCrash && current == 1 && !stopped) {crashed = true; break}
+                if (zeroCrash && current == 0 && !stopped) {crashed = true; break}
                 if (stopped) break
                 current += 0.2
-                if (shouldRange1Crash && current < 2 && current > range1Crashed) {crashed = true; break}
-                else if (shouldRange2Crash && current > 2 && current < 3 && current > range2Crashed && !stopped) {crashed = true; break}
-                else if (current > range3Crashed && !stopped) {crashed = true;  break}
+                if (shouldRange0Crash && current > range0Crashed && current < 1) {crashed = true; break}
+                else if (shouldRange1Crash && current < 2 && current > 1 && current > range1Crashed) {crashed = true; break}
+                else if (shouldRange2Crash && current > 2 && current < 3 && current > range2Crashed) {crashed = true; break}
+                else if (current > range3Crashed) {crashed = true;  break}
                 embed.fields[0].value = `${current.toFixed(1)}x`
                 embed.fields[1].value = `**${(bet*current-bet).toFixed(3)}** :moneybag:`
                 await myMessage.edit(embed)
             }
             if (crashed) {
-                embed.setColor(colorsMap.red)
+                embed.setColor(embeds.colorsMap.red)
                 embed.fields[0].name = "Crashed at"
                 embed.fields[1].value = `**${-bet}** :moneybag:`
                 await myMessage.edit(embed)
@@ -241,7 +231,7 @@ let commands = {
             else if (stopped) {
                 embed.fields[0].name = "Stopped at"
                 database.incrementUser(userID, "money", bet*current, "Stopped crash game")
-                embed.setColor(colorsMap.purple)
+                embed.setColor(embeds.colorsMap.purple)
                 await myMessage.edit(embed)
             }
 

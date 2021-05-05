@@ -32,27 +32,23 @@ let commands = {
     forceWipe: {
         "run": async (message, args, client) => {
             let server = database.fetchServer()
-            let guild = client.guilds.cache.get(server.guild_id)
-
-            config.wipe_channels.forEach( async it => {
-                let channels = guild.channels.cache
-                channels.forEach( async channel => {
-                    if (channel.type == "text" && channel.name == it) {
-                        let position = channel.position
-                        let newChannel = await channel.clone()
-                        await channel.delete()
-                        newChannel.setPosition(position)
-                    }
-                })
-            })
+            client.emit("wipeChannels")
             database.updateServer(server.guild_id, "wipeTimestamp", new Date().getTime())
+            return "Wipe process started."
         },
         owner: true
     },
     gateway: {
-        "run": async (message, args) => {
+        "run": (message, args) => {
             let newState = database.gatewaySwitchState()
             message.channel.send(`New gateway state: ${newState}`)
+        },
+        owner: true
+    },
+    antiRade: {
+        "run": (message) => {
+            let newState = database.antiRadeSwitchState()
+            message.channel.send(`New anti rade state: ${newState}`)
         },
         owner: true
     },
@@ -111,7 +107,7 @@ let commands = {
             floppa(message, args, client, 0)
         },
         originalServer: true,
-        roles: ["Admin", "Booters"],
+        roles: ["Ratmins", "Booters"],
         help: "[user] - free user from gateway"
     }
 }

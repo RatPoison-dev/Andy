@@ -176,20 +176,24 @@ let constructDailyembed = async (user, giveTo) => {
     return embed
 }
 
-let constructBannedEmbed = async (player, type, client) => {
+let constructBannedEmbed = async (realAccount, type, resolvedUsers) => {
     let bannedMessage
     let bannedType
     type == "VAC" ? bannedType = config.VACBannedMessage : bannedType = config.OWBannedMessage
     type == "VAC" ? bannedMessage = utils.getRandomElem(config.VACBannedList) : bannedMessage = utils.getRandomElem(config.OWBannedList)
     let embed = new discord.MessageEmbed()
-    embed.setTitle(player.displayName)
-    embed.setThumbnail(player.playerAvatar)
-    player.description == "" ? embed.setDescription(bannedMessage) : embed.setDescription(`${bannedMessage}\nDescription:\n**${player.description}**`) 
-    embed.setURL(`https://steamcommunity.com/profiles/${player.steamID}`)
-    let eblo1 = new Date(player.timestamp)
+    embed.setTitle(realAccount.dbRow.displayName)
+    embed.setThumbnail(realAccount.dbRow.playerAvatar)
+    let realDescription = ""
+    realAccount.descriptions.forEach(it => {
+        if (!it) return
+        realDescription += `**${it}**\n`
+    })
+    realDescription == "" ? embed.setDescription(bannedMessage) : embed.setDescription(`${bannedMessage}\nDescriptions:\n${realDescription}`) 
+    embed.setURL(`https://steamcommunity.com/profiles/${realAccount.dbRow.steamID}`)
+    let eblo1 = new Date(realAccount.dbRow.timestamp)
     let substr1 = `${eblo1.getUTCDate()}.${eblo1.getUTCMonth()+1}.${eblo1.getUTCFullYear()}`
-    let tmpUser = await client.users.fetch(player.requester)
-    embed.setFooter(`${bannedType}, added by ${tmpUser.tag} (${substr1})`)
+    embed.setFooter(`${bannedType}, added by ${resolvedUsers.map(it => it.username).join(", ")} (${substr1})`)
     embed.setColor(0x004080)
     return embed
 }

@@ -6,14 +6,14 @@ let canRunGame = async (user, bet, checkBet = true) => {
     let profile = database.getUser(user.id)
     if (profile.madness > 0) return `${user} has madness!`
     let parsed = parseInt(bet)
-    if (checkBet && (isNaN(parsed) || parsed <= 0)) return "Incorrect bet!"
+    if (checkBet && (isNaN(parsed) || parsed <= 0 || !isFinite(parsed))) return "Incorrect bet!"
     if (profile.money - bet < 0) return `${user} doesn't have enough money!`
     return true
 }
 
 let advancedSearchUser = (message, args, client, bet, searchMessage, acceptMessage) => new Promise(async (resolve, reject) => {
     let foundUser = await utils.searchUser(client, message, args.slice(1))
-    if (foundUser) {
+    if (foundUser && foundUser.id != message.author.id) {
         let canRun = await canRunGame(foundUser, bet)
         if (canRun != true) {resolve(canRun); return}
         let myMessage = await message.channel.send(`${foundUser} ${acceptMessage}`)
@@ -42,7 +42,7 @@ let advancedSearchUser = (message, args, client, bet, searchMessage, acceptMessa
     else {
         let myMessage = await message.channel.send(searchMessage)
         await myMessage.react("✅")
-        let rc = new discord.ReactionCollector(myMessage, (r, u) => (["✅"].includes(r.emoji.name) && !u.bot), { time: 60000 })
+        let rc = new discord.ReactionCollector(myMessage, (r, u) => (["✅"].includes(r.emoji.name) && !u.bot && u.id != message.author.id), { time: 60000 })
         rc.on("collect", async (r, u) => {
             let canRun2 = await canRunGame(u, bet, true)
             if (canRun2 != true) {

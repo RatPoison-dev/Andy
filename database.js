@@ -12,10 +12,10 @@ let one = (q, ...args) => db.prepare(q).get(...args)
 
 
 run("create table if not exists guilds (guild_id TEXT NOT NULL UNIQUE, bannedChannel TEXT, prefix TEXT DEFAULT \"rat!\", PRIMARY KEY(guild_id))")
-run("create table if not exists banChecker (steamID TEXT NOT NULL UNIQUE, requester TEXT NOT NULL, timestamp integer not null, displayName TEXT NOT NULL, playerAvatar TEXT NOT NULL, guild_id TEXT, initVAC INT, initOW INT, description TEXT DEFAULT \"\", PRIMARY KEY(steamID))")
+run("create table if not exists banChecker (steamID TEXT NOT NULL, requester TEXT NOT NULL, timestamp integer not null, displayName TEXT NOT NULL, playerAvatar TEXT NOT NULL, guild_id TEXT, initVAC INT, initOW INT, description TEXT DEFAULT \"\")")
 run("create table if not exists users (user_id TEXT NOT NULL UNIQUE, cheese DOUBLE DEFAULT 0, money INT DEFAULT 0, rep INT DEFAULT 0, dailyTimestamp INT DEFAULT 0, repTimestamp INT DEFAULT 0, repToday TEXT DEFAULT \"\", madness INT DEFAULT 0)")
 run("create table if not exists saved_messages (user_id TEXT, attachments TEXT, message_content TEXT)")
-run("create table if not exists server (guild_id TEXT NOT NULL UNIQUE, banList TEXT default \"[]\", roles TEXT default \"{}\", backupProcess BOOL default false, gateway BOOL default true, wipeTimestamp int default 0, PRIMARY KEY(guild_id))")
+run("create table if not exists server (guild_id TEXT NOT NULL UNIQUE, banList TEXT default \"[]\", roles TEXT default \"{}\", backupProcess BOOL default false, gateway BOOL default true, wipeTimestamp int default 0, antiRade bool default true, PRIMARY KEY(guild_id))")
 run("create table if not exists gateway (user_id TEXT NOT NULL UNIQUE, tries INT default 0, answers text default \"[]\")")
 run("create table if not exists inventory (user_id text, count int, item_id int)")
 run("create table if not exists minigames_stats (user_id text not null unique, duels_won_games int default 0, duels_lost_games int default 0, duels_won int default 0, duels_lost int default 0, rr_won_games int default 0, rr_won int default 0, rr_lost int default 0, rr_lost_games int default 0, pot_won_games int default 0, pot_lost_games int default 0, pot_won int default 0, pot_lost int default 0)")
@@ -57,6 +57,11 @@ let gatewayCreateRow = (user_id) => run("insert or ignore into gateway (user_id,
 let gatewaySwitchState = () => {
     run("update server set gateway = case when gateway = 1 then 0 else 1 end")
     return (fetchServer()).gateway
+}
+
+let antiRadeSwitchState = () => {
+    run("update server set antiRade = case when antiRade = 1 then 0 else 1 end")
+    return (fetchServer()).antiRade
 }
 
 let increaseGatewayTries = (user_id) => run("update gateway set tries = tries + 1 where user_id = ?", [user_id])
@@ -153,11 +158,16 @@ let getUser = (user_id) => {
 
 let initGuild = (guild_id) => run("insert or ignore into guilds (guild_id) values (?)", [guild_id])
 
-let addBancheckerAccount = (steamID, requester, displayName, playerAvatar, guild_id, initVAC, initOW, description) => {
-    run('insert or ignore into banChecker (steamID, requester, timestamp, displayName, playerAvatar, guild_id, initVAC, initOW, description) values (?, ?, ?, ?, ?, ?, ?, ?, ?)', [steamID, requester, Date.now(), displayName, playerAvatar, guild_id, initVAC, initOW, description])
+let addBancheckerAccount = (steamID, requester, displayName, playerAvatar, guild_id, initVAC, initOW, description, canThrow = false) => {
+    let selected = one("select * from banChecker where steamID = ? and requester = ?", [steamID, requester])
+    if (selected) {
+        if (canThrow) throw "Account has been already added!"
+        else return
+    }
+    run('insert into banChecker (steamID, requester, timestamp, displayName, playerAvatar, guild_id, initVAC, initOW, description) values (?, ?, ?, ?, ?, ?, ?, ?, ?)', [steamID, requester, Date.now(), displayName, playerAvatar, guild_id, initVAC, initOW, description])
 }
 
 let getBancheckerAccounts = (user) => !user ? get("select * from banChecker") : get("select * from banChecker where requester = ?", [user])
 
 
-module.exports = {getGuildInfo, initGuild, addBancheckerAccount, getBancheckerAccounts, incrementUser, makeSaved, getTopIndex, updateGuild, updateUser, getUser, getTopByPage, getUserMaxReps, resetRep, fetchServer, updateServer, migrateActions, gatewayCreateRow, getGateway, deleteGatewayInfo, increaseGatewayTries, gatewaySwitchState, get, run, fetchInventory, fetchInventoryItem, addItem, getMinigamesStats, incrementMinigamesStats}
+module.exports = {getGuildInfo, initGuild, addBancheckerAccount, getBancheckerAccounts, incrementUser, makeSaved, getTopIndex, updateGuild, updateUser, getUser, getTopByPage, getUserMaxReps, resetRep, fetchServer, updateServer, migrateActions, gatewayCreateRow, getGateway, deleteGatewayInfo, increaseGatewayTries, gatewaySwitchState, get, run, fetchInventory, fetchInventoryItem, addItem, getMinigamesStats, incrementMinigamesStats, antiRadeSwitchState}
