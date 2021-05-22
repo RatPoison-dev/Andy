@@ -40,7 +40,7 @@ let canRunCommand = (key, message, userID) => {
     let permissionsCheck = member && message.member.permissions.has(key.permissions) || !member
     let disabledCheck = !key.disabled
     if (isOwner && disabledCheck) return true
-    return ownerCheck && serverCheck && permissionsCheck && disabledCheck && rolesCheck && channelsChack && channelsChack2
+    return ownerCheck && serverCheck && permissionsCheck && rolesCheck && disabledCheck && channelsChack && channelsChack2
 }
 
 let fixCommand = (command) => {
@@ -79,7 +79,7 @@ let runCommand = async (command, message, args, client) => {
                     }
                 } 
                 catch (e) {
-                    let final = utils.attrGetter(e, "stack", e.toString())
+                    let final = utils.attrGetter(e, "stack", e.toString()).replace(config.steamWebApiKey, "[REDACTED]")
                     if (key.help != undefined) {
                         final += `\nUsage: \`\`${myServer.prefix}${command} ${key.help}\`\``
                     }

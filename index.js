@@ -46,7 +46,6 @@ client.on("ready", async () => {
     setInterval(() => wipeChannels(), config.wipeSleepInterval)
     setInterval(() => backupServer(), config.backupInterval)
     let curGuild = client.guilds.cache.get(server.guild_id)
-    let logs = await curGuild.fetchAuditLogs({type: "MEMBER_ROLE_UPDATE", limit: 100})
     let bans = (await curGuild.fetchBans()).size
     let bannedChannel = curGuild.channels.cache.find(it => it.name.startsWith("Bans"))
     bannedChannel.setName(`Bans: ${bans}`)
@@ -90,22 +89,26 @@ let backupServer = async () => {
     }
 }
 
+let wipeChannel = async (currentIndex, wipeChannels, guildChannels) => {
+    let currentChannel = wipeChannels[currentIndex]
+    let myChannel = guildChannels.find(e =>  e.type == "text" && e.name == currentChannel)
+    if (myChannel) {
+        let position = myChannel.position
+        let newChannel = await myChannel.clone()
+        await myChannel.delete("Wipe channels")
+        newChannel.setPosition(position)
+    }
+    wipeChannel(currentIndex+1, wipeChannels, guildChannels)
+}
+
 client.on("wipeChannels", () => {
     let myServers = Object.keys(config.wipe_channels)
     myServers.forEach( myServer => {
         let myGuild = client.guilds.cache.find(it => it.name.toLowerCase().startsWith(myServer))
         if (!myGuild) return
         let channels = myGuild.channels.cache
-        config.wipe_channels[myServer].forEach( async (it) => {
-            let myChannel = channels.find(e =>  e.type == "text" && e.name == it)
-                if (!myChannel) return
-                let position = myChannel.position
-                console.log(`Should clone channel ${it}`)
-                let newChannel = await myChannel.clone()
-                await myChannel.delete("Wipe channels")
-                newChannel.setPosition(position)
-            })
-        })
+        wipeChannel(0, config.wipe_channels[myServer], channels)
+    })
 })
 
 let wipeChannels = async () => {

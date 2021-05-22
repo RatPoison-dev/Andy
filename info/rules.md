@@ -10,3 +10,4 @@
 10. Use channels for their purpose (general - for chatting, help-support for help)
 11. Follow discord TOS
 12. Stickers (gifs, videos, pictures that contain stickers) are not allowed
+13. No hololive

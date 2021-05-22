@@ -92,10 +92,13 @@ let commands = {
         message.channel.send("https://www.oracle.com/java/technologies/javase-jdk14-downloads.html")
     },
     master: (message) => {
-        message.channel.send("https://github.com/TheRatCode/RatPoison/archive/master.zip")
+        message.channel.send("https://github.com/RatPoison-dev/RatPoison/archive/master.zip")
     },
     beta: (message) => {
-        message.channel.send("https://github.com/TheRatCode/RatPoison/archive/beta.zip")
+        message.channel.send("https://github.com/RatPoison-dev/RatPoison/archive/beta.zip")
+    },
+    "wdal": (message) => {
+        message.channel.send("https://github.com/RatPoison-dev/RatPoison/archive/we-do-a-little.zip")
     },
     "cope": (message) => {
         message.channel.send("https://tenor.com/view/cat-kitty-cope-gif-20110606")
@@ -107,7 +110,7 @@ let commands = {
         aliases: ["cfg", "configs"]
     },
     release: (message) => {
-        message.channel.send("1.7 - https://github.com/TheRatCode/RatPoison/releases/download/1.7.1.3/RatPoison-1.7.1.3.zip\n1.8 - https://github.com/TheRatCode/RatPoison/releases/download/1.8.5.6/RatPoison-1.8.5.6.zip")
+        message.channel.send("1.7 - https://github.com/TheRatCode/RatPoison/releases/download/1.7.1.3/RatPoison-1.7.1.3.zip\n1.8 - https://github.com/TheRatCode/RatPoison/releases/download/1.8.5.7/RatPoison-1.8.5.7.zip")
     },
     crazy: (message) => {
         message.channel.send("https://media.discordapp.net/attachments/254437896365408256/796894005236596736/image0-30.gif")

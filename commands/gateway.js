@@ -99,7 +99,7 @@ let commands = {
             floppa(message, args, client, 1)
         },
         originalServer: true,
-        roles: ["Admin", "Booters"],
+        roles: ["Ratmins", "Booters"],
         help: "[user] - put user in gateway"
     },
     free: {
