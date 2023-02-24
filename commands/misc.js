@@ -8,29 +8,40 @@ let addCategory = (categories, category, item) => {
     else categories[category].push(item)
 }
 
+let getRules = (file, args) => {
+    let myRules = fs.readFileSync(file, "utf-8").split("\n")
+    let rule = parseInt(args[0])
+    let final = ""
+    if (Number.isNaN(rule) || myRules.length < rule || rule < 0) {
+        let argsJoin = args.join(" ")
+        if (!argsJoin) { final = myRules.join("\n")}
+        else {
+            myRules.forEach(it => {
+                if (final == "" && it.includes(argsJoin)) {final = it; return}
+            })
+        }
+    }
+    else {
+        final = myRules[ rule - 1]
+    }
+    final = final || myRules.join("\n")
+    return final
+}
+
 let commands = {
     rules: {
         "run": (message, args) => {
-            let myRules = fs.readFileSync("./info/rules.md", "utf-8").split("\n")
-            let rule = parseInt(args[0])
-            let final = ""
-            if (Number.isNaN(rule) || myRules.length < rule || rule < 0) {
-                let argsJoin = args.join(" ")
-                if (!argsJoin) { final = myRules.join("\n")}
-                else {
-                    myRules.forEach(it => {
-                        if (final == "" && it.includes(argsJoin)) {final = it; return}
-                    })
-                }
-            }
-            else {
-                final = myRules[ rule - 1]
-            }
-            final = final || myRules.join("\n")
-            message.channel.send(final)
+            message.channel.send(getRules("./info/rules.md", args))
         },
         originalServer: true,
         aliases: ["rule"]
+    },
+    modrules: {
+        "run": (message, args) => {
+            message.channel.send(getRules("./info/modrules.md", args))
+        },
+        originalServer: true,
+        aliases: ["modrule"]
     },
 
     help: async (message) => {
@@ -64,7 +75,6 @@ let commands = {
         // ok thx for the info
         s += fs.readFileSync("./info/help.md", "utf-8")
         Promise.all(utils.chunkMessage(s).map(it => message.author.send(it))).then(() => {message.react("✅")}, () => {message.react("❌")})
-        
     },
     coin: { 
         "run": async (message) => {
@@ -77,6 +87,12 @@ let commands = {
             }
         },
         "help": "- Toss a coin"
+    },
+    kiss: {
+        "run":  async (message, args, client) => {
+            if (!args[0]) throw "You need to specify who to kiss!"
+            message.channel.send("https://tenor.com/view/cat-kitten-love-hug-kiss-gif-10439640")
+        }
     },
     // Add some shit here
     dimden: (message) => {
@@ -110,7 +126,7 @@ let commands = {
         aliases: ["cfg", "configs"]
     },
     release: (message) => {
-        message.channel.send("1.7 - https://github.com/TheRatCode/RatPoison/releases/download/1.7.1.3/RatPoison-1.7.1.3.zip\n1.8 - https://github.com/TheRatCode/RatPoison/releases/download/1.8.5.7/RatPoison-1.8.5.7.zip")
+        message.channel.send("1.7 - https://github.com/Ratpoison-dev/RatPoison/releases/download/1.7.1.6/RatPoison-1.7.1.6.zip\n1.8 - https://github.com/RatPoison-dev/RatPoison/releases/download/1.8.5.10/RatPoison-1.8.5.10.zip")
     },
     crazy: (message) => {
         message.channel.send("https://media.discordapp.net/attachments/254437896365408256/796894005236596736/image0-30.gif")
@@ -128,7 +144,7 @@ let commands = {
         message.channel.send("dude RATTO do u have Masochism or sth ?!")
     },
     status: (message) => {
-        message.channel.send("Current status:\nmaster: **undetected, stable**\nbeta: **undetected, stable**\nalpha: **undetected, unstable**\nwe-do-a-little: **trolling**\nhotel: **trivago**")
+        message.channel.send("https://www.reddit.com/r/ratpoison/comments/p4bq0w/everything_you_need_to_know_about_detection/")
     },
     launching: (message) => {
         message.channel.send("You are stuck at Launching...?\nMake sure you have checked all of those steps:\n- you are running currently most up-to-date version of RatPoison\n- you disabled all anti-cheat clients working on your computer\n- your RatPoison folder is placed somewhere with all running permissions\n- you don't use RatPoison with some other cheats running\n- you aren't currently running VAC bypass (running the bat file with administrator privileges should work)\n- you restarted your computer\n\nIf nothing else works then you can try running the bat file as admin.")

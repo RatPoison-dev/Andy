@@ -8,4 +8,4 @@
 Every 1 cheese point you get +1 max +rep limit.
 
 # Other
-- If you have either donator or booster role you will recieve 0.05 every day
+- If you have either donator or booster role you will recieve 0.05 cheese every day

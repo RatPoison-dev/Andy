@@ -37,7 +37,7 @@ let canRunCommand = (key, message, userID) => {
     let rolesCheck = (runningFromOriginalServer && member && typeof key.roles == "object" && member.roles.cache.some(it => key.roles.includes(it.name))) || !key.roles || !member
     let channelsChack = (runningFromOriginalServer && typeof key.allowedChannels == "object" && key.allowedChannels.includes(message.channel.name)) || !key.allowedChannels
     let channelsChack2 = (runningFromOriginalServer && typeof key.blockedChannels == "object" && !key.blockedChannels.includes(message.channel.name)) || !key.blockedChannels
-    let permissionsCheck = member && message.member.permissions.has(key.permissions) || !member
+    let permissionsCheck = (key.permissions && member && message.member.permissions.has(key.permissions)) || !member || !key.permissions
     let disabledCheck = !key.disabled
     if (isOwner && disabledCheck) return true
     return ownerCheck && serverCheck && permissionsCheck && rolesCheck && disabledCheck && channelsChack && channelsChack2
@@ -75,15 +75,15 @@ let runCommand = async (command, message, args, client) => {
                     if (result != undefined) {
                         let myEmbedTitle = utils.attrGetter(result, "title", "")
                         myResult = utils.attrGetter(result, "result", result)
-                        myResult.color == undefined ? message.channel.send(embeds.constructResultEmbed(myResult, message.author, "yellow", title = myEmbedTitle)) : message.channel.send(myResult)
+                        myResult.data?.color == undefined ? message.channel.send({embeds: [embeds.constructResultEmbed(myResult, message.author, "yellow", title = myEmbedTitle)]}) : message.channel.send({embeds: [myResult]})
                     }
-                } 
+                }
                 catch (e) {
                     let final = utils.attrGetter(e, "stack", e.toString()).replace(config.steamWebApiKey, "[REDACTED]")
                     if (key.help != undefined) {
                         final += `\nUsage: \`\`${myServer.prefix}${command} ${key.help}\`\``
                     }
-                    message.channel.send(embeds.constructResultEmbed(final, message.author))
+                    message.channel.send({embeds: [embeds.constructResultEmbed(final, message.author)]})
                 }
             }
         }

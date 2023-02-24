@@ -15,10 +15,10 @@ run("create table if not exists guilds (guild_id TEXT NOT NULL UNIQUE, bannedCha
 run("create table if not exists banChecker (steamID TEXT NOT NULL, requester TEXT NOT NULL, timestamp integer not null, displayName TEXT NOT NULL, playerAvatar TEXT NOT NULL, guild_id TEXT, initVAC INT, initOW INT, description TEXT DEFAULT \"\")")
 run("create table if not exists users (user_id TEXT NOT NULL UNIQUE, cheese DOUBLE DEFAULT 0, money INT DEFAULT 0, rep INT DEFAULT 0, dailyTimestamp INT DEFAULT 0, repTimestamp INT DEFAULT 0, repToday TEXT DEFAULT \"\", madness INT DEFAULT 0)")
 run("create table if not exists saved_messages (user_id TEXT, attachments TEXT, message_content TEXT)")
-run("create table if not exists server (guild_id TEXT NOT NULL UNIQUE, banList TEXT default \"[]\", roles TEXT default \"{}\", backupProcess BOOL default false, gateway BOOL default true, wipeTimestamp int default 0, antiRade bool default true, PRIMARY KEY(guild_id))")
-run("create table if not exists gateway (user_id TEXT NOT NULL UNIQUE, tries INT default 0, answers text default \"[]\")")
+run("create table if not exists server (guild_id TEXT NOT NULL UNIQUE, banList TEXT default \"[]\", roles TEXT default \"{}\", backupProcess BOOL default false, wipeTimestamp int default 0, antiRade bool default true, PRIMARY KEY(guild_id))")
 run("create table if not exists inventory (user_id text, count int, item_id int)")
 run("create table if not exists minigames_stats (user_id text not null unique, duels_won_games int default 0, duels_lost_games int default 0, duels_won int default 0, duels_lost int default 0, rr_won_games int default 0, rr_won int default 0, rr_lost int default 0, rr_lost_games int default 0, pot_won_games int default 0, pot_lost_games int default 0, pot_won int default 0, pot_lost int default 0)")
+run("create table if not exists uid_table (user_id text not null unique, uid int default 0, message text default \"\")")
 
 let getGuildInfo = (guild_id) => {
     initGuild(guild_id)
@@ -52,27 +52,11 @@ let updateAnything = (table, unique_key, unique_key_is, columns, values) => {
     }
 }
 
-let gatewayCreateRow = (user_id) => run("insert or ignore into gateway (user_id, tries) values (?, 0)", [user_id])
-
-let gatewaySwitchState = () => {
-    run("update server set gateway = case when gateway = 1 then 0 else 1 end")
-    return (fetchServer()).gateway
-}
-
 let antiRadeSwitchState = () => {
     run("update server set antiRade = case when antiRade = 1 then 0 else 1 end")
     return (fetchServer()).antiRade
 }
 
-let increaseGatewayTries = (user_id) => run("update gateway set tries = tries + 1 where user_id = ?", [user_id])
-
-let getGateway = (user_id) => {
-    let rows = get("select * from gateway where user_id = ?", [user_id])
-    if (rows[0]) rows[0].answers = utils.str2list(rows[0].answers)
-    return rows[0]
-}
-
-let deleteGatewayInfo = (user_id) => run("delete from gateway where user_id = ?", [user_id])
 let initProfile = (user_id) => run("insert or ignore into users (user_id) values (?)", [user_id])
 
 let fetchServer = () => {
@@ -82,7 +66,7 @@ let fetchServer = () => {
     return row
 }
  
-let getTopByPage = (type, page) => get(`select user_id, ${type} from users order by ${type} desc limit ?, 10`, [(page-1)*10])
+let getTopByPage = (type, page) => type != "uid" ? get(`select user_id, ${type} from users order by ${type} desc limit ?, 10`, [(page-1)*10]) : get(`select * from uid_table order by ${type} asc limit ?, 10`, [(page-1)*10])
 
 let getTopIndex = (type, user_id) => (get(`select user_id from users order by ${type} desc`)).findIndex(elem => elem.user_id == user_id)+1
 
@@ -145,7 +129,8 @@ let incrementMinigamesStats = (user_id, columns, values) => {
 
 let getUserMaxReps = (user_id) => {
     let user = getUser(user_id)
-    return Math.floor(user.cheese) + 5
+    let tmpReps = Math.floor(user.cheese) + 5
+    return tmpReps > 47 ? 47 : tmpReps
 }
 
 let getUser = (user_id) => {
@@ -170,4 +155,4 @@ let addBancheckerAccount = (steamID, requester, displayName, playerAvatar, guild
 let getBancheckerAccounts = (user) => !user ? get("select * from banChecker") : get("select * from banChecker where requester = ?", [user])
 
 
-module.exports = {getGuildInfo, initGuild, addBancheckerAccount, getBancheckerAccounts, incrementUser, makeSaved, getTopIndex, updateGuild, updateUser, getUser, getTopByPage, getUserMaxReps, resetRep, fetchServer, updateServer, migrateActions, gatewayCreateRow, getGateway, deleteGatewayInfo, increaseGatewayTries, gatewaySwitchState, get, run, fetchInventory, fetchInventoryItem, addItem, getMinigamesStats, incrementMinigamesStats, antiRadeSwitchState}
+module.exports = {getGuildInfo, initGuild, addBancheckerAccount, getBancheckerAccounts, incrementUser, makeSaved, getTopIndex, updateGuild, updateUser, getUser, getTopByPage, getUserMaxReps, resetRep, fetchServer, updateServer, migrateActions, get, run, fetchInventory, fetchInventoryItem, addItem, getMinigamesStats, incrementMinigamesStats, antiRadeSwitchState, one}

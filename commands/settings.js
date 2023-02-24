@@ -15,7 +15,7 @@ let commands = {
         "run": (message, args) => {
             if (!args[0]) throw "You need to specify new prefix."
             database.updateGuild(message.guild.id, "prefix", args[0])
-            message.channel.send("Prefix was updated.")
+            message.channel.send("Pellix was updated.")
         },
         help: "[newPrefix] - set a prefix for bot",
         permissions: "ADMINISTRATOR"

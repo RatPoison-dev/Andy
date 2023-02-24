@@ -1,17 +1,42 @@
 {
     "discord_token": "",
     "steamWebApiKey": "",
-    "VACBannedList": ["Now is the CEO of otc", "Downloaded some paste from UC", "Forgot to clamp his angles", "RCSed Z", "Was slain by ro0t7 prs", "Tried untrusted button", "Forgot to run vac bypass", "Vacnet found his mac address", "Took the L"],
+    "VACBannedList": ["Now is the CEO of otc", "Downloaded some paste from UC", "Forgot to clamp his angles", "RCSed Z", "Was slain by ro0t7 prs", "Tried untrusted button", "Forgot to run vac bypass", "Vacnet found his mac address", "Took the L", "Smoked"],
     "OWBannedList": ["Haha semirage goes brrrr", "Thought playing legit with OTC was a good idea", "RQ without q", "Roaded to Global Cooldown", "Fuckers stole my account", "Asked about my mother being alive but forgot to take care of himself", "Ran a rage config in prime", "1"],
-    "VACBannedMessage": "Was banned by VAC",
-    "OWBannedMessage": "Was banned by OW",
+    "VACBannedMessage": "Banned by VAC",
+    "OWBannedMessage": "Banned by OW",
+    "clientOptions": {
+        "disableMentions": "everyone",
+        "intents": [
+            "MessageContent",
+            "Guilds",
+            "GuildMessages",
+            "GuildMembers",
+            "GuildMessageReactions"
+        ]
+    },
     "banCheckerInterval": 1800000,
     "backupInterval": 1800000,
     "wipeSleepInterval": 1800000,
-    "backupRoles": ["Admin", "Booters", "Vibers"],
+    "backupRoles": ["Ratmins", "Booters", "Vibers"],
     "owner_ids": [],
-    "wipe_channels": {"ratpoison owns": ["general", "help-support", "bot-commands", "general2"], "r/cats": ["general", "bot-shit", "help"]},
-    "gateway_max_tries": 2,
+    "wipe_channels": {"rats own": ["general"]},
+    "stickers_att": [
+        "https://tenor.com/view/thumbs-up-stikkerr-wumpus-discord-gif-20347317",
+        "https://tenor.com/view/nitro-free-gif-sticker-gif-20155902",
+        "https://tenor.com/view/discord-discord-stickers-wumpus-new-year-gif-19715574",
+        "https://tenor.com/view/party-wumpus-discord-stikkerr-gif-20347309",
+        "https://tenor.com/view/dance-discord-nitro-nitro-nitrei-fast-gif-13470345",
+        "https://tenor.com/view/wumpus-sunglasses-gif-13250930",
+        "https://tenor.com/view/discord-discord-sticker-gif-18829528",
+        "https://tenor.com/view/discord-stickers-nitro-gif-20020770",
+        "https://tenor.com/view/pig-nitro-sticker-fire-discord-nitro-fire-pig-gif-20033992",
+        "https://tenor.com/view/discord-sticker-discord-sticker-gif-18856663",
+        "https://tenor.com/view/discord-sticker-discord-sticker-gif-19621544",
+        "https://cdn.discordapp.com/attachments/813136360722006107/813808960833585222/tenor.gif",
+        "https://cdn.discordapp.com/attachments/813136360722006107/813810757568430100/mp4.mp4",
+        "https://cdn.discordapp.com/attachments/813136360722006107/813811078138953758/mp4-1.mp4"
+    ],
     "rrMaxPlayers": 6,
     "rrMinPlayers": 3
 }

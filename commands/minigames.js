@@ -19,12 +19,12 @@ class potGame {
     del() {
         potGame.potGames = potGame.potGames.filter(it => it != this)
     }
-    
+
     calcTotal() {
         return Object.values(this.participants).reduce((a, b) => a + b)
     }
 
-    static byChannel (channel) {
+    static byChannel(channel) {
         return potGame.potGames.find(it => it.channel.id == channel.id)
     }
 }
@@ -32,7 +32,7 @@ class potGame {
 class rrGame {
     static rrGames = []
 
-    constructor (participants, channel, bet) {
+    constructor(participants, channel, bet) {
         this.participants = participants
         this.collectTime = Date.now()
         this.channel = channel
@@ -51,7 +51,7 @@ class rrGame {
         rrGame.rrGames = rrGame.rrGames.filter(it => it != this)
     }
 
-    static byChannel (channel) {
+    static byChannel(channel) {
         return rrGame.rrGames.find(it => it.channel.id == channel.id)
     }
 }
@@ -60,9 +60,9 @@ let runDuel = async (host, participant, writeChannel, bet) => {
     let hostID = host.id
     let participantID = participant.id
     let hostCanRun = await messageUtils.canRunGame(host, bet)
-    if (hostCanRun != true) {writeChannel.send(hostCanRun); return}
+    if (hostCanRun != true) { writeChannel.send(hostCanRun); return }
     let participantCanRun = await messageUtils.canRunGame(participant, bet)
-    if (participantCanRun != true) {writeChannel.send(participantCanRun); return}
+    if (participantCanRun != true) { writeChannel.send(participantCanRun); return }
     //let hostProfile = database.getUser(hostID)
     //let participantProfile = database.getUser(participantID)
     bet = parseInt(bet)
@@ -70,7 +70,7 @@ let runDuel = async (host, participant, writeChannel, bet) => {
     let init = Date.now()
     ms.react("🔫")
     setTimeout(() => ms.edit("SHOOT\n\n\n\nSTATUS"), 10000)
-    let newRC = new discord.ReactionCollector(ms, (r, u) => (u.id == participantID || u.id == hostID) && r.emoji.name == "🔫")
+    let newRC = new discord.ReactionCollector(ms, {filter: (r, u) => (u.id == participantID || u.id == hostID) && r.emoji.name == "🔫"})
     newRC.on("collect", async (_, user) => {
         newRC.stop()
         let loser, winner
@@ -84,7 +84,7 @@ let runDuel = async (host, participant, writeChannel, bet) => {
         }
         database.incrementMinigamesStats(winner.id, ["duels_won_games", "duels_won"], [1, bet])
         database.incrementMinigamesStats(loser.id, ["duels_lost_games", "duels_lost"], [1, bet])
-        database.incrementUser(winner.id, "money", 2*bet, "Won a duel")
+        database.incrementUser(winner.id, "money", 2 * bet, "Won a duel")
         writeChannel.send(`${winner} WINS ${bet} :moneybag:`)
         return
     })
@@ -122,7 +122,7 @@ let commands = {
                 let canRun = await messageUtils.canRunGame(message.author, bet, true)
                 if (canRun != true) throw canRun
                 bet = parseInt(bet)
-                if (!canRun) { message.channel.send(canRun); return}
+                if (!canRun) { message.channel.send(canRun); return }
                 database.incrementUser(userID, "money", -bet, "Initial start RR bet")
                 message.channel.send(`**Game of RR starts in 45 seconds. Bet: ${bet} :moneybag:. Type ${myPrefix}rr to join.**`)
                 setTimeout(() => {
@@ -136,7 +136,7 @@ let commands = {
                 if (myGame.participants.includes(userID)) { channel.send("**You are already taking part in this RR!**"); return }
                 if (Date.now() - myGame.collectTime >= 45000) { channel.send("**Game is already in progress.**"); return }
                 let canRun = await messageUtils.canRunGame(message.author, myGame.bet, true)
-                if (canRun != true) { message.channel.send(canRun); return}
+                if (canRun != true) { message.channel.send(canRun); return }
                 myGame.addParticipant(userID)
                 database.incrementUser(userID, "money", -myGame.bet, "Joined RR")
                 message.channel.send(`**You joined this game of RR. (${myGame.participants.length}/${config.rrMaxPlayers} players)**`)
@@ -168,12 +168,12 @@ let commands = {
                 channel.send(`**Pot game starts in 2 minutes. Type ${myPrefix}pot to join.**`)
             }
             else {
-                if (Date.now() - myGame.collectTime >= 120000) { channel.send("**Game is already in progress.**"); return}
+                if (Date.now() - myGame.collectTime >= 120000) { channel.send("**Game is already in progress.**"); return }
                 database.incrementUser(userID, "money", -bet, "Add money to pot")
                 if (!myGame.participants[userID]) myGame.participants[userID] = bet
                 else myGame.participants[userID] += bet
                 let total = Math.floor(myGame.calcTotal())
-                message.channel.send(`**You added ${bet} :moneybag: to the pot. Total money in pot: ${total}. Your chance of winning: ${Math.floor(myGame.participants[userID]/total * 100)}%**`)
+                message.channel.send(`**You added ${bet} :moneybag: to the pot. Total money in pot: ${total}. Your chance of winning: ${Math.floor(myGame.participants[userID] / total * 100)}%**`)
             }
         },
         originalServer: true,
@@ -186,7 +186,7 @@ let commands = {
             let canRun = await messageUtils.canRunGame(message.author, bet)
             if (canRun != true) throw canRun
             bet = parseInt(bet)
-            let embed = new discord.MessageEmbed().setAuthor(message.author.tag, message.author.displayAvatarURL()).setColor(embeds.colorsMap["yellow"]).setTimestamp(Date.now()).setTitle("Crash")
+            let embed = new discord.EmbedBuilder().setAuthor({ name: message.author.tag, iconURL: message.author.displayAvatarURL() }).setColor(embeds.colorsMap["yellow"]).setTimestamp(Date.now()).setTitle("Crash")
             let zeroCrash = Math.random() > 0.8
             let current = 0
             let shouldRange0Crash = Math.random() > 0.7
@@ -196,43 +196,49 @@ let commands = {
             let shouldRange2Crash = Math.random() > 0.7
             let range2Crashed = randomNumber(2, 3)
             let range3Crashed = randomNumber(3, 4)
-            embed.addField("Multiplier", `${current.toFixed(1)}x`, true)
-            embed.addField("Profit", `**${(bet*current-bet).toFixed(3)}** :moneybag:`, true)
+            embed.addFields([
+                { name: "Multiplier", value: `${current.toFixed(1)}x`, inline: true },
+                { name: "Profit", value: `**${(bet * current - bet).toFixed(3)}** :moneybag:`, inline: true }
+            ])
             let crashed = false
             let stopped = false
             embed.setDescription("Game starts within 2 seconds! Click on ✅ to stop")
-            let myMessage = await message.channel.send(embed)
+            let myMessage = await message.channel.send({ embeds: [embed] })
             await myMessage.react("✅")
             database.incrementUser(userID, "money", -bet, "Started crash game")
-            let rc = new discord.ReactionCollector(myMessage, (r, u) => u.id == message.author.id && r.emoji.name == "✅")
+            let rc = new discord.ReactionCollector(myMessage, {
+                filter: (r, u) => {
+                    return u.id == message.author.id && r.emoji.name == "✅"
+                }
+            })
             rc.on("collect", () => {
                 rc.stop()
                 stopped = true
             })
             while (!crashed && !stopped) {
                 await utils.sleep(2000)
-                if (zeroCrash && current == 0 && !stopped) {crashed = true; break}
+                if (zeroCrash && current == 0 && !stopped) { crashed = true; break }
                 if (stopped) break
                 current += 0.2
-                if (shouldRange0Crash && current > range0Crashed && current < 1) {crashed = true; break}
-                else if (shouldRange1Crash && current < 2 && current > 1 && current > range1Crashed) {crashed = true; break}
-                else if (shouldRange2Crash && current > 2 && current < 3 && current > range2Crashed) {crashed = true; break}
-                else if (current > range3Crashed) {crashed = true;  break}
-                embed.fields[0].value = `${current.toFixed(1)}x`
-                embed.fields[1].value = `**${(bet*current-bet).toFixed(3)}** :moneybag:`
-                await myMessage.edit(embed)
+                if (shouldRange0Crash && current > range0Crashed && current < 1) { crashed = true; break }
+                else if (shouldRange1Crash && current < 2 && current > 1 && current > range1Crashed) { crashed = true; break }
+                else if (shouldRange2Crash && current > 2 && current < 3 && current > range2Crashed) { crashed = true; break }
+                else if (current > range3Crashed) { crashed = true; break }
+                embed.data.fields[0].value = `${current.toFixed(1)}x`
+                embed.data.fields[1].value = `**${(bet * current - bet).toFixed(3)}** :moneybag:`
+                await myMessage.edit({embeds: [embed]})
             }
             if (crashed) {
                 embed.setColor(embeds.colorsMap.red)
-                embed.fields[0].name = "Crashed at"
-                embed.fields[1].value = `**${-bet}** :moneybag:`
-                await myMessage.edit(embed)
+                embed.data.fields[0].name = "Crashed at"
+                embed.data.fields[1].value = `**${-bet}** :moneybag:`
+                await myMessage.edit({embeds: [embed]})
             }
             else if (stopped) {
-                embed.fields[0].name = "Stopped at"
-                database.incrementUser(userID, "money", bet*current, "Stopped crash game")
+                embed.data.fields[0].name = "Stopped at"
+                database.incrementUser(userID, "money", bet * current, "Stopped crash game")
                 embed.setColor(embeds.colorsMap.purple)
-                await myMessage.edit(embed)
+                await myMessage.edit({embeds: [embed]})
             }
 
         },
@@ -242,15 +248,15 @@ let commands = {
 
 function randomNumber(min, max) {
     return Math.random() * (max - min) + min;
-  }
+}
 
 let runMiniGames = async () => {
-    potGame.potGames.forEach( async (game) => {
+    potGame.potGames.forEach(async (game) => {
         let thisTime = Date.now()
         if (thisTime - game.collectTime >= 120000) {
             let myPKeys = Object.keys(game.participants)
             if (myPKeys.length == 1) {
-                game.channel.send("**Not enough players to start pot game!**") 
+                game.channel.send("**Not enough players to start pot game!**")
                 myPKeys.forEach(it => database.incrementUser(it, "money", game.participants[it], "Pot game rejected"))
                 game.del()
                 return
@@ -290,10 +296,10 @@ let runMiniGames = async () => {
         }
     })
 
-    rrGame.rrGames.forEach( async (game) => {
+    rrGame.rrGames.forEach(async (game) => {
         let thisTime = (new Date()).getTime()
         if ((thisTime - game.collectTime) >= 45000) {
-            if (game.participants.length < config.rrMinPlayers) { 
+            if (game.participants.length < config.rrMinPlayers) {
                 game.channel.send(`:x: **Not enough players (min: ${config.rrMinPlayers}, current: ${game.participants.length}) to start game of RR**`)
                 game.participants.forEach(it => database.incrementUser(it, "money", game.bet, "RR game rejected"))
                 game.del()
@@ -303,8 +309,8 @@ let runMiniGames = async () => {
             let thisPlayer = game.participants[game.lastParticipantIndex]
             !game.startTime ? game.startTime = Date.now() : game.startTime = game.startTime
             let chance = Math.random()
-            if (chance < (1/config.rrMaxPlayers)) {
-                game.channel.send(`<@${thisPlayer}> **died! Everyone else wins ${(game.bet/(game.participants.length-1)).toFixed(3)} :moneybag:**`)
+            if (chance < (1 / config.rrMaxPlayers)) {
+                game.channel.send(`<@${thisPlayer}> **died! Everyone else wins ${(game.bet / (game.participants.length - 1)).toFixed(3)} :moneybag:**`)
                 database.incrementMinigamesStats(thisPlayer, ["rr_lost_games", "rr_lost"], [1, game.bet])
                 let newArr = game.participants.filter(it => it != thisPlayer)
                 let fatShit = game.bet + (game.bet / (game.participants.length - 1))
@@ -317,7 +323,7 @@ let runMiniGames = async () => {
             }
             else {
                 game.lastShootTime = (new Date()).getTime()
-                if (game.lastParticipantIndex+1 == game.participants.length) {
+                if (game.lastParticipantIndex + 1 == game.participants.length) {
                     game.lastParticipantIndex = 0
                 }
                 else {
@@ -325,7 +331,7 @@ let runMiniGames = async () => {
                 }
                 game.channel.send(`<@${thisPlayer}> **survived! Next is:** <@${game.participants[game.lastParticipantIndex]}>`)
             }
-        }   
+        }
     })
 }
 

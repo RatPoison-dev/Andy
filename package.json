@@ -18,9 +18,10 @@
   },
   "homepage": "https://github.com/retart1337/Andy#readme",
   "dependencies": {
-    "better-sqlite3": "^7.1.2",
+    "better-sqlite3": "^7.6.2",
     "cron": "^1.8.2",
-    "discord.js": "^12.2.0",
+    "discord.js": "^14.7.1",
+    "node-fetch": "^2.6.9",
     "steamid": "^1.1.3"
   }
 }

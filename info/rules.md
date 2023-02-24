@@ -11,3 +11,6 @@
 11. Follow discord TOS
 12. Stickers (gifs, videos, pictures that contain stickers) are not allowed
 13. No hololive
+14. No undermining
+15. No asking for roles
+16. Other languages than English are not allowed.

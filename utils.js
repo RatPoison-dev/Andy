@@ -121,7 +121,7 @@ let checkIfBot = (user) => {
 }
 
 let searchUser = async (client, message, messageArgs) => {
-    let mentionsArray = message.mentions.users.array()
+    let mentionsArray = Array.from(message.mentions.users.values())
     let yea
     if (mentionsArray[0] !== undefined) {
         yea = mentionsArray[0]
@@ -135,7 +135,7 @@ let searchUser = async (client, message, messageArgs) => {
             client.users.fetch(firstArgument).then(resolved => yea = resolved)
         }
         let thisArr = []
-        messageArgs.forEach( it => {
+        messageArgs.forEach( async it => {
             thisArr.push(it)
             let thisSearch = thisArr.join(" ")
             // prioritaze 

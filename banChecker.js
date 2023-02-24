@@ -41,7 +41,7 @@ let bullshit = async (account, client, bannedType, user, isResolved, all, resolv
         if (!guildInfo.bannedChannel) return
         let channel = client.channels.cache.get(guildInfo.bannedChannel)
         if (!channel) return
-        channel.send(resolvedUsers.map(it => it.toString()).join(" "), {"embed": embed})
+        channel.send({content: resolvedUsers.map(it => it.toString()).join(" "), embeds: [embed]})
         database.run("delete from banChecker where steamID = ?", [account.dbRow.steamID])
     }
 }

@@ -9,7 +9,7 @@ let commands = {
             let embed
             let foundUser = await utils.searchUser(client, message, args)
             foundUser == undefined ? embed = await embeds.constructUserProfile(message.author, message.author) : embed = await embeds.constructUserProfile(message.author, foundUser)
-            if (embed) message.channel.send(embed)
+            if (embed) message.channel.send({embeds: [embed]})
         },
         "help": "<user> - get a profile",
         originalServer: true,
@@ -18,9 +18,10 @@ let commands = {
     daily: {
         "run": async (message, args, client) => {
             let foundUser = await utils.searchUser(client, message, args)
+            let embed
             foundUser == undefined ? embed = await embeds.constructDailyembed(message.author, message.author) : embed = await embeds.constructDailyembed(message.author, foundUser)
             if (embed !== undefined) {
-                message.channel.send(embed)
+                message.channel.send({embeds: [embed]})
             }
         },
         "help": "- get daily cheese and money",
@@ -29,29 +30,32 @@ let commands = {
     top: {
         "run": async (message, args) => {
             let topType = args[0]
-            if (!topType || !['cheese', 'money', "rep"].includes(topType)) throw "Please set type of top: 'cheese', 'money' or 'rep'"
+            if (!topType || !['cheese', 'money', "rep", 'uid'].includes(topType)) throw "Please set type of top: 'cheese', 'money', 'rep' or 'uid'"
             let page = (args[1] !== undefined && /^\d+$/.test(args[1])) ? args[1] : 1
             let top = database.getTopByPage(topType, page)
-            let embed = new discord.MessageEmbed()
-            embed.setAuthor(message.author.tag, message.author.displayAvatarURL())
+            let embed = new discord.EmbedBuilder()
+            embed.setAuthor({name: message.author.tag, iconURL: message.author.displayAvatarURL()})
             embed.setTitle(`Leaderboard by ${topType}`)
             let desc = ""
             if (topType == "money") {
                 let mySum = 0
                 database.get("select money from users").forEach(it => mySum += it.money)
-                desc += `**Total bank ${mySum} :moneybag:**\n`
+                desc += `**Total bank ${Math.floor(mySum)} :moneybag:**\n`
             }
             let membersCache = message.guild.members.cache
             top.forEach ((elem, index) => {
                 let userExists = membersCache.get(elem.user_id)
-                desc += `${index+1}. `
-                desc += userExists ? `<@${elem.user_id}> • ` : `~~<@${elem.user_id}> • `
+                topType == "uid" ? desc += `${(page-1)*10+index+1}. ` : desc += `${index+1}. `
+                desc += userExists ? `<@${elem.user_id}>` : `~~<@${elem.user_id}>`
+                if (topType != 'uid') desc += ' • '
                 if (topType == "cheese") desc += `${elem[topType].toFixed(3)} :cheese:`
+                else if (topType == 'rep') desc += `${elem['rep']}`
                 else if (topType == "money") desc += `${Math.floor(elem[topType])} :moneybag:`
-                else desc += `${elem[topType]}`
+                else if (topType == "uid") if (elem["message"] != "") desc += ` • ${elem["message"]}`
+                else if (topType != "uid") desc += `${elem[topType]}`
                 desc += userExists ? "\n" : "~~\n"
             })
-            embed.setFooter(`Page ${page}`)
+            embed.setFooter({text: `Page ${page}`})
             embed.setDescription(desc)
             embed.setColor(0x6b32a8)
             embed.setTimestamp(Date.now())
@@ -102,7 +106,7 @@ let commands = {
                 if (foundUser.id !== message.author.id) {
                     let embed = await embeds.constructRepEmbed(message, message.author, foundUser)
                     if (embed !== undefined) {
-                        message.channel.send(embed)
+                        message.channel.send({embeds: [embed]})
                     }
                 }
                 else {
@@ -111,12 +115,12 @@ let commands = {
             }
             else {
                 let embed = await embeds.constructCanRepEmbed(message.author)
-                message.channel.send(embed)
+                message.channel.send({embeds: [embed]})
             }
         },
         "help": "[user] - give some cheese to user",
         originalServer: true,
-        blockedChannels: ["general"]
+        //blockedChannels: ["general"]
     },
     "-rep": {
         "run": async (message, args, client) => {
@@ -142,7 +146,7 @@ let commands = {
         },
         "help": "[user] - take some cheese from user",
         originalServer: true,
-        blockedChannels: ["general"]
+        //blockedChannels: ["general"]
     },
     balance: {
         "run": async (message, args, client) => {

@@ -9,7 +9,7 @@ let commands = {
             user == undefined ? username = "dummy#0000" : username = user.tag
             let curServer = database.fetchServer()
             let curGuild = client.guilds.cache.get(curServer.guild_id)
-            let bans = await curGuild.fetchBans()
+            let bans = await curGuild.bans.fetch()
             bans = bans.map(banInfo => banInfo.user.id)
             if (bans.includes(args[0])) {
                 message.guild.members.unban(args[0])

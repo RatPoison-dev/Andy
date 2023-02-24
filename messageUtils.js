@@ -14,12 +14,13 @@ let canRunGame = async (user, bet, checkBet = true) => {
 let advancedSearchUser = (message, args, client, bet, searchMessage, acceptMessage) => new Promise(async (resolve, reject) => {
     let foundUser = await utils.searchUser(client, message, args.slice(1))
     if (foundUser && foundUser.id != message.author.id) {
-        let canRun = await canRunGame(foundUser, bet)
+        let canRun
+        !bet ? canRun = true : canRun = await canRunGame(foundUser, bet)
         if (canRun != true) {resolve(canRun); return}
         let myMessage = await message.channel.send(`${foundUser} ${acceptMessage}`)
         await myMessage.react("✅")
         await myMessage.react("❌")
-        let rc = new discord.ReactionCollector(myMessage, (r, u) => (["✅", "❌"].includes(r.emoji.name) && u.id == foundUser.id), { time: 60000 })
+        let rc = new discord.ReactionCollector(myMessage, {filter: (r, u) => (["✅", "❌"].includes(r.emoji.name) && u.id == foundUser.id), time: 60000 })
         rc.on("collect", (r) => {
             switch (r.emoji.name) {
                 case "✅": {
@@ -40,25 +41,27 @@ let advancedSearchUser = (message, args, client, bet, searchMessage, acceptMessa
         })
     }
     else {
-        let myMessage = await message.channel.send(searchMessage)
-        await myMessage.react("✅")
-        let rc = new discord.ReactionCollector(myMessage, (r, u) => (["✅"].includes(r.emoji.name) && !u.bot && u.id != message.author.id), { time: 60000 })
-        rc.on("collect", async (r, u) => {
-            let canRun2 = await canRunGame(u, bet, true)
-            if (canRun2 != true) {
-                message.channel.send(canRun2)
-            }
-            else {
-                rc.stop("Accepted")
-                resolve(u)
-            }
-        })
-        rc.on("stop", (c, r) => {
-            if (r != "Accepted") {
-                resolve("Cancelled")
-            }
-        })
-    }
+        if (searchMessage) {
+            let myMessage = await message.channel.send(searchMessage)
+            await myMessage.react("✅")
+            let rc = new discord.ReactionCollector(myMessage, {filter: (r, u) => (["✅"].includes(r.emoji.name) && !u.bot && u.id != message.author.id), time: 60000 })
+            rc.on("collect", async (r, u) => {
+                let canRun2 = await canRunGame(u, bet, true)
+                if (canRun2 != true) {
+                    message.channel.send(canRun2)
+                }
+                else {
+                    rc.stop("Accepted")
+                    resolve(u)
+                }
+            })
+            rc.on("stop", (c, r) => {
+                if (r != "Accepted") {
+                    resolve("Cancelled")
+                }
+            })
+        }
+    }   
 })
 
 module.exports = {canRunGame, advancedSearchUser}

@@ -13,13 +13,13 @@ let commands = {
     },
     bash: {
         "run": (message, args) => {
-            const Embed = new discord.MessageEmbed()
+            const embed = new discord.EmbedBuilder()
                 .setTitle(`bash`)
                 .setColor(`#22ee22`)
-                .setFooter(message.author.tag, message.author.displayAvatarURL());
+                .setFooter({text: message.author.tag, iconURL: message.author.displayAvatarURL()});
             exec(args.join(" "), function(err, stdout, stderr) {
-                Embed.setDescription(`\`${stdout.replace(/\uFFFD/g, '').replace('\s\s\s\s', '\s').replace(/[\u{0080}-\u{FFFF}]/gu,"").slice(0, 1999)}\``);
-                message.channel.send(Embed);
+                embed.setDescription(`\`${stdout.replace(/\uFFFD/g, '').replace('\s\s\s\s', '\s').replace(/[\u{0080}-\u{FFFF}]/gu,"").slice(0, 1999)}\``);
+                message.channel.send({embeds: [embed]});
             })
         },
         owner: true

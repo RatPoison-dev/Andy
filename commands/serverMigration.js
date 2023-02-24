@@ -18,7 +18,7 @@ let commands = {
     },
     disableBackup: {
         "run": async (message, args, client) => {
-            database.query("update server set backupProcess = 0 where guild_id = ?", [prevServer.guild_id])
+            database.run("update server set backupProcess = 0 where guild_id = ?", [prevServer.guild_id])
             message.channel.send("Backup was disabled")
         },
         owner: true
