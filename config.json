@@ -18,7 +18,7 @@
     "banCheckerInterval": 1800000,
     "backupInterval": 1800000,
     "wipeSleepInterval": 1800000,
-    "backupRoles": ["Ratmins", "Booters", "Vibers"],
+    "backupRoles": ["Rat Honcho", "Ratmins", "Budwalds"],
     "owner_ids": [],
     "wipe_channels": {"rats own": ["general"]},
     "stickers_att": [

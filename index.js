@@ -91,7 +91,7 @@ let backupServer = async () => {
 let wipeChannel = async (currentIndex, wipeChannels, guildChannels) => {
     if (currentIndex > (wipeChannels.length - 1)) return
     let currentChannel = wipeChannels[currentIndex]
-    let myChannel = guildChannels.find(e => e.type == "text" && e.name == currentChannel)
+    let myChannel = guildChannels.find(e => [0, "GUILD_TEXT"].includes(e.type) && e.name == currentChannel)
     if (myChannel) {
         let position = myChannel.position
         let newChannel = await myChannel.clone()
