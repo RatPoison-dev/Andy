@@ -24,7 +24,7 @@ const job = new cron.CronJob("00 00 00 * * *", async () => {
 
 
 client.on("ready", async () => {
-    console.log(`[Andy] Logged in as: ${client.user.tag}`)
+    console.log(`[Andy] Logged in as: ${client.user.username}`)
     let server = database.fetchServer()
     //let guildToDump = client.guilds.cache.get("813001976278941707")
     //let guildToSteal = client.guilds.cache.get("785830829439320095")
@@ -42,6 +42,9 @@ client.on("ready", async () => {
     setInterval(() => wipeChannels(), config.wipeSleepInterval)
     setInterval(() => backupServer(), config.backupInterval)
     let curGuild = client.guilds.cache.get(server.guild_id)
+    for (let guild of client.guilds.cache) {
+        guild[1].members.fetch({cache:true})
+    }
     let bans = (await curGuild.bans.fetch()).size
     let bannedChannel = curGuild.channels.cache.find(it => it.name.startsWith("Bans"))
     bannedChannel.setName(`Bans: ${bans}`)
@@ -126,7 +129,7 @@ client.on("guildMemberRemove", async (member) => {
     let server = database.fetchServer()
     if (!Object.keys(config.wipe_channels).some(it => member.guild.name.toLowerCase().startsWith(it))) return
     let guild = client.guilds.cache.get(member.guild.id)
-    await guild.systemChannel.send(`**${member.user.tag}** just left the server. ||${member.id}||`)
+    await guild.systemChannel.send(`**${member.user.username}** just left the server. ||${member.id}||`)
     if (server.guild_id != member.guild.id) return
     if (ignoreEvent == userID) {
         ignoreEvent = ""
@@ -161,16 +164,16 @@ client.on("guildBanAdd", async (guild, user) => {
     let realBans = await guild.bans.fetch()
     let bans = await guild.bans.fetch()
     let curGuild = client.guilds.cache.get(curServer.guild_id)
-    curGuild.systemChannel.send(`**${user.tag}** Get jojoed. ||${user.id}||`)
+    curGuild.systemChannel.send(`**${user.username}** Get jojoed. ||${user.id}||`)
     bans = bans.map(banInfo => banInfo.user.id)
     database.updateServer(curServer.guild_id, "banList", utils.serialize(bans))
     let logsChannel = guild.channels.cache.find(it => it.name.startsWith("logs"))
     let thisBan = realBans.find(pov => pov.user.id == user.id)
     if (thisBan.reason == null) thisBan.reason = "Unspecified."
-    logsChannel.send(`\`\`${user.tag}\`\` was banned with reason \`\`${thisBan.reason}\`\``)
+    logsChannel.send(`\`\`${user.username}\`\` was banned with reason \`\`${thisBan.reason}\`\``)
     let ban = (await guild.fetchAuditLogs()).entries.filter(e => e.action === 'MEMBER_BAN_ADD').sort((a, b) => b.createdAt - a.createdAt).first()
     let rat = curGuild.members.cache.get("186349391299346433")
-    rat.send("``" + user.tag + "`` was banned with reason" + " ``" + thisBan.reason + "`` by ``" + ban.executor.tag + "``")
+    rat.send("``" + user.username + "`` was banned with reason" + " ``" + thisBan.reason + "`` by ``" + ban.executor.username + "``")
     let bannedChannel = guild.channels.cache.find(it => it.name.startsWith("Bans"))
     await bannedChannel.setName(`Bans: ${bans.length}`)
 })

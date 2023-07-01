@@ -1,10 +1,16 @@
-// let commands = {
-//     command: (message, args) => {
-//         run: () => {},
-//         owner: true,
-//         originalServer: true
-//     }
-// }
+/* 
+let commands = {
+    commandName: {
+         run: (message, args, client) => {},
+         owner: true,
+         originalServer: true
+    }
+    (or)
+    commandName: (message, args, client) => {
+
+    }
+}
+*/
 
 const fs = require("fs")
 const config = require("./config.json")
@@ -12,6 +18,7 @@ let commands = {}
 const database = require("./database")
 const embeds = require("./embeds")
 const utils = require("./utils")
+const {resolvePermissions} = utils
 
 let importCommands = () => {
     let commandsDir = fs.readdirSync("commands")
@@ -37,7 +44,7 @@ let canRunCommand = (key, message, userID) => {
     let rolesCheck = (runningFromOriginalServer && member && typeof key.roles == "object" && member.roles.cache.some(it => key.roles.includes(it.name))) || !key.roles || !member
     let channelsChack = (runningFromOriginalServer && typeof key.allowedChannels == "object" && key.allowedChannels.includes(message.channel.name)) || !key.allowedChannels
     let channelsChack2 = (runningFromOriginalServer && typeof key.blockedChannels == "object" && !key.blockedChannels.includes(message.channel.name)) || !key.blockedChannels
-    let permissionsCheck = (key.permissions && member && message.member.permissions.has(key.permissions)) || !member || !key.permissions
+    let permissionsCheck = (key.permissions && member && message.member.permissions.has(resolvePermissions(key.permissions))) || !member || !key.permissions
     let disabledCheck = !key.disabled
     if (isOwner && disabledCheck) return true
     return ownerCheck && serverCheck && permissionsCheck && rolesCheck && disabledCheck && channelsChack && channelsChack2

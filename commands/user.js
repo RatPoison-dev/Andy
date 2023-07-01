@@ -34,7 +34,7 @@ let commands = {
             let page = (args[1] !== undefined && /^\d+$/.test(args[1])) ? args[1] : 1
             let top = database.getTopByPage(topType, page)
             let embed = new discord.EmbedBuilder()
-            embed.setAuthor({name: message.author.tag, iconURL: message.author.displayAvatarURL()})
+            embed.setAuthor({name: message.author.username, iconURL: message.author.displayAvatarURL()})
             embed.setTitle(`Leaderboard by ${topType}`)
             let desc = ""
             if (topType == "money") {

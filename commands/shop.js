@@ -17,7 +17,7 @@ let commands = {
             let server = database.fetchServer()
             let serverInfo = database.getGuildInfo(server.guild_id)
             let prefix = serverInfo.prefix
-            let embed = new discord.EmbedBuilder().setTitle("Shop").setColor(0xb6b83d).setTimestamp(new Date().getTime()).setAuthor({ name: user.tag, iconURL: user.displayAvatarURL() })
+            let embed = new discord.EmbedBuilder().setTitle("Shop").setColor(0xb6b83d).setTimestamp(new Date().getTime()).setAuthor({ name: user.username, iconURL: user.displayAvatarURL() })
             embed.setDescription(`Available items. Use \`\`${prefix}buy [count] [item]\`\` to buy and \`\`${prefix}use [item]\`\` to use.\nYour balance: \`\`${profile.money}\`\``)
             embed.setFooter({ text: `Page ${page + 1}` })
             let items = utils.chunkArray(lShop, 10)[page]
@@ -25,7 +25,7 @@ let commands = {
                 let name = `${shopItem.name} - ${shopItem.price} :moneybag:`
                 embed.addFields([{ name: name, value: shopItem.description }])
             })
-            embed.setAuthor({ name: user.tag, iconURL: user.displayAvatarURL() })
+            embed.setAuthor({ name: user.username, iconURL: user.displayAvatarURL() })
             return embed
         },
         originalServer: true,
@@ -92,7 +92,7 @@ let commands = {
             let thisInventory = (database.fetchInventory(userID)).filter(it => it.count > 0)
             page -= 1
             page = utils.clamp(0, Math.floor(thisInventory.length / 10), page)
-            let embed = new discord.EmbedBuilder().setTitle("Inventory").setColor(0xb6b83d).setTimestamp(new Date()).setAuthor({ name: user.tag, iconURL: user.displayAvatarURL() })
+            let embed = new discord.EmbedBuilder().setTitle("Inventory").setColor(0xb6b83d).setTimestamp(new Date()).setAuthor({ name: user.username, iconURL: user.displayAvatarURL() })
             let s = ""
             embed.setFooter({ text: `Page ${page + 1}` })
             thisInventory.forEach(it => {

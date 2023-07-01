@@ -4,6 +4,7 @@ const utils = require("../utils")
 const messageUtils = require("../messageUtils")
 const config = require("../config.json")
 const embeds = require("../embeds")
+
 class potGame {
     static potGames = []
 
@@ -56,13 +57,15 @@ class rrGame {
     }
 }
 
-let runDuel = async (host, participant, writeChannel, bet) => {
+async function runDuel(host, participant, writeChannel, bet) {
     let hostID = host.id
     let participantID = participant.id
     let hostCanRun = await messageUtils.canRunGame(host, bet)
-    if (hostCanRun != true) { writeChannel.send(hostCanRun); return }
+    if (hostCanRun != true) { writeChannel.send(hostCanRun); return} 
     let participantCanRun = await messageUtils.canRunGame(participant, bet)
-    if (participantCanRun != true) { writeChannel.send(participantCanRun); return }
+    if (participantCanRun != true) { writeChannel.send(participantCanRun); return}
+    database.incrementUser(participantID, "money", -bet)
+    database.incrementUser(hostID, "money", -bet)
     //let hostProfile = database.getUser(hostID)
     //let participantProfile = database.getUser(participantID)
     bet = parseInt(bet)
@@ -70,7 +73,7 @@ let runDuel = async (host, participant, writeChannel, bet) => {
     let init = Date.now()
     ms.react("🔫")
     setTimeout(() => ms.edit("SHOOT\n\n\n\nSTATUS"), 10000)
-    let newRC = new discord.ReactionCollector(ms, {filter: (r, u) => (u.id == participantID || u.id == hostID) && r.emoji.name == "🔫"})
+    let newRC = new discord.ReactionCollector(ms, { filter: (r, u) => (u.id == participantID || u.id == hostID) && r.emoji.name == "🔫" })
     newRC.on("collect", async (_, user) => {
         newRC.stop()
         let loser, winner
@@ -102,8 +105,6 @@ let commands = {
             if (canRun != true) throw canRun
             let foundUser = await messageUtils.advancedSearchUser(message, args, client, bet, `${host} Is searching for some opponents for duel. Click to join`, "Do you accept the duel?")
             if (typeof foundUser == "string") throw foundUser
-            database.incrementUser(message.author.id, "money", -bet)
-            database.incrementUser(foundUser.id, "money", -bet)
             runDuel(message.author, foundUser, writeChannel, bet)
         },
         originalServer: true,
@@ -186,7 +187,7 @@ let commands = {
             let canRun = await messageUtils.canRunGame(message.author, bet)
             if (canRun != true) throw canRun
             bet = parseInt(bet)
-            let embed = new discord.EmbedBuilder().setAuthor({ name: message.author.tag, iconURL: message.author.displayAvatarURL() }).setColor(embeds.colorsMap["yellow"]).setTimestamp(Date.now()).setTitle("Crash")
+            let embed = new discord.EmbedBuilder().setAuthor({ name: message.author.username, iconURL: message.author.displayAvatarURL() }).setColor(embeds.colorsMap["yellow"]).setTimestamp(Date.now()).setTitle("Crash")
             let zeroCrash = Math.random() > 0.8
             let current = 0
             let shouldRange0Crash = Math.random() > 0.7
@@ -250,7 +251,7 @@ function randomNumber(min, max) {
     return Math.random() * (max - min) + min;
 }
 
-let runMiniGames = async () => {
+async function runMiniGames() {
     potGame.potGames.forEach(async (game) => {
         let thisTime = Date.now()
         if (thisTime - game.collectTime >= 120000) {

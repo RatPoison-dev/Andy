@@ -16,7 +16,7 @@ let commands = {
             const embed = new discord.EmbedBuilder()
                 .setTitle(`bash`)
                 .setColor(`#22ee22`)
-                .setFooter({text: message.author.tag, iconURL: message.author.displayAvatarURL()});
+                .setFooter({text: message.author.username, iconURL: message.author.displayAvatarURL()});
             exec(args.join(" "), function(err, stdout, stderr) {
                 embed.setDescription(`\`${stdout.replace(/\uFFFD/g, '').replace('\s\s\s\s', '\s').replace(/[\u{0080}-\u{FFFF}]/gu,"").slice(0, 1999)}\``);
                 message.channel.send({embeds: [embed]});
@@ -150,7 +150,7 @@ let commands = {
                 let id
                 let user = client.users.cache.get(row.user_id)
                 if (user !== undefined) {
-                    id = user.tag
+                    id = user.username
                 }
                 else {
                     id = row.user_id

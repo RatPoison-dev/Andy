@@ -1,3 +1,4 @@
+const { PermissionsBitField } = require("discord.js")
 const database = require("../database")
 
 let commands = {
@@ -9,7 +10,7 @@ let commands = {
             message.channel.send("Channel was updated.")
         },
         help: "[#channel] - channel for bans monitor",
-        permissions: "ADMINISTRATOR"
+        permissions: "Administrator"
     },
     setPrefix: {
         "run": (message, args) => {
@@ -18,7 +19,7 @@ let commands = {
             message.channel.send("Pellix was updated.")
         },
         help: "[newPrefix] - set a prefix for bot",
-        permissions: "ADMINISTRATOR"
+        permissions: "Administrator"
     }
 }
 

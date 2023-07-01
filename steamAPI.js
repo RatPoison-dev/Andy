@@ -38,16 +38,21 @@ class WebApi {
         let outArray = []
         let usersArray = users.map(it => it.dbRow.steamID).join(",")
         let fetched = await fetch(`http://api.steampowered.com/ISteamUser/GetPlayerBans/v1/?key=${this.apiKey}&steamids=${usersArray}`)
-        let bans = await fetched.json()
-        bans.players.forEach(element => {
-            if (element.NumberOfVACBans != undefined || element.NumberOfGameBans !== undefined) {
-                let info = users.find(it => it.dbRow.steamID == element.SteamId)
-                info.vacs = element.NumberOfVACBans
-                info.ows = element.NumberOfGameBans
-                outArray.push(info)
-            }
-        })
-        return outArray
+        try {
+            let bans = await fetched.json()
+            bans.players.forEach(element => {
+                if (element.NumberOfVACBans != undefined || element.NumberOfGameBans !== undefined) {
+                    let info = users.find(it => it.dbRow.steamID == element.SteamId)
+                    info.vacs = element.NumberOfVACBans
+                    info.ows = element.NumberOfGameBans
+                    outArray.push(info)
+                }
+            })
+            return outArray
+        }
+        catch(e) {
+            return users
+        }
     }
 }
 

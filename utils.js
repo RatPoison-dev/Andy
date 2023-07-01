@@ -1,17 +1,31 @@
 const SteamID = require("steamid")
 const steamApi = require("./steamAPI")
 const config = require("./config.json")
+const { PermissionFlagsBits } = require("discord.js")
 let api = new steamApi.WebApi(config.steamWebApiKey)
 
-let getRandomElem = (list) => {
+function getRandomElem(list) {
     return list[Math.floor(Math.random() * list.length)]
 } 
 
-let list2str = (list) => {
+function list2str(list) {
     return list.join(",")
 }
 
-let attrGetter = (obj, attr, def) => {
+function resolvePermissions(permsArray) {
+    if (Array.isArray(permsArray)) {
+        return permsArray.map(it => mapPerms(it))
+    }
+    else if (permsArray instanceof String) {
+        return PermissionFlagsBits[permsArray]
+    }
+    else if (permsArray instanceof undefined) {
+        return []
+    }
+    return permsArray
+}
+
+function attrGetter(obj, attr, def) {
     if (typeof obj == "object") {
         let a = obj[attr]
         if (a != undefined) return a
@@ -20,15 +34,15 @@ let attrGetter = (obj, attr, def) => {
     return def
 }
 
-let chunkMessage = (s) => {
+function chunkMessage(s) {
     //todo embed autocomplete
     let chunked = []
     let needChunk = Math.floor(s.length / 2000) + 1
     let myRange = Array.from(Array(needChunk).keys())
-    myRange.forEach( it => {
-        let myMessage = s.slice(it * 2000, (it+1)*2000)
+    myRange.forEach(it => {
+        let myMessage = s.slice(it * 2000, (it + 1) * 2000)
         chunked.push(myMessage)
-    } )
+    })
     return chunked
 }
 
@@ -93,34 +107,34 @@ let searchItem = (shop, item) => {
     return yea
 }
 
-let list2str2 = (list) => {
+function list2str2(list) {
     if (typeof list == 'object') {
-        return "["+list.join(",")+"]"
+        return "[" + list.join(",") + "]"
     }
     else if (typeof list == 'string') {
-        return "["+list+"]"
+        return "[" + list + "]"
     }
 }
 
-let str2list = (str) => {
+function str2list(str) {
     if (str == undefined || str == "" || str == "[]") return []
     else return str.replace("[", "").replace("]", "").split(",")
 }
 
-let serialize = (str) => {
+function serialize(str) {
     return JSON.stringify(str)
 }
 
-let deserialize = (str) => {
+function deserialize(str) {
     return JSON.parse(str)
 }
 
-let checkIfBot = (user) => {
+function checkIfBot(user) {
     if (user == undefined || user.bot) return
     return user
 }
 
-let searchUser = async (client, message, messageArgs) => {
+async function searchUser(client, message, messageArgs) {
     let mentionsArray = Array.from(message.mentions.users.values())
     let yea
     if (mentionsArray[0] !== undefined) {
@@ -135,7 +149,7 @@ let searchUser = async (client, message, messageArgs) => {
             client.users.fetch(firstArgument).then(resolved => yea = resolved)
         }
         let thisArr = []
-        messageArgs.forEach( async it => {
+        messageArgs.forEach(async (it) => {
             thisArr.push(it)
             let thisSearch = thisArr.join(" ")
             // prioritaze 
@@ -147,7 +161,7 @@ let searchUser = async (client, message, messageArgs) => {
             else {
                 // do the same but for includes
                 let tmpReturn2 = message.guild.members.cache.find(member => !member.user.bot && (member.user.username.toLowerCase().startsWith(thisSearch) || ((member.nickname !== null && member.nickname !== undefined) && (member.nickname.toLowerCase().startsWith(thisSearch)))))
-                if (tmpReturn2) { yea = tmpReturn2.user; return }
+                if (tmpReturn2) { yea = tmpReturn2.user; return} 
             }
         })
     }
@@ -169,19 +183,19 @@ function convertMS(ms) {
     return result;
   };
 
-let parseSteamID = (input) => {
+function parseSteamID(input) {
     return new Promise(async (resolve, reject) => {
-        let parsed = input.match(/^(((http(s){0,1}:\/\/){0,1}(www\.){0,1})steamcommunity\.com\/(id|profiles)\/){0,1}(?<parsed>[A-Z0-9-_]+)(\/{0,1}.{0,})$/i);
+        let parsed = input.match(/^(((http(s){0,1}:\/\/){0,1}(www\.){0,1})steamcommunity\.com\/(id|profiles)\/){0,1}(?<parsed>[A-Z0-9-_]+)(\/{0,1}.{0,})$/i)
         if (!parsed) {
-            reject("Failed to parse SteamID");
-            return;
+            reject("Failed to parse SteamID")
+            return
         }
 
-        let sid = undefined;
+        let sid = undefined
         try {
-            sid = new SteamID(parsed.groups.parsed);
+            sid = new SteamID(parsed.groups.parsed)
             if (sid.isValid() && sid.instance === 1 && sid.type === 1 && sid.universe === 1) {
-                resolve(sid);
+                resolve(sid)
             }
             //else {
             //    reject("Failed to Parse SteamID")
@@ -190,7 +204,7 @@ let parseSteamID = (input) => {
 
         // If all of this is true the above one resolved
         if (sid && sid.isValid() && sid.instance === 1 && sid.type === 1 && sid.universe === 1) {
-            return;
+            return
         }
         let vanity = await api.getVanityUrl(parsed.groups.parsed)
         if (vanity == undefined) {
@@ -209,9 +223,11 @@ let parseSteamID = (input) => {
     })
 }
 
-let chunkArray = (arr, size) => arr.reduce((acc, e, i) => (i % size ? acc[acc.length - 1].push(e) : acc.push([e]), acc), []);
+function chunkArray(arr, size) {
+    return arr.reduce((acc, e, i) => (i % size ? acc[acc.length - 1].push(e) : acc.push([e]), acc), [])
+}
 
-let clamp = (min, max, value) => {
+function clamp(min, max, value) {
     if (value > max) return max
     if (value < min) return min
     return value
@@ -223,4 +239,4 @@ function sleep(ms) {
     });
   } 
 
-module.exports = {parseSteamID, convertMS, searchUser, str2list, list2str, getRandomElem, serialize, deserialize, list2str2, chunkArray, clamp, searchItem, attrGetter, Dictionary, chunkMessage, sleep}
+module.exports = {parseSteamID, convertMS, searchUser, str2list, list2str, getRandomElem, serialize, deserialize, list2str2, chunkArray, clamp, searchItem, attrGetter, Dictionary, chunkMessage, sleep, resolvePermissions}

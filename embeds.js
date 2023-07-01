@@ -7,7 +7,7 @@ const colorsMap = { "red": 0xb02020, "purple": 0x6b32a8, "yellow": 0xb6b83d, "gr
 let constructResultEmbed = (err, author, color = "red", title = ":x: Error") => {
     color = colorsMap[color]
     err = typeof err == "string" ? err.replace(/\uFFFD/g, '').replace('\s\s\s\s', '\s').replace(/[\u{0080}-\u{FFFF}]/gu, "").slice(0, 1999) : err
-    let embed = new discord.EmbedBuilder().setTimestamp(Date.now()).setAuthor({ name: author.tag, iconURL: author.displayAvatarURL() }).setDescription(err).setColor(color)
+    let embed = new discord.EmbedBuilder().setTimestamp(Date.now()).setAuthor({ name: author.username, iconURL: author.displayAvatarURL() }).setDescription(err).setColor(color)
     if (title != "") embed.setTitle(title)
     return embed
 }
@@ -19,7 +19,7 @@ let constructStatsBy = async (statsBy, client, message, args) => {
     let display
     foundUser != undefined ? display = foundUser.id : display = message.author.id
     let stats = database.getMinigamesStats(display)
-    let embed = new discord.EmbedBuilder().setAuthor({ name: message.author.tag, iconURL: message.author.displayAvatarURL() }).setColor(colorsMap["yellow"]).setTimestamp(Date.now()).setDescription(`${statsBy.capitalize()} stats of <@${display}>`)
+    let embed = new discord.EmbedBuilder().setAuthor({ name: message.author.username, iconURL: message.author.displayAvatarURL() }).setColor(colorsMap["yellow"]).setTimestamp(Date.now()).setDescription(`${statsBy.capitalize()} stats of <@${display}>`)
     let kpd
     let e = stats[`${statsBy}_won_games`] / stats[`${statsBy}_lost_games`]
     if (Number.isNaN(e)) kpd = 0
@@ -43,7 +43,7 @@ let constructUserProfile = async (requester, user) => {
     let profile = database.getUser(user.id)
     if (requesterProfile.madness < 3) {
         let embed = new discord.EmbedBuilder()
-        embed.setAuthor({ name: user.tag, iconURL: user.displayAvatarURL() })
+        embed.setAuthor({ name: user.username, iconURL: user.displayAvatarURL() })
         embed.setThumbnail(user.displayAvatarURL())
         embed.setTitle("Profile")
         let cheesePlace = database.getTopIndex("cheese", profile.user_id)
@@ -73,7 +73,7 @@ let constructCanRepEmbed = async (author) => {
     if (authorProfile.madness > 1) return
     let maxReps = database.getUserMaxReps(author.id)
     if (Date.now() - authorProfile.repTimestamp < 79200000 && utils.str2list(authorProfile.repToday).length >= maxReps) {
-        embed.setAuthor({ name: author.tag, iconURL: author.displayAvatarURL() })
+        embed.setAuthor({ name: author.username, iconURL: author.displayAvatarURL() })
         embed.setTitle(":x: Error")
         embed.setDescription(`You need to wait **${utils.convertMS(79200000 - (Date.now() - authorProfile.repTimestamp))}** before using this command again.`)
         embed.setColor(0xb02020)
@@ -96,7 +96,7 @@ let constructRepEmbed = async (message, author, user) => {
     let userProfile = database.getUser(user.id)
     let maxReps = database.getUserMaxReps(author.id)
     if (Date.now() - authorProfile.repTimestamp < 79200000 && utils.str2list(authorProfile.repToday).length >= maxReps) {
-        embed.setAuthor({ name: author.tag, iconURL: author.displayAvatarURL() })
+        embed.setAuthor({ name: author.username, iconURL: author.displayAvatarURL() })
         embed.setTitle(":x: Error")
         embed.setDescription(`You need to wait **${utils.convertMS(79200000 - (Date.now() - authorProfile.repTimestamp))}** before using this command again.`)
         embed.setColor(0xb02020)
@@ -128,7 +128,7 @@ let constructMinusRepEmbed = async (message, author, user) => {
     let userProfile = database.getUser(user.id)
     let maxReps = database.getUserMaxReps(author.id)
     if (Date.now() - authorProfile.repTimestamp < 79200000 && utils.str2list(authorProfile.repToday).length >= maxReps) {
-        embed.setAuthor({ name: author.tag, iconURL: author.displayAvatarURL() })
+        embed.setAuthor({ name: author.username, iconURL: author.displayAvatarURL() })
         embed.setTitle(":x: Error")
         embed.setDescription(`You need to wait **${utils.convertMS(79200000 - (Date.now() - authorProfile.repTimestamp))}** before using this command again.`)
         embed.setColor(0xb02020)
@@ -156,13 +156,13 @@ let constructDailyembed = async (user, giveTo) => {
     let profile = database.getUser(user.id)
     if (profile.madness > 1) return
     if (Date.now() - profile.dailyTimestamp < 79200000) {
-        embed.setAuthor({ name: user.tag, iconURL: user.displayAvatarURL() })
+        embed.setAuthor({ name: user.username, iconURL: user.displayAvatarURL() })
         embed.setTitle(":x: Error")
         embed.setDescription(`You need to wait **${utils.convertMS(79200000 - (Date.now() - profile.dailyTimestamp))}** before using this command again.`)
         embed.setColor(0xb02020)
     }
     else {
-        embed.setAuthor({ name: user.tag, iconURL: user.displayAvatarURL() })
+        embed.setAuthor({ name: user.username, iconURL: user.displayAvatarURL() })
         let cheese = Math.floor(Math.random() * 0.05 * 1000) / 1000
         let money = Math.floor(Math.random() * 200) + 10
         embed.setTitle("Daily")
